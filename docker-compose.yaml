@@ -1,0 +1,44 @@
+services:
+  client:
+    build: ./App/Client
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./App/Client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+
+  server:
+    build: ./App/Serveur
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
+    volumes:
+      - ./App/Serveur:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: m9tcg
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./App/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
