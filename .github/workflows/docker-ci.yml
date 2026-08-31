@@ -1,0 +1,41 @@
+name: Docker CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cloner le repo
+        uses: actions/checkout@v4
+
+      - name: Construire et démarrer les conteneurs
+        run: docker compose up --build -d
+
+      - name: Attendre que les services soient prêts
+        run: |
+          echo "Attente du serveur..."
+          for i in {1..15}; do
+            if curl -sf http://localhost:3000; then
+              echo "Serveur prêt !"
+              break
+            fi
+            echo "Tentative $i..."
+            sleep 2
+          done
+
+      - name: Vérifier l'état des conteneurs
+        run: docker compose ps
+
+      - name: Afficher les logs (utile en cas d'échec)
+        if: always()
+        run: docker compose logs
+
+      - name: Arrêter les conteneurs
+        if: always()
+        run: docker compose down -v
