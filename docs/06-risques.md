@@ -37,7 +37,7 @@ Les estimés de points par sprints ne sont pas atteints (estimé de 45 pts/sprin
 - Annuler certaines options négligeable.
 - Prioriser les tâches les plus importantes.
 - Faire une tâche à la fois.
-- Mieux répartir les tâches: certaines personnes sont plus confortables avec différentes technologies et prendront moins de temps que d'autres pour accomplir les tâches.
+- Mieux répartir les tâches: certaines personnes sont plus confortables avec différentes technologies et prendront moins de temps que d'autres pour accomplir les tâches
 
 ## Problème 4 : Logistique de prix 1$ de moins que l'offre la moins chère sur le Bazaar
 
