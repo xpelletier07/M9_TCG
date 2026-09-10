@@ -1,25 +1,22 @@
-## Où nous diriger : de quoi nous allons faire pour chaque sprint ?
-
-le premier sprint en veut faire l'infrastructure des pages et les maquettes. nos pages de nos maquettes sont près 
-
 ## Objectifs pour chaque sprint
 
-### Sprint 1
+| Sprint | Durée | Objectifs | Récits | Incrément démontrable |
+|--------|-------|-----------|--------|-----------------------|
+| 1 | ~3 semaines | Pages principales communes (login/signup, dashboard, inventaire) |  | Les utilisateurs peuvent s'inscrire, se connecter et voir les pages principales de l'app. |
+| 2 | ~3 semaines | Fonctionnalités principales (Bazaar, finition inventaire, deck builder), 2FA |  | Les utilisateurs peuvent voir leur inventaire. Le Bazaar est mostly fonctionnel, sauf peut être pour la systématique temps réelle des prix. |
+| 3 | ~5 semaines | Finition Bazaar. Système de drops. Système de combats. |  | Bazaar completement terminé. Le système de drops partagées est fonctionnel. Les combats dans l'arène sont possibles. |
 
-### Sprint 2
+## Capacité
+| Élément | Calcul |
+|---------|--------|
+| Blocs de cours | 6 * 3h = 18h |
+| Travail personnel | 3h/semaine * 3 semaines = 9h |
+| Total par personne | 9 + 18 = 27h |
+| Équipe de 5 | 27 * 5 = 135h |
+| Moins rituels et autres légères pertes de temps (~25%) | 135 * 0.75 = 101h|
+| Grand total | 101 heures de développement |
 
+Puisque nous n'avons jamais tous travaillé ensemble, il est difficile de déterminer la cadence avec laquelle nous allons pouvoir travailler. Notre premier réflexe est de dire qu'une tâche normale (2 pts) équivaut environ à 3hrs de travail. Avec cet estimé, nous pouvons vaguement nous donner une charge d'environ 45 points. Nous réduisons aussi ce chiffre de -30% en prennant en compte notre optimisme, tel que recommandé par notre professeur et ses notes de cours.
+( (101 / 1,5) * 2/3 = 44,44... ≈ 45) 
 
-### Sprint 3
-
-
-## Epics
-### implemetation de docker.
-### docs file contient des fichier qui explique se que nous allons faire et incluent les maquettes.
-### setup initial veut dire que nous allons faire en sorte de implement le server et le client side.
-### database postle sql trouve une solution pour implementer et gerer les donnees et les requetes.
-### Cree literamenet une hiérarchie des fichiers.
-### implementation du 2fa se qui est une double verfication de connexion.
-### le journal de bord sera un fichier pour documenter les actions que nous faisons chaque cours du projet.
-
-## total des points estimer pour l'instant
-Pour le Sprint 1, nous avons 5 points et une capacité de 1, car nous sommes 5 personnes pour 5 points. Donc, cela donne une capacité de 1 point par personne.
+## Ordre d'abandon
