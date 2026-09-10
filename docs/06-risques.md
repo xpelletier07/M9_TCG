@@ -3,7 +3,7 @@
 **Probabilité :**
 Très élevé
 **Impact :**
-Très élevé - Le manque de communication pourrait engendrer du travail en double, incomplet ou mal fait.
+Très élevé — Le manque de communication pourrait engendrer du travail en double, incomplet ou mal fait.
 **Le signal qui se matérialise :**
 On peut commencer à le remarquer lorsqu'on voit beaucoup d'imcompréhension de la part des autres ou à travers le manque d'action de ceux-ci.
 **Résolution et mesure :**
@@ -14,11 +14,11 @@ On peut commencer à le remarquer lorsqu'on voit beaucoup d'imcompréhension de 
 ## Problème 2: Les absences
 
 **Probabilité :**
-Il peut arriver que certaines personnes aillent des urgences de dernière minute ou des problèmes de santé.
+Moyenne
 **Impact :** 
-Elle peut toucher directement à la communication du groupe en sautant les informations face au projet que ce soit au changement, nouveauté et avancememt du projet.
+Élevée — Elle peut toucher directement à la communication du groupe en sautant les informations face au projet que ce soit au changement, nouveauté et avancememt du projet.
 **Le signal qui se matérialise :**
-Dû moment ou que quelqu'un à un imprévu que ce soit pour répondre dans le Discord ou pour se présenter en cours.
+Une personne s'absente trop de fois (+5) aux cours
 **Résolution et mesure :**
 - La personne qui va être absent doit faire part dans le Discord de son absence ou de son indisponibilité et d'en donner sa durée.
 - La personne va pouvoir récupérer les informations du ou des scrum manqué à travers les notes du secrétaire.
@@ -30,7 +30,7 @@ Dû moment ou que quelqu'un à un imprévu que ce soit pour répondre dans le Di
 **Probabilité :**
 Moyenne
 **Impact :**
-Élevé - Si le projet est trop gros (scope creep), plusieurs choses qu'on veut accomplir ne seront pas possibles et nous allons devoir abandonner certaines.
+Élevé — Si le projet est trop gros (scope creep), plusieurs choses qu'on veut accomplir ne seront pas possibles et nous allons devoir abandonner certaines.
 **Le signal qui se matérialise :**
 Les estimés de points par sprints ne sont pas atteints (estimé de 45 pts/sprint mais seulement 30 sont completés)
 **Résolution et mesure :**
@@ -42,7 +42,7 @@ Les estimés de points par sprints ne sont pas atteints (estimé de 45 pts/sprin
 ## Problème 4 : Logistique de prix 1$ de moins que l'offre la moins chère sur le Bazaar
 
 **Probabilité :** Moyenne
-**Impact :** Moyen - Si beaucoup de joueurs mettent une même offre dans un délai très court, des problèmes peuvent survenir dans la logistique d'offrir la carte la moins chère.
+**Impact :** Moyen — Si beaucoup de joueurs mettent une même offre dans un délai très court, des problèmes peuvent survenir dans la logistique d'offrir la carte la moins chère.
 **Le signal qui se matérialise :** Fluctuaction abusive des prix dans un court délai
 **Résolution et mesure :**
 - Ajouter un cap lorsque nécéssaire au nombre de transaction que notre stack peut gérer
