@@ -31,10 +31,10 @@ Nous considérons qu'un récit est terminé lorsque:
 - Garder les commits simples. Un commit par fonctionnalité ajoutée. Généralement un verbe et courte description de l'ajout.
 
 ## Contribution individuelle
-| Membre | Contributions à la soumission | 
-|--------|-------------------------------|
-| Alek | Rédaction des documents 02-backlog & 05-équipe. Double check de tous les autres documents.  |
-| Lotfi | Rédaction des documents 01-vision & 04-sprint. Tests de postgresql & début du setup de la BD. |
-| Marco | Rédaction du journal à chaque séance. Rédaction du document 06-risques. |
-| Xavier | Conception des issues et setup du projet GitHub. Setup du Docker. Setup du CI/CD |
-| William | Création du diagramme entité-relation. Rédaction du document 03-conception. |
+| Membre | Contributions à la soumission | Issues |
+|--------|-------------------------------|--------|
+| Alek | Rédaction des documents 02-backlog & 05-équipe. Double check de tous les autres documents.  | #25, #10, #12, #13 |
+| Lotfi | Rédaction des documents 01-vision & 04-sprint. Tests de postgresql & début du setup de la BD. | #9, #4 |
+| Marco | Rédaction du journal à chaque séance. Rédaction du document 06-risques. | #6, #14 |
+| Xavier | Conception des issues et setup du projet GitHub. Setup du Docker. Setup du CI/CD | #3, #5, #10 |
+| William | Création du diagramme entité-relation. Rédaction du document 03-conception. | #11 |
