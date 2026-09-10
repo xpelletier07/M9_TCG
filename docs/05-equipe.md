@@ -5,6 +5,8 @@
 | 2 |  |
 | 3 |  |
 
+**Product owner** : Xavier
+
 ## Rituels
 - **Melee/Scrum**: Au début de chaque cours de Projet 3, nous allons nous rencontrer pendant 10 minutes debout.
 - **Planification du sprint**: Au premier cours de chaque sprint, nous allons répartir les tâches à réaliser durant le sprint.
@@ -28,13 +30,11 @@ l'application démarre toujours avec Docker à partir d'un clone neuf.
 
 -->
 
-## Journal de sprint 0 ??
-
 ## Contribution individuelle
 | Membre | Contributions à la soumission | 
 |--------|-------------------------------|
-| Alek | stuff |
-| Lotfi | stuff |
-| Marco | stuff |
+| Alek | Rédaction des documents 02-backlog & 05-équipe. Double check de tous les autres documents.  |
+| Lotfi | Rédaction des documents 01-vision & 04-sprint. Tests de postgresql & début du setup de la BD. |
+| Marco | Rédaction du journal à chaque séance. Rédaction du document 06-risques. |
 | Xavier | stuff |
 | William | stuff |
