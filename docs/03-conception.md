@@ -69,4 +69,4 @@ Chemin menant au diagramme entité relation: ![Computer](diagrammes/v5diagramme_
 - **Options envisagées**: Render ou Microsoft Azure
 - **Décision**: Microsoft Azure
 - **Raison**: Render n'offre pas assez de bonnes performances pour les besoins de notre projet donc nous allons aller vers Microsoft Azure.
-- **Ce que ça coûte**: Le serveur ne pourra être hosté que lorsqu'on est étudiant et après nous devrons payer ou l'annuler. Microsoft Azure offre aussi les services gratuits jusqu'à un certain seuil d'utilisation, après lequel nous devrons payer.
+- **Ce que ça coûte**: Le serveur ne pourra être hosté que lorsqu'on est étudiant et après nous devrons payer ou l'annuler.
