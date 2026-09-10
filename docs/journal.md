@@ -26,6 +26,17 @@
 *Alek :* Les maquettes.
 *Marco :* La liste des risques.
 *Lotfi :* 01-vision
-*William :* 03-conception
+*William :* Commencé 03-conception
 - **Blocages :** Aucun
 - **Décisions :** Mise en place du système de points par tâche en équipes.
+
+#Semaine 4-1 | Jeudi 10 septembre 2026
+- **Absence :** Aucune
+- **Avancées :** Révision de tous se qu'on a fait jusqu'à présent et mise en place du système de point.
+*Xavier :* Continuation des issues et aide pour les autres.
+*Alek :* Rien.
+*Marco :* Journal du cours.
+*Lotfi :* Commencé 04-sprints.
+*William :* 03-conception
+- **Blocages :** Aucun
+- **Décisions :** Finaliser la remise.
