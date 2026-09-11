@@ -33,8 +33,8 @@ Nous considérons qu'un récit est terminé lorsque:
 ## Contribution individuelle
 | Membre | Contributions à la soumission | Issues |
 |--------|-------------------------------|--------|
-| Alek | Rédaction des documents 02-backlog & 05-équipe. Double check de tous les autres documents.  | #25, #10, #12, #13 |
-| Lotfi | Rédaction des documents 01-vision & 04-sprint. Tests de postgresql & début du setup de la BD. | #9, #4 |
-| Marco | Rédaction du journal à chaque séance. Rédaction du document 06-risques. | #6, #14 |
-| Xavier | Conception des issues et setup du projet GitHub. Setup du Docker. Setup du CI/CD | #3, #5, #10 |
-| William | Création du diagramme entité-relation. Rédaction du document 03-conception. | #11 |
+| Alek | Rédaction des documents 02-backlog & 05-équipe. Double check de tous les autres documents.  | [#25](https://github.com/xpelletier07/M9_TCG/issues/25), [#10](https://github.com/xpelletier07/M9_TCG/issues/10), [#12](https://github.com/xpelletier07/M9_TCG/issues/12), [#13](https://github.com/xpelletier07/M9_TCG/issues/13) |
+| Lotfi | Rédaction des documents 01-vision & 04-sprint. Tests de postgresql & début du setup de la BD. | [#9](https://github.com/xpelletier07/M9_TCG/issues/9), [#4](https://github.com/xpelletier07/M9_TCG/issues/4) |
+| Marco | Rédaction du journal à chaque séance. Rédaction du document 06-risques. | [#6](https://github.com/xpelletier07/M9_TCG/issues/6), [#14](https://github.com/xpelletier07/M9_TCG/issues/14) |
+| Xavier | Conception des issues et setup du projet GitHub. Setup du Docker. Setup du CI/CD | [#3](https://github.com/xpelletier07/M9_TCG/issues/3), [#5](https://github.com/xpelletier07/M9_TCG/issues/5), [#10](https://github.com/xpelletier07/M9_TCG/issues/10) |
+| William | Création du diagramme entité-relation. Rédaction du document 03-conception. | [#11](https://github.com/xpelletier07/M9_TCG/issues/11) |
