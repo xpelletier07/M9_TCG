@@ -37,6 +37,12 @@
 *Alek :* Rien.
 *Marco :* Journal du cours.
 *Lotfi :* Commencé 04-sprints.
-*William :* 03-conception
+*William :* Continuer 03-conception
 - **Blocages :** Aucun
 - **Décisions :** Finaliser la remise.
+
+#Semaine 4-2 | Lundi 14 septembre 2026
+- **Absence :** Retard d'une heure de Marco.
+- **Avancées :** Distribution des tâches pour le sprint 1.
+- **Blocages :** Aucun.
+- **Décisions :** Commencement du sprint 1
