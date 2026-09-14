@@ -1,22 +1,25 @@
 services:
   client:
-    build: ./App/Client
+    build: ./app/Client
     ports:
       - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3000
     volumes:
-      - ./App/Client:/app
+      - ./app/Client:/app
       - /app/node_modules
     depends_on:
       - server
 
   server:
-    build: ./App/Serveur
+    build: ./app/Serveur
     ports:
       - "3000:3000"
     environment:
+      PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
     volumes:
-      - ./App/Serveur:/app
+      - ./app/Serveur:/app
       - /app/node_modules
     depends_on:
       db:
@@ -33,7 +36,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./App/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./app/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
