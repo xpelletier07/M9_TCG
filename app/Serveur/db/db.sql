@@ -18,9 +18,9 @@ create table if not exists carte (
     description varchar(255),
     rarete int not null,
     valeur float not null,
-    mana int,
-    health int,
-    damage int
+    mana int not null,
+    health int not null,
+    damage int not null
 )
 
 
