@@ -1,0 +1,154 @@
+/* ── Layout d'une page utilisant la sidebar ───────────────────────────── */
+.tcg-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #363636;
+}
+
+.tcg-content {
+  flex: 1;
+  padding: 2rem;
+}
+.tcg-content h1 {
+  margin: 0 0 0.5rem;
+  color: #000000;
+}
+.tcg-content p {
+  color: #6b6b6b;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+.tcg-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+  transition: width 0.25s ease;
+  background-color: #ffffff;
+  border-right: 1px solid #dbdbdb;
+}
+
+.tcg-sidebar.collapsed {
+  width: 52px;
+}
+
+.tcg-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.75rem;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.tcg-icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  color: #0d2a6e;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+.tcg-icon-btn:hover {
+  background-color: #e8eefc;
+}
+
+.tcg-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 0.5rem;
+}
+
+.tcg-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tcg-menu-list li {
+  margin-bottom: 4px;
+}
+.tcg-menu-list a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+  padding: 0.5rem 0.75rem;
+  color: #0d2a6e;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.tcg-menu-list a i {
+  font-size: 1.1rem;
+  width: 1.2em;
+  text-align: center;
+}
+.tcg-menu-list a:hover {
+  background-color: #e8eefc;
+}
+.tcg-menu-list a.is-active {
+  background-color: #0d2a6e;
+  color: #ffffff;
+}
+
+.tcg-sidebar-footer {
+  padding: 0.75rem;
+}
+.tcg-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #cc0f35;
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+}
+.tcg-logout-btn:hover {
+  background-color: #b30d2e;
+}
+
+/* ── Thème sombre (appliqué sur <html>) ───────────────────────────────── */
+html.tcg-dark body,
+html.tcg-dark .tcg-layout {
+  background-color: #18191a;
+  color: #e4e6eb;
+}
+html.tcg-dark .tcg-content h1 {
+  color: #e4e6eb;
+}
+html.tcg-dark .tcg-content p {
+  color: #b0b3b8;
+}
+html.tcg-dark .tcg-sidebar {
+  background-color: #242526;
+  border-right-color: #3a3b3c;
+}
+html.tcg-dark .tcg-sidebar-header {
+  border-bottom-color: #3a3b3c;
+}
+html.tcg-dark .tcg-icon-btn {
+  color: #e4e6eb;
+}
+html.tcg-dark .tcg-icon-btn:hover {
+  background-color: #3a3b3c;
+}
+html.tcg-dark .tcg-menu-list a {
+  color: #e4e6eb;
+}
+html.tcg-dark .tcg-menu-list a:hover {
+  background-color: #3a3b3c;
+}
+html.tcg-dark .tcg-menu-list a.is-active {
+  background-color: #3a3b3c;
+  color: #ffffff;
+}

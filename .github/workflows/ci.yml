@@ -1,0 +1,71 @@
+# L'intégration continue de Quiz M9. GitHub exécute ce fichier à chaque push.
+#
+# Deux travaux (jobs), chacun sur une machine neuve :
+#   test   installe le projet et lance `npm test`. Rouge : le push a cassé
+#          quelque chose.
+#   image  construit les deux images Docker et les publie dans le registre
+#          de GitHub (ghcr.io). Il ne tourne que si `test` a réussi, et
+#          seulement sur la branche main : une régression ne produit jamais
+#          d'image.
+
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      # Ce qu'un coéquipier ferait sur une machine vide.
+      - run: npm ci
+      - run: npm test
+
+  image:
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # publier dans ghcr.io
+    steps:
+      - uses: actions/checkout@v7
+
+      # GITHUB_TOKEN est fourni par GitHub à chaque exécution : pas de secret
+      # à créer. Le nom du propriétaire doit être en minuscules pour ghcr.io.
+      - name: Se connecter au registre
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      # Trois tags par image : latest, le commit et la branche (main ou dev).
+      - name: Construire et publier les images
+        env:
+          REGISTRY: ghcr.io
+          OWNER: ${{ github.repository_owner }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          OWNER=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
+          SHA=sha-${GITHUB_SHA::7}
+
+          docker build -f app/Serveur/Dockerfile \
+            -t "$REGISTRY/$OWNER/m9-tcg-api:latest" \
+            -t "$REGISTRY/$OWNER/m9-tcg-api:$SHA" \
+            -t "$REGISTRY/$OWNER/m9-tcg-api:$BRANCH" \
+            app/Serveur
+          docker push --all-tags "$REGISTRY/$OWNER/m9-tcg-api"
+
+          docker build -f app/Client/Dockerfile \
+            -t "$REGISTRY/$OWNER/m9-tcg-client:latest" \
+            -t "$REGISTRY/$OWNER/m9-tcg-client:$SHA" \
+            -t "$REGISTRY/$OWNER/m9-tcg-client:$BRANCH" \
+            app/Client
+          docker push --all-tags "$REGISTRY/$OWNER/m9-tcg-client"
