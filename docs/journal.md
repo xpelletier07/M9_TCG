@@ -30,7 +30,7 @@
 - **Blocages :** Aucun
 - **Décisions :** Mise en place du système de points par tâche en équipes.
 
-#Semaine 4-1 | Jeudi 10 septembre 2026
+#Semaine 3-2 | Jeudi 10 septembre 2026
 - **Absence :** Aucune
 - **Avancées :** Révision de tous se qu'on a fait jusqu'à présent et mise en place du système de point.
 *Xavier :* Continuation des issues et aide pour les autres.
@@ -41,8 +41,19 @@
 - **Blocages :** Aucun
 - **Décisions :** Finaliser la remise.
 
-#Semaine 4-2 | Lundi 14 septembre 2026
+#Semaine 4-1 | Lundi 14 septembre 2026
 - **Absence :** Retard d'une heure de Marco.
 - **Avancées :** Distribution des tâches pour le sprint 1.
 - **Blocages :** Aucun.
 - **Décisions :** Commencement du sprint 1
+
+#Semaine num 4-2 | Jeudi 17 sdeptembre 2026
+- **Absence :** Aucune
+- **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
+*Xavier :* Fini le ducker et à fait une bonne parti du Github.
+*Alek :* 25% de page catalogue user de fait.
+*Marco :* Sidebar de fini
+*Lotfi :* 70% du dashboard de complété.
+*William :* 33% de l'inventaire de implémenté.
+- **Blocages :** Alek avait de la difficulté à rentrer dans la BD.
+- **Décisions :** Continuer à avancer dans nos tâches.
