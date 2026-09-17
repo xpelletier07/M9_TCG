@@ -9,3 +9,16 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     mot_de_passe_hash VARCHAR(255) NOT NULL,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- table pour les cartes
+create table if not exists carte (
+    idCarte serial primary key,
+    nomCarte varchar(255) not null,
+    image varchar(255) not null,
+    description varchar(255),
+    rarete int
+    -- valeur?
+    -- on ajoute tu les stats?
+)
+
+
