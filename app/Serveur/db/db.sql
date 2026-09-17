@@ -12,13 +12,15 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
 
 -- table pour les cartes
 create table if not exists carte (
-    idCarte serial primary key,
-    nomCarte varchar(255) not null,
+    id_carte serial primary key,
+    nom_carte varchar(255) not null,
     image varchar(255) not null,
     description varchar(255),
-    rarete int
-    -- valeur?
-    -- on ajoute tu les stats?
+    rarete int not null,
+    valeur float not null,
+    mana int,
+    health int,
+    damage int
 )
 
 
