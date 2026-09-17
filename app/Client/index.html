@@ -1,10 +1,44 @@
 <!doctype html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+    <title>M9 TCG - Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              /* Maisonneuve palette (primary blue + accent orange) */
+              "primary": "#0b5fff",
+              "primary-dark": "#0047b3",
+              "primary-container": "#e7f0ff",
+              "background": "#f0f6ff",
+              "surface": "#ffffff",
+              "on-primary": "#ffffff",
+              "on-background": "#023047",
+              "accent": "#0b5fff",
+              "accent-container": "#e7f0ff",
+              /* keep some semantic names from template mapped to maisonneuve values */
+              "surface-container-low": "#fff1ea",
+              "surface-container": "#feeae0",
+              "tertiary": "#006684"
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body { background-color: #fff8f5; }
+      .tcg-border { border: 1px solid rgba(35, 25, 20, 0.1); }
+      .tcg-border-active { border: 2px solid #0b5fff; }
+      .tcg-progress-segment { border-right: 1px solid #fff8f5; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

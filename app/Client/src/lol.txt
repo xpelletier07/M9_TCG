@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>M9 TCG Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-container-low": "#fff1ea",
+                "on-secondary-container": "#794829",
+                "on-error-container": "#93000a",
+                "on-tertiary": "#ffffff",
+                "on-secondary-fixed": "#321300",
+                "secondary-fixed": "#dbefff",
+                "on-secondary-fixed-variant": "#693b1d",
+                "tertiary-fixed": "#bde9ff",
+                "inverse-surface": "#392e28",
+                "outline": "#897266",
+                "surface-bright": "#fff8f5",
+                "outline-variant": "#ddc1b2",
+                "inverse-on-surface": "#ffede5",
+                "primary-fixed-dim": "#ffb68a",
+                "background": "#fff8f5",
+                "on-primary-fixed-variant": "#743500",
+                "surface-container-high": "#f8e4db",
+                "secondary": "#855232",
+                "tertiary-container": "#00b8ea",
+                "on-tertiary-fixed-variant": "#004d64",
+                "primary-container": "#e7f0ff",
+                "on-primary-fixed": "#321300",
+                "on-surface": "#231914",
+                "secondary-container": "#febb93",
+                "surface-container": "#feeae0",
+                "on-tertiary-container": "#004459",
+                "on-primary": "#ffffff",
+                "on-surface-variant": "#564337",
+                "on-secondary": "#ffffff",
+                "secondary-fixed-dim": "#fbb890",
+                "surface-container-highest": "#f2dfd5",
+                "surface-dim": "#e9d6cd",
+                "on-primary-container": "#682e00",
+                "on-error": "#ffffff",
+                "primary": "#984700",
+                "tertiary-fixed-dim": "#67d3ff",
+                "on-tertiary-fixed": "#001f2a",
+                "on-background": "#231914",
+                "inverse-primary": "#ffb68a",
+                "surface-variant": "#f2dfd5",
+                "error-container": "#ffdad6",
+                "surface": "#fff8f5",
+                "primary-fixed": "#dbefff",
+                "surface-container-lowest": "#ffffff",
+                "tertiary": "#006684",
+                "surface-tint": "#984700",
+                "error": "#ba1a1a"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "margin-desktop": "48px",
+                "sm": "8px",
+                "xs": "4px",
+                "base": "4px",
+                "md": "16px",
+                "lg": "24px",
+                "gutter": "20px",
+                "xl": "40px",
+                "margin-mobile": "16px"
+        },
+        "fontFamily": {
+                "headline-lg": [
+                        "Sora"
+                ],
+                "label-sm": [
+                        "Sora"
+                ],
+                "label-md": [
+                        "Sora"
+                ],
+                "body-lg": [
+                        "Sora"
+                ],
+                "headline-md": [
+                        "Sora"
+                ],
+                "body-md": [
+                        "Sora"
+                ],
+                "display-lg": [
+                        "Sora"
+                ],
+                "headline-lg-mobile": [
+                        "Sora"
+                ]
+        },
+        "fontSize": {
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "label-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.08em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "label-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "56px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "800"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "28px",
+                        {
+                                "lineHeight": "36px",
+                                "fontWeight": "700"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        body { background-color: #fff8f5; }
+        .tcg-border { border: 1px solid rgba(35, 25, 20, 0.1); }
+        .tcg-border-active { border: 2px solid #0b5fff; }
+        .tcg-progress-segment { border-right: 1px solid #fff8f5; }
+    </style>
+</head>
+<body class="font-body-md text-body-md text-on-background min-h-screen flex flex-col md:flex-row">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col h-full py-lg bg-white fixed left-0 top-0 w-64 border-r border-gray-200 z-50">
+<div class="px-lg mb-xl">
+<h1 class="font-headline-md text-headline-md text-primary-container font-black tracking-tighter">M9 TCG</h1>
+</div>
+<div class="px-lg mb-lg flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+<img alt="Player Rank Icon" class="w-full h-full object-cover" data-alt="A detailed digital illustration of a highly decorated military ranking badge or insignia, featuring metallic silver and deep blue tones, signifying a 'Grandmaster' rank in a competitive card game. Clean vector style, sharp lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzr-ZELaYB5RkDtyqcOmhZe_dWvj0xDbd26bj0XJTTO7NZBMz9wG75xYyxYu5YEQeyxQs-hm2cHYkO0cNuq18p7PmQ5ozfDS-_1EZx6pLrcSxFMAASn0jlZxIvgQnT1deM18r9ODnb5c_3YwV-kLcWGSx39hvDWG760apfftoHR_tm9cqJzGUgE5xlrt9AUgSs0k-Y80Rru-P6kwz47EV9q6AX4oVKrc1ke0Rgn8B9iNjqn9AF8ck"/>
+</div>
+<div>
+<div class="font-label-md text-label-md text-gray-900">Commander</div>
+<div class="font-label-sm text-label-sm text-gray-500">Rank: Grandmaster</div>
+</div>
+</div>
+<ul class="flex-1 px-sm space-y-sm">
+<li>
+<a class="flex items-center gap-md px-md py-sm bg-primary-container/10 text-primary-container rounded-none border-l-4 border-primary-container font-label-md text-label-md cursor-pointer active:scale-95 duration-100" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                    Home
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-gray-600 hover:bg-gray-100 transition-all rounded-none font-label-md text-label-md cursor-pointer active:scale-95 duration-100 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">style</span>
+                    Vault
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-gray-600 hover:bg-gray-100 transition-all rounded-none font-label-md text-label-md cursor-pointer active:scale-95 duration-100 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">storefront</span>
+                    Market
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-gray-600 hover:bg-gray-100 transition-all rounded-none font-label-md text-label-md cursor-pointer active:scale-95 duration-100 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">swords</span>
+                    Combat
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-gray-600 hover:bg-gray-100 transition-all rounded-none font-label-md text-label-md cursor-pointer active:scale-95 duration-100 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</li>
+</ul>
+<div class="px-lg mt-auto mb-lg">
+<button class="w-full bg-primary-container text-white py-sm font-label-md text-label-md flex items-center justify-center gap-sm active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">package</span>
+                Open Pack
+            </button>
+</div>
+<ul class="px-sm space-y-sm mt-auto">
+<li>
+<a class="flex items-center gap-md px-md py-sm text-gray-600 hover:bg-gray-100 transition-all rounded-none font-label-md text-label-md cursor-pointer active:scale-95 duration-100 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">help</span>
+                    Support
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm text-gray-600 hover:bg-gray-100 transition-all rounded-none font-label-md text-label-md cursor-pointer active:scale-95 duration-100 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Logout
+                </a>
+</li>
+</ul>
+</nav>
+<!-- TopAppBar Mobile Only -->
+<header class="md:hidden flex justify-between items-center w-full px-margin-mobile h-16 bg-surface-container-lowest dark:bg-inverse-surface border-b border-on-surface/10 fixed top-0 left-0 z-50">
+<h1 class="font-headline-md text-headline-md font-black tracking-tighter text-primary-container dark:text-primary-container">M9 TCG</h1>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary-container dark:text-primary-fixed cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-sm rounded-none">notifications</span>
+<span class="material-symbols-outlined text-primary-container dark:text-primary-fixed cursor-pointer active:opacity-80 hover:bg-surface-container-high transition-colors p-sm rounded-none">history</span>
+<div class="w-8 h-8 bg-surface-variant rounded overflow-hidden tcg-border ml-sm">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A small square avatar of a futuristic military commander wearing a tactical headset, rendered in a crisp, high-contrast illustrated style with orange and dark gray accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx9gOhuibGw0Dts1hddr34X-akjIhEorA0_DSTRKB_i5PaZitul9og4e2EyU_rVt73ZPaK7hzql71ybeBEP971koJP3Pe209n9gqY3t3VHsdvPrqwXEO1pSuAss8qXF_5gRHYoGuvhuZwYKeh72MkhhEm7pT5xUbCOkfAD5KDGSjrZ3Zff-7PKwAWQujd8V7s5YyY9gpaF0veOi3jtQB9uk4r3cpeeUjDojY26-W-a5iiiEYi4J7I"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 pt-16 md:pt-0 p-margin-mobile md:p-margin-desktop bg-background min-h-screen">
+<div class="max-w-7xl mx-auto space-y-xl">
+<!-- Top Dashboard Row -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Drop Commun -->
+<section class="lg:col-span-8 bg-surface-container-lowest tcg-border p-lg flex flex-col justify-between">
+<div class="flex justify-between items-start mb-lg">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold uppercase">Drop Commun</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Global Server Supply Drop Event</p>
+</div>
+<div class="bg-surface-container px-md py-sm flex items-center gap-sm tcg-border">
+<span class="material-symbols-outlined text-primary-container">timer</span>
+<span class="font-label-md text-label-md text-on-surface font-bold font-mono">04:12:59</span>
+</div>
+</div>
+<div class="relative h-48 bg-surface-container overflow-hidden flex items-center justify-center tcg-border">
+<img alt="Supply Drop Crate" class="absolute inset-0 w-full h-full object-cover opacity-80" data-alt="A wide shot of a massive, heavily armored cargo crate dropping into a futuristic industrial arena. The crate is metallic dark gray with glowing orange accents, surrounded by a subtle light blue energy field. The style is 3D rendered, highly detailed, high-contrast, professional e-sports aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ4GeZBPoyBd7ec25uPsNAO0UW3ns0g5pwO7WKP1GPntPy9350bSNySmGNd-yHlbyMay6eCMg9mFrIu9FXmZ78b4L1s4ZsFdhk9HUsjwo6JMjJ8f-_kWkHbHgas0FS-chiA_QnYb2nt-vPULAhVaC0mcaxyaHHGRqaBBvQsAUJTcWOLm2bjJ_fCQ14HauBXEmPm8uNi_iNGtXT-Q7ukKa0Il_vrSZIxny-0sge7ElatykcOocS5uk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="relative z-10 text-center">
+<div class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-primary font-black uppercase tracking-widest drop-shadow-md">Titan Cache</div>
+<div class="font-label-md text-label-md text-on-primary/90 uppercase tracking-widest mt-xs">Tier 3 Rewards</div>
+</div>
+</div>
+</section>
+<!-- Right Column: Booster Pack -->
+<section class="lg:col-span-4 bg-surface-container-lowest tcg-border p-lg flex flex-col items-center text-center justify-center relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-sm">
+<span class="bg-tertiary-container text-on-tertiary font-label-sm text-label-sm px-sm py-xs uppercase">New Series</span>
+</div>
+<div class="w-40 h-56 bg-surface-container mb-lg mt-md transform transition-transform group-hover:scale-105 duration-300 tcg-border-active shadow-lg relative">
+<img alt="Booster Pack" class="w-full h-full object-cover" data-alt="A stylized, unopened booster pack for a trading card game. The packaging is sleek white and dark gray, featuring a dynamic geometric illustration of a mech suit with bright orange and blue energetic highlights. High-contrast, clean, industrial design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnGQ4WMxaiDCfJIuRdMxMhTy9--xzp1n46OQxLqRdCvy1rnzwAv8fTEALmFGFi1xOEvGa5xw9oozzwVA3DVbF1_xkCKFlLlCkhjYceLKKstOoQGvbcPjHBJT_29d2QYOzXTkT7EW49Yp7-6k1onZdPk_3ZWVE7s88qq4lqdsp8HbnWW2YkqfDGJeoNq6ZNZTfBkf2geCg2fC191tPtqBpw0dysDYn1kU4GdNuD4x7EnRO4tQA2qR4"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold uppercase mb-xs">Core Set V.2</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">Contains 5 randomized tactical assets.</p>
+<button class="w-full bg-primary-container text-on-primary font-label-md text-label-md py-md uppercase tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-sm">
+<span>Open Pack</span>
+<span class="material-symbols-outlined">unarchive</span>
+</button>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-sm">Inventory: 14 available</div>
+</section>
+</div>
+<!-- Bottom Section: Match History -->
+<section class="bg-surface-container-lowest tcg-border p-lg">
+<div class="flex justify-between items-center mb-md border-b border-on-surface/10 pb-sm">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold uppercase">Combat Log</h2>
+<button class="font-label-md text-label-md text-tertiary-container uppercase hover:underline">View All</button>
+</div>
+<div class="space-y-sm">
+<!-- Match Item: Win -->
+<div class="flex items-center justify-between p-sm hover:bg-surface-container transition-colors border-b border-on-surface/5 last:border-0">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center tcg-border">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface font-bold uppercase">vs. Player_992</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Ranked Match • Sector 7</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-md text-label-md text-primary-container font-bold uppercase">Victory</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">+24 MMR</div>
+</div>
+</div>
+<!-- Match Item: Loss -->
+<div class="flex items-center justify-between p-sm hover:bg-surface-container transition-colors border-b border-on-surface/5 last:border-0">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center tcg-border">
+<span class="material-symbols-outlined text-surface-variant-darker">swords</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface font-bold uppercase">vs. xX_Sniper_Xx</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Ranked Match • Sector 3</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-md text-label-md text-on-surface-variant font-bold uppercase">Defeat</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">-12 MMR</div>
+</div>
+</div>
+<!-- Match Item: Win -->
+<div class="flex items-center justify-between p-sm hover:bg-surface-container transition-colors border-b border-on-surface/5 last:border-0">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center tcg-border">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface font-bold uppercase">vs. DeltaForce</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Casual Match • Outpost Alpha</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-md text-label-md text-primary-container font-bold uppercase">Victory</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">+5 XP</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>
