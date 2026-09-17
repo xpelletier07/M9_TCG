@@ -9,3 +9,10 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     mot_de_passe_hash VARCHAR(255) NOT NULL,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS inventaire_carte (
+
+    id_user SERIAL PRIMARY KEY,
+    id_carte INT NOT NULL,
+    quantite INT NOT NULL DEFAULT 1
+);
