@@ -1,20 +1,16 @@
 import express from "express";
 import cors from "cors";
-import pg from "pg";
-
-const { Pool } = pg;
+import { pool } from "./db/pool.js"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connexion à PostgreSQL (fournie par docker-compose via DATABASE_URL)
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
+// Importation des routes
+app.use("/collection", require("./routes/collection.js"))
 
 // Route de base
 app.get("/", (req, res) => {
