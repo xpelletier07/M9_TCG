@@ -1,0 +1,11 @@
+{
+  "name": "m9-tcg",
+  "private": true,
+  "workspaces": [
+    "app/Client",
+    "app/Serveur"
+  ],
+  "scripts": {
+    "test": "npm run build --workspace=client && npm test --workspace=serveur"
+  }
+}
