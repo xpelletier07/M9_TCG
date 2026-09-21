@@ -1,12 +1,10 @@
 # L'intégration continue de Quiz M9. GitHub exécute ce fichier à chaque push.
 #
 # Deux travaux (jobs), chacun sur une machine neuve :
-#   test   installe le projet et lance `npm test`. Rouge : le push a cassé
-#          quelque chose.
+#   test   installe le projet et lance `npm test`. Rouge : la PR est bloquée.
 #   image  construit les deux images Docker et les publie dans le registre
-#          de GitHub (ghcr.io). Il ne tourne que si `test` a réussi, et
-#          seulement sur la branche main : une régression ne produit jamais
-#          d'image.
+#          de GitHub (ghcr.io) après la fusion d'une PR vers main ou dev.
+#          Une PR non fusionnée ne publie jamais d'image.
 
 name: CI
 
@@ -46,7 +44,9 @@ jobs:
       - name: Se connecter au registre
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      # Trois tags par image : latest, le commit et la branche (main ou dev).
+      # Ce job est déclenché par le push créé lors de la fusion d'une PR.
+      # Chaque image reçoit un tag de commit et un tag de branche.
+      # Seule main reçoit latest : c'est la version publique stable.
       - name: Construire et publier les images
         env:
           REGISTRY: ghcr.io
@@ -55,17 +55,20 @@ jobs:
         run: |
           OWNER=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
           SHA=sha-${GITHUB_SHA::7}
+          TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-api:$SHA" -t "$REGISTRY/$OWNER/m9-tcg-api:$BRANCH")
+          CLIENT_TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-client:$SHA" -t "$REGISTRY/$OWNER/m9-tcg-client:$BRANCH")
+
+          if [ "$BRANCH" = "main" ]; then
+            TAGS+=(-t "$REGISTRY/$OWNER/m9-tcg-api:latest")
+            CLIENT_TAGS+=(-t "$REGISTRY/$OWNER/m9-tcg-client:latest")
+          fi
 
           docker build -f app/Serveur/Dockerfile \
-            -t "$REGISTRY/$OWNER/m9-tcg-api:latest" \
-            -t "$REGISTRY/$OWNER/m9-tcg-api:$SHA" \
-            -t "$REGISTRY/$OWNER/m9-tcg-api:$BRANCH" \
+            "${TAGS[@]}" \
             app/Serveur
           docker push --all-tags "$REGISTRY/$OWNER/m9-tcg-api"
 
           docker build -f app/Client/Dockerfile \
-            -t "$REGISTRY/$OWNER/m9-tcg-client:latest" \
-            -t "$REGISTRY/$OWNER/m9-tcg-client:$SHA" \
-            -t "$REGISTRY/$OWNER/m9-tcg-client:$BRANCH" \
+            "${CLIENT_TAGS[@]}" \
             app/Client
           docker push --all-tags "$REGISTRY/$OWNER/m9-tcg-client"
