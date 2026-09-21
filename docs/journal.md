@@ -57,3 +57,14 @@
 *William :* 33% de l'inventaire de implémenté.
 - **Blocages :** Alek avait de la difficulté à rentrer dans la BD.
 - **Décisions :** Continuer à avancer dans nos tâches.
+
+#Semaine num 5-1 | Lundi 21 sdeptembre 2026
+- **Absence :** Aucune
+- **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
+*Xavier :* Commencer à optimiser nos outils grâce à l'apprentissage du cours de web.
+*Alek :* Il a fait des routes et a set la base de données.
+*Marco :* Avancer à 50% des tâches d'inscriptions.
+*Lotfi :* Dashboard fini et ajout dans la BD.
+*William :* Modification du UML, route et interface de l'inventaire.
+- **Blocages :** Aucun
+- **Décisions :** Continuer à avancer dans nos tâches.
