@@ -18,6 +18,7 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
+      JWT_SECRET: ${JWT_SECRET:?la variable JWT_SECRET doit être définie dans un fichier .env}
     volumes:
       - ./app/Serveur:/app
       - /app/node_modules
