@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { pool } from "./db/pool.js"
 import collectionRouter from "./routes/collection.js"
+import authRouter from "./routes/auth.js"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ app.use(express.static("public"));
 
 // Importation des routes
 app.use("/collection", collectionRouter)
+app.use("/auth", authRouter)
 
 // Route de base
 app.get("/", (req, res) => {
