@@ -64,7 +64,7 @@ router.post("/add", async (req, res) => {
         // postgresql remplace $1 par la premiere valeur dans la liste donnée en 2e argument a .query, ici nomCarte. 
         const reponse = await pool.query(`insert into carte (nom_carte, image, description, rarete, valeur, mana, health, damage) 
             values ($1, $2, $3, $4, $5, $6, $7, $8)
-            returning id, nom`,
+            returning *`,
             [nomCarte, image, description, rarete, valeur, mana, health, damage])
         return res.status(201).json(reponse.rows[0])
     } catch (error) {
