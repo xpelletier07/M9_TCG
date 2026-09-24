@@ -7,5 +7,8 @@
   ],
   "scripts": {
     "test": "npm run build --workspace=client && npm test --workspace=serveur"
+  },
+  "dependencies": {
+    "express-validator": "^7.3.2"
   }
 }
