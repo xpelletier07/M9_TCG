@@ -20,6 +20,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/xpelletier07/M9_TCG.git"
 REPO_DIR_NAME="M9_TCG"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 step()  { printf "\n\033[1;36m==> %s\033[0m\n" "$1"; }
 ok()    { printf "    \033[1;32m[OK]\033[0m %s\n" "$1"; }
@@ -66,14 +67,26 @@ if [ "$docker_present" = false ]; then
         sudo apt-get install -y ca-certificates curl gnupg
 
         sudo install -m 0755 -d /etc/apt/keyrings
-        curl -fsSL "https://download.docker.com/linux/${distro_id}/gpg" | \
+                repo_id="debian"
+                if [ "$distro_id" = "ubuntu" ] || [[ "$distro_like" == *ubuntu* ]]; then
+                    repo_id="ubuntu"
+                fi
+                curl -fsSL "https://download.docker.com/linux/${repo_id}/gpg" | \
             sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
         arch="$(dpkg --print-architecture)"
-        codename="$(. /etc/os-release && echo "${VERSION_CODENAME}")"
+                codename="${VERSION_CODENAME:-}"
+                [ "$repo_id" = "ubuntu" ] && codename="${UBUNTU_CODENAME:-$codename}"
+                if [ -z "$codename" ]; then
+                        codename="$(lsb_release -cs 2>/dev/null || true)"
+                fi
+                if [ -z "$codename" ]; then
+                        err "Impossible de determiner le codename de la distribution."
+                        exit 1
+                fi
         echo \
-          "deb [arch=${arch} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${distro_id} ${codename} stable" | \
+                    "deb [arch=${arch} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${repo_id} ${codename} stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
         sudo apt-get update
@@ -134,11 +147,11 @@ fi
 # 5. Verify the engine responds
 # ---------------------------------------------------------------------------
 step "Verification du moteur Docker"
-DOCKER_CMD="docker"
+DOCKER_CMD=(docker)
 if [ "${NEED_NEWGRP:-false}" = true ]; then
-    DOCKER_CMD="sudo docker"
+    DOCKER_CMD=(sudo docker)
 fi
-if $DOCKER_CMD info >/dev/null 2>&1; then
+if "${DOCKER_CMD[@]}" info >/dev/null 2>&1; then
     ok "Moteur Docker repond"
 else
     err "Le moteur Docker ne repond pas. Verifie 'sudo systemctl status docker' pour le detail."
@@ -150,6 +163,9 @@ fi
 # ---------------------------------------------------------------------------
 step "Verification du depot M9_TCG"
 if [ -d ".git" ]; then
+    ok "Deja a la racine du depot"
+elif [ -d "$SCRIPT_DIR/../.." ] && [ -d "$SCRIPT_DIR/../../.git" ]; then
+    cd "$SCRIPT_DIR/../.."
     ok "Deja a la racine du depot"
 else
     if [ -d "$REPO_DIR_NAME" ]; then
@@ -180,12 +196,12 @@ done < <(find . -name ".env.example" -print0)
 # 8. Build & start the stack
 # ---------------------------------------------------------------------------
 step "Build et lancement des containers (client, server, db)"
-$DOCKER_CMD compose build
-$DOCKER_CMD compose up -d
+"${DOCKER_CMD[@]}" compose build
+"${DOCKER_CMD[@]}" compose up -d --force-recreate --renew-anon-volumes
 
 echo ""
-ok "Termine. Verifie l'etat avec: docker compose ps"
-ok "Logs en direct: docker compose logs -f"
+ok "Termine. Verifie l'etat avec: ${DOCKER_CMD[*]} compose ps"
+ok "Logs en direct: ${DOCKER_CMD[*]} compose logs -f"
 if [ "${NEED_NEWGRP:-false}" = true ]; then
     warn "Rappel: deconnecte-toi/reconnecte-toi (ou 'newgrp docker') pour utiliser 'docker' sans sudo la prochaine fois."
 fi
