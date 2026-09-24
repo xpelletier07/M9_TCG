@@ -51,8 +51,23 @@ router.get("/all", async (req, res) => {
     }
 })
 
+// GET pour obtenir une carte spécifique
+router.get("/:id", async (req, res) => {
+    try {
+        const id_carte = req.params.id
+        const result = await pool.query("select * from carte where id_carte = $1", [id_carte])
+        if (!result.ok){
+            return res.status(404).json({ erreur: "Id non trouvé dans la bd."})
+        }
+        res.status(200).json(result)
+    } catch (error) {
+        console.error("Erreur dans /collection/:id", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    }
+})
+
 // POST pour ajouter de nouvelles cartes
-router.post("/add", async (req, res) => {
+router.post("/newCard", async (req, res) => {
     try {
         const { nomCarte, image, description, rarete, valeur, mana, health, damage } = req.body
         const resultat = validationResult(req)
@@ -72,3 +87,5 @@ router.post("/add", async (req, res) => {
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
+
+export default router 
