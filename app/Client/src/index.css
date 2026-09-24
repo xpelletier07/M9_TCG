@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -77,20 +79,24 @@ h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
+
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
   }
 }
+
 h2 {
   font-size: 24px;
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
+
   @media (max-width: 1024px) {
     font-size: 20px;
   }
 }
+
 p {
   margin: 0;
 }
@@ -108,4 +114,69 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* ── Page Inventaire ─────────────────────────────────────────────────────── */
+.content-left-spacing {
+  flex: 1;
+  padding: 2.5rem 4rem 2rem;
+  text-align: left;
+}
+
+.inventory-title {
+  margin: 0 0 0.5rem;
+  font-family: 'Inter', var(--sans);
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  color: #111827;
+  text-align: left;
+}
+
+.inventory-subtitle {
+  margin: 0;
+  max-width: 480px;
+  font-family: 'Inter', var(--sans);
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: #6b7280;
+  text-align: left;
+}
+
+.inventory-divider {
+  width: 100%;
+  margin: 2rem 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Thème sombre pour l'inventaire */
+html.tcg-dark .inventory-title {
+  color: #f3f4f6;
+}
+
+html.tcg-dark .inventory-subtitle {
+  color: #9ca3af;
+}
+
+html.tcg-dark .inventory-divider {
+  border-top-color: #2e303a;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .content-left-spacing {
+    padding: 1.5rem 2rem;
+  }
+
+  .inventory-title {
+    font-size: 1.85rem;
+  }
+
+  .inventory-subtitle {
+    font-size: 0.875rem;
+  }
 }
