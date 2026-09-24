@@ -68,3 +68,25 @@
 *William :* Modification du UML, route et interface de l'inventaire.
 - **Blocages :** Aucun
 - **Décisions :** Continuer à avancer dans nos tâches.
+
+#Semaine num 5-2 | Jeudi 24 sdeptembre 2026
+- **Absence :** Aucune
+- **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
+*Xavier :* Déploiment des container docker, des relaise automatique et du débug.
+*Alek :*  Set up l'achitecture coté clien avec le router, reorganisation des fichiers et avancement dans collection.
+*Marco :* Page inscription et connexion.
+*Lotfi :* Des routes pour les packs, fixer client et ajouter une colonne dans la table pack.
+*William :* Les routes pour inventaire et carte.
+- **Blocages :** Problème avec une des image de Xavier.
+- **Décisions :** Continuer à avancer dans nos tâches.
+
+#Semaine num 6-1 | Lundi 28 sdeptembre 2026
+- **Absence :** Aucune
+- **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
+*Xavier :* 
+*Alek :* 
+*Marco :* 
+*Lotfi :* 
+*William :* 
+- **Blocages :** Aucun
+- **Décisions :** Continuer à avancer dans nos tâches.
