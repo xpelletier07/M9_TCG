@@ -1,5 +1,6 @@
 import React from 'react'
-import dropImg from '../images.jpg'
+
+const FALLBACK_DROP_IMAGE = 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80'
 
 export default function DropSection(){
   return (
@@ -15,7 +16,7 @@ export default function DropSection(){
         </div>
       </div>
       <div className="relative h-48 bg-surface-container overflow-hidden flex items-center justify-center">
-        <img alt="Supply Drop Crate" className="absolute inset-0 w-full h-full object-cover opacity-80" src={dropImg} />
+        <img alt="Supply Drop Crate" className="absolute inset-0 w-full h-full object-cover opacity-80" src={FALLBACK_DROP_IMAGE} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         <div className="relative z-10 text-center">
           <div className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-primary font-black uppercase tracking-widest drop-shadow-md">M9 cache</div>

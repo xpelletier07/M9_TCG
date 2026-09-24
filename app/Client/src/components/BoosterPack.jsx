@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import dropImg from '../images.jpg'
 
 const API_URL = 'http://localhost:3000'
 
