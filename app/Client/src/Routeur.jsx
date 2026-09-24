@@ -17,3 +17,5 @@ function Routeur() {
         </BrowserRouter>
     )
 }
+
+export default Routeur
