@@ -1,3 +1,14 @@
+.tcg-app-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.tcg-main-shell {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── Layout d'une page utilisant la sidebar ───────────────────────────── */
 .tcg-layout {
   display: flex;

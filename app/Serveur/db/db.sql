@@ -24,13 +24,17 @@ create table if not exists carte (
 );
 
 
-
+DROP TABLE IF EXISTS Packs;
 
 CREATE TABLE IF NOT EXISTS Packs (
     id_pack SERIAL PRIMARY KEY,
     nom_pack VARCHAR(100) UNIQUE NOT NULL,
     image_pack VARCHAR(255) NOT NULL,
     description_pack TEXT NOT NULL,
-    liste_carte  VARCHAR(255)[] NOT NULL,
-    valeur_pack DECIMAL(10, 2) NOT NULL
+    liste_carte VARCHAR(255)[] NOT NULL,
+    valeur_pack DECIMAL(10, 2) NOT NULL,
+    actif BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+ALTER TABLE IF EXISTS Packs
+ADD COLUMN IF NOT EXISTS actif BOOLEAN NOT NULL DEFAULT TRUE;
