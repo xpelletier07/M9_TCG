@@ -7,7 +7,6 @@ services:
       VITE_API_URL: http://localhost:3000
     volumes:
       - ./app/Client:/app
-      - /app/node_modules
     depends_on:
       - server
 
@@ -21,7 +20,6 @@ services:
       JWT_SECRET: ${JWT_SECRET:?la variable JWT_SECRET doit être définie dans un fichier .env}
     volumes:
       - ./app/Serveur:/app
-      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy

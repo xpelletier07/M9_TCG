@@ -67,7 +67,7 @@ router.get("/:id", async (req, res) => {
 })
 
 // POST pour ajouter de nouvelles cartes
-router.post("/newCard", async (req, res) => {
+router.post("/carte", async (req, res) => {
     try {
         const { nomCarte, image, description, rarete, valeur, mana, health, damage } = req.body
         const resultat = validationResult(req)
