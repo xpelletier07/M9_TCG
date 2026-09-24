@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 function Collection() {
-    const serveur = "https://musicstoreapi.herokuapp.com"
+    const serveur = ""
     const [albums, setAllAlbums] = useState(null)
     const [artistes, setAllArtistes] = useState(null)
     const [albumsFiltres, setAlbums] = useState(null)
