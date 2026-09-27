@@ -21,6 +21,25 @@ create table if not exists carte (
     mana int not null,
     health int not null,
     damage int not null
-)
+);
 
+create table if not exists inventaire_carte (
+    id_utilisateur int not null references utilisateurs(id) on delete cascade,
+    id_carte int not null references carte(id_carte) on delete cascade,
+    quantite int not null default 1 check (quantite > 0),
+    primary key (id_utilisateur, id_carte)
+);
 
+create table if not exists deck (
+    id_deck serial primary key,
+    id_utilisateur int not null references utilisateurs(id) on delete cascade,
+    nom_deck varchar(100) not null,
+    cree_le timestamp not null default now()
+);
+
+create table if not exists deck_carte (
+    id_deck int not null references deck(id_deck) on delete cascade,
+    id_carte int not null references carte(id_carte) on delete cascade,
+    quantite int not null default 1 check (quantite > 0),
+    primary key (id_deck, id_carte)
+);
