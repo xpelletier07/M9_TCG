@@ -1,21 +1,32 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import Collection from "./Pages/Collection"
-import Inventaire from "./inventaire"
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import AppLayout from './layouts/AppLayout.jsx'
+import { AuthProvider } from './auth/AuthContext.jsx'
+import ProtectedRoute from './auth/ProtectedRoute.jsx'
+import Login from './pages/auth/Login.jsx'
+import Signup from './pages/auth/Signup.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Collection from './pages/Collection.jsx'
+import Bazaar from './pages/Bazaar.jsx'
+import Inventaire from './pages/Inventaire.jsx'
+import Combat from './pages/Combat.jsx'
 
 function Routeur() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/collection" element={<Collection />} />
-                <Route path="/inventaire" element={<Inventaire />} />
-                {/* 
-                    Insérer vos pages ici, au dessus du Route path="*"
-                */}
-                <Route path="*" element={
-                    <div className="section has-text-centered">Page non trouvée</div>
-                }
-                />
-            </Routes>
+            <AuthProvider>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                        <Route index element={<Dashboard />} />
+                        <Route path="collection" element={<Collection />} />
+                        <Route path="bazaar" element={<Bazaar />} />
+                        <Route path="inventaire" element={<Inventaire />} />
+                        <Route path="combat" element={<Combat />} />
+                    </Route>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </AuthProvider>
         </BrowserRouter>
     )
 }
