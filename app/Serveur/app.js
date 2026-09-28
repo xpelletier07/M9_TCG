@@ -14,7 +14,7 @@ app.use(express.static("public"));
 
 // Importation des routes
 app.use("/collection", collectionRouter)
-app.use("/inv", inventoryRouter)
+app.use("/inventory", inventoryRouter)
 app.use("/auth", checkAuth)
 
 // Route de base

@@ -19,7 +19,7 @@ router.get("/cards", async (req, res) => {
         )
         res.json(result.rows)
     } catch (error) {
-        console.error("Erreur dans /inv/cards", error)
+        console.error("Erreur dans /inventory/cards", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
@@ -38,7 +38,7 @@ router.get("/decks", async (req, res) => {
         )
         res.json(result.rows)
     } catch (error) {
-        console.error("Erreur dans /inv/decks", error)
+        console.error("Erreur dans /inventory/decks", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
@@ -67,7 +67,7 @@ router.get("/decks/:id", async (req, res) => {
 
         res.json(result.rows[0])
     } catch (error) {
-        console.error("Erreur dans /inv/getDeck/:id", error)
+        console.error("Erreur dans /inventory/getDeck/:id", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
@@ -88,7 +88,7 @@ router.post("/decks", async (req, res) => {
         )
         res.status(201).json(result.rows[0])
     } catch (error) {
-        console.error("Erreur dans /inv/decks", error)
+        console.error("Erreur dans /inventory/decks", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
@@ -148,7 +148,7 @@ router.post("/decks/:id/cards/:idCarte", async (req, res) => {
         res.status(201).json(result.rows[0])
     } catch (error) {
         await client.query("rollback")
-        console.error("Erreur dans /inv/decks/:id/cards/:idCarte", error)
+        console.error("Erreur dans /inventory/decks/:id/cards/:idCarte", error)
         res.status(500).json({ error: "Erreur serveur" })
     } finally {
         client.release()
@@ -174,7 +174,7 @@ router.delete("/decks/:id/cards/:idCarte", async (req, res) => {
 
         res.status(204).send()
     } catch (error) {
-        console.error("Erreur dans /inv/decks/:id/cards/:idCarte", error)
+        console.error("Erreur dans /inventory/decks/:id/cards/:idCarte", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
@@ -200,7 +200,7 @@ router.patch("/decks/:id", async (req, res) => {
 
         res.json(result.rows[0])
     } catch (error) {
-        console.error("Erreur dans /inv/decks/:id", error)
+        console.error("Erreur dans /inventory/decks/:id", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
@@ -218,7 +218,7 @@ router.delete("/decks/:id", async (req, res) => {
 
         res.status(204).send()
     } catch (error) {
-        console.error("Erreur dans /inv/decks/:id", error)
+        console.error("Erreur dans /inventory/decks/:id", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
