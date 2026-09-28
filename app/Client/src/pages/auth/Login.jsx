@@ -38,7 +38,7 @@ export default function Login() {
       }
 
       login(data.user, data.token)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError('Impossible de contacter le serveur')
     } finally {

@@ -21,8 +21,7 @@ create table if not exists carte (
     mana int not null,
     health int not null,
     damage int not null
-)
-
+);
 
 DROP TABLE IF EXISTS Packs;
 
@@ -38,3 +37,12 @@ CREATE TABLE IF NOT EXISTS Packs (
 
 ALTER TABLE IF EXISTS Packs
 ADD COLUMN IF NOT EXISTS actif BOOLEAN NOT NULL DEFAULT TRUE;
+
+DROP TABLE IF EXISTS inventaire_packs;
+
+CREATE TABLE IF NOT EXISTS inventaire_packs (
+    id_utilisateur int references utilisateurs(id) on delete cascade,
+    id_pack int references Packs(id_pack) on delete cascade,
+    quantite int not null default 1,
+    primary key (id_utilisateur, id_pack)
+);

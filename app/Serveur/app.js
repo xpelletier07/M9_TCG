@@ -4,6 +4,7 @@ import { pool } from "./db/pool.js"
 import collectionRouter from "./routes/collection.js";
 import packsRouter from "./routes/Packs.js";
 import checkAuth from "./routes/auth.js"
+import inventairePackRouter from "./routes/inventairePack.js"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +17,7 @@ app.use(express.static("public"));
 app.use("/collection", collectionRouter)
 app.use("/pack", packsRouter)
 app.use("/auth", checkAuth)
+app.use("/inventaire-pack", inventairePackRouter)
 
 // Route de base
 app.get("/", (req, res) => {
@@ -37,6 +39,19 @@ app.get("/api/db-check", async (req, res) => {
     res.status(500).json({ db: "error", message: err.message });
   }
 });
+
+app.get("/api/drop-timer", (req, res) => {
+  const cycleSeconds = 5 * 60
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  const remainingSeconds = cycleSeconds - (nowSeconds % cycleSeconds)
+  const resetAt = new Date((nowSeconds + remainingSeconds) * 1000).toISOString()
+
+  res.json({
+    cycleSeconds,
+    remainingSeconds,
+    resetAt,
+  })
+})
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

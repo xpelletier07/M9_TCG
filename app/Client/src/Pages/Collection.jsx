@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from '../config'
 
 function Collection() {
-    const serveur = ""
     const [albums, setAllAlbums] = useState(null)
     const [artistes, setAllArtistes] = useState(null)
     const [albumsFiltres, setAlbums] = useState(null)
@@ -11,7 +11,7 @@ function Collection() {
     // useEffect pour récuperer les albums au chargement de la page
     useEffect(() => {
         async function getCartes() {
-            const reponse = await fetch(`${serveur}/albums`)
+            const reponse = await fetch(`${API_BASE_URL}/albums`)
             if (reponse.ok) {
                 const data = await reponse.json()
                 setAllAlbums(data)
@@ -19,13 +19,13 @@ function Collection() {
             }
         }
 
-        getAlbums().then(() => { console.log("albums récupérés de l'API") })
+        getCartes().then(() => { console.log("albums récupérés de l'API") })
     }, [])
 
     // useEffect pour récuperer les noms d'artistes de l'API
     useEffect(() => {
         async function getArtistes() {
-            const reponse = await fetch(`${serveur}/artistes`)
+            const reponse = await fetch(`${API_BASE_URL}/artistes`)
             if (reponse.ok) {
                 const data = await reponse.json()
                 setAllArtistes(data)

@@ -2,7 +2,6 @@ import React from 'react'
 import DropSection from './DropSection'
 import BoosterPack from './BoosterPack'
 import CombatLog from './CombatLog'
-import Sidebar from '../sidebar/Sidebar'
 
 export default function MainContent(){
   return (
