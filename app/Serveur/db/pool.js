@@ -5,6 +5,4 @@ import pg from "pg";
 const { Pool } = pg;
 
 // Connexion à PostgreSQL (fournie par docker-compose via DATABASE_URL)
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
