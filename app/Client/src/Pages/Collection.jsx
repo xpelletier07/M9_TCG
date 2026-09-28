@@ -47,7 +47,7 @@ function Collection() {
                 resultats = resultats.filter((a) => a.rarete == rarete)
             }
             if (vie !== "") {
-                resultats = resultats.filter((a) => a.health == rarete)
+                resultats = resultats.filter((a) => a.health == vie)
             }
 
             // cherche tous les cartes qui ont le nom choisi, appliqué par dessus les autres filtres
@@ -62,7 +62,7 @@ function Collection() {
     }, [nomCarte, mana, dmg, rarete, vie, cartes])
 
     return (
-        <>
+        <main className="content-left-spacing">
             <div className="container">
                 <div className="section">
                     <div className="columns">
@@ -196,7 +196,7 @@ function Collection() {
                     }
                 </div>
             </div>
-        </>
+        </main>
     )
 }
 
