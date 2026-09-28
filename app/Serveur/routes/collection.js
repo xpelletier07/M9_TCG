@@ -56,8 +56,8 @@ router.get("/:id", async (req, res) => {
     try {
         const id_carte = req.params.id
         const result = await pool.query("select * from carte where id_carte = $1", [id_carte])
-        if (!result.ok){
-            return res.status(404).json({ erreur: "Id non trouvé dans la bd."})
+        if (!result.ok) {
+            return res.status(404).json({ erreur: "Id non trouvé dans la bd." })
         }
         res.status(200).json(result)
     } catch (error) {
@@ -88,4 +88,4 @@ router.post("/newCard", async (req, res) => {
     }
 })
 
-export default router 
+export default router
