@@ -9,6 +9,12 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     mot_de_passe_hash VARCHAR(255) NOT NULL,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW()
 );
+-- Ce bloc DO $$ ... $$ permet d'afficher un message dans les logs de PostgreSQL pour indiquer que la table a été créée avec succès.
+DO $$
+BEGIN
+    RAISE NOTICE 'Table utilisateurs successfully created';
+END
+$$;
 
 -- table pour les cartes
 create table if not exists carte (
@@ -21,6 +27,49 @@ create table if not exists carte (
     mana int not null,
     health int not null,
     damage int not null
-)
+);
 
+DO $$
+BEGIN
+    RAISE NOTICE 'Table carte successfully created';
+END
+$$;
 
+create table if not exists inventaire_carte (
+    id_utilisateur int not null references utilisateurs(id) on delete cascade,
+    id_carte int not null references carte(id_carte) on delete cascade,
+    quantite int not null default 1 check (quantite > 0),
+    primary key (id_utilisateur, id_carte)
+);
+
+DO $$
+BEGIN
+    RAISE NOTICE 'Table inventaire_carte successfully created';
+END
+$$;
+
+create table if not exists deck (
+    id_deck serial primary key,
+    id_utilisateur int not null references utilisateurs(id) on delete cascade,
+    nom_deck varchar(100) not null,
+    cree_le timestamp not null default now()
+);
+
+DO $$
+BEGIN
+    RAISE NOTICE 'Table deck successfully created';
+END
+$$;
+
+create table if not exists deck_carte (
+    id_deck int not null references deck(id_deck) on delete cascade,
+    id_carte int not null references carte(id_carte) on delete cascade,
+    quantite int not null default 1 check (quantite > 0),
+    primary key (id_deck, id_carte)
+);
+
+DO $$
+BEGIN
+    RAISE NOTICE 'Table deck_carte successfully created';
+END
+$$;

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { pool } from "./db/pool.js"
 import collectionRouter from "./routes/collection.js"
+import inventoryRouter from "./routes/inventory.js"
 import checkAuth from "./routes/auth.js"
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.static("public"));
 
 // Importation des routes
 app.use("/collection", collectionRouter)
+app.use("/inventory", inventoryRouter)
 app.use("/auth", checkAuth)
 
 // Route de base
