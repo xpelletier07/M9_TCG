@@ -52,13 +52,16 @@ body {
 }
 
 .nav-item {
+#root {
+  width: 100%;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
   color: #6b6b6b;
   text-decoration: none;
-}
+}}
 
 .nav-item:hover { background: rgba(11,95,255,0.03); color: #03396c }
 

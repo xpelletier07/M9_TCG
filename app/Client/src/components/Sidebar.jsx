@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import './Sidebar.css'
+import '../css/Sidebar.css'
 
 const navItems = [
   { key: 'accueil', label: 'Dashboard', icon: 'home' },

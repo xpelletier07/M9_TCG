@@ -3,6 +3,7 @@ import cors from "cors";
 import { pool } from "./db/pool.js"
 import collectionRouter from "./routes/collection.js";
 import packsRouter from "./routes/Packs.js";
+import checkAuth from "./routes/auth.js"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,8 @@ app.use(express.static("public"));
 // Importation des routes
 app.use("/collection", collectionRouter)
 app.use("/pack", packsRouter)
+app.use("/auth", checkAuth)
+
 // Route de base
 app.get("/", (req, res) => {
   res.json({ message: "M9 TCG API en ligne" });

@@ -59,16 +59,28 @@ $runningCount = ($runningContainers | Measure-Object).Count
 if ($totalCount -eq 0) {
     Write-Step "Aucun container trouve - creation et lancement de la stack"
     docker compose up -d --build
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "La creation ou le lancement de la stack a echoue."
+        exit 1
+    }
     Write-Ok "Stack creee et demarree"
 }
 elseif ($runningCount -eq 0) {
     Write-Step "Containers presents mais arretes - ouverture"
-    docker compose start
+    docker compose up -d --force-recreate --renew-anon-volumes
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Le demarrage de la stack a echoue."
+        exit 1
+    }
     Write-Ok "Stack demarree"
 }
 else {
     Write-Step "Containers en cours d'execution - fermeture"
     docker compose stop
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "L'arret de la stack a echoue."
+        exit 1
+    }
     Write-Ok "Stack arretee"
 }
 
