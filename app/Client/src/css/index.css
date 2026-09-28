@@ -146,7 +146,7 @@ code {
   width: 100%;
   margin: 2rem 0;
   border: none;
-  border-top: 1px solid #e5e7eb;
+  border-top: 2px solid #e5e7eb;
 }
 
 /* Thème sombre pour l'inventaire */
@@ -162,6 +162,66 @@ html.tcg-dark .inventory-divider {
   border-top-color: #2e303a;
 }
 
+/* Filtres */
+.filters {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.filter-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-select {
+  flex: 0 0 auto;
+}
+
+.filters .label {
+  font-family: 'Inter', var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.filter-input,
+.filters .input,
+.filters .select select {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.filters .input:focus,
+.filters .select select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+/* Thème sombre pour les filtres */
+html.tcg-dark .filters .label {
+  color: #d1d5db;
+}
+
+html.tcg-dark .filter-input,
+html.tcg-dark .filters .input,
+html.tcg-dark .filters .select select {
+  background-color: #1f2028;
+  border-color: #3f4150;
+  color: #f3f4f6;
+}
+
+html.tcg-dark .filters .input:focus,
+html.tcg-dark .filters .select select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+html.tcg-dark .filters .select::after {
+  border-color: #9ca3af;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .content-left-spacing {
@@ -174,5 +234,10 @@ html.tcg-dark .inventory-divider {
 
   .inventory-subtitle {
     font-size: 0.875rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

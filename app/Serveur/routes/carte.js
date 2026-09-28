@@ -14,3 +14,5 @@ router.get("/api/carte/:id", async (req, res) => {
         res.status(500).json({ message: "Erreur serveur" });
     }
 })
+
+export default router

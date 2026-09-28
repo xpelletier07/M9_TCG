@@ -16,16 +16,21 @@ function Inventaire() {
 
                 {/* Filtres */}
 
-                <div className='filters'>
-                    <div className="field">
-                        <label className="label">Rechercher nom</label>
+                <div className="filters">
+                    <div className="field filter-text">
+                        <label className="label">Filtres</label>
                         <div className="control">
                             <input className="input" type="text" placeholder="Text input" />
                         </div>
                     </div>
                 </div>
 
-                {/* Cartes */}
+                {/* Liste des Cartes */}
+                <div className="cards-container">
+
+                </div>
+
+
             </main>
         </div>
     )
