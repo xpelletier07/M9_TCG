@@ -54,12 +54,14 @@ router.get("/all", async (req, res) => {
 // GET pour obtenir une carte spécifique
 router.get("/:id", async (req, res) => {
     try {
-        const id_carte = req.params.id
+        const id_carte = Number(req.params.id)
         const result = await pool.query("select * from carte where id_carte = $1", [id_carte])
-        if (!result.ok){
+        // si aucuns résultats, erreur 404
+        if (result.rows.length === 0){
             return res.status(404).json({ erreur: "Id non trouvé dans la bd."})
         }
-        res.status(200).json(result)
+        // si résultat(s), affiche le premier seulement.
+        res.status(200).json(result.rows[0])
     } catch (error) {
         console.error("Erreur dans /collection/:id", error)
         res.status(500).json({ error: "Erreur serveur" })
@@ -67,13 +69,13 @@ router.get("/:id", async (req, res) => {
 })
 
 // POST pour ajouter de nouvelles cartes
-router.post("/carte", async (req, res) => {
+router.post("/carte", reglesCartes, async (req, res) => {
     try {
         const { nomCarte, image, description, rarete, valeur, mana, health, damage } = req.body
         const resultat = validationResult(req)
         // S'il y a des erreurs, renvoye une liste de toutes les erreurs
         if (!resultat.isEmpty()) {
-            return res.status(400).json({ erreurs: erreurs.array() })
+            return res.status(400).json({ erreurs: resultat.array() })
         }
         // les $1, $2, etc, sont une méthode incluse avec postgresql, qui aident a garder les accents, charactères spéciaux, et aussi à contrer les injections sql. 
         // postgresql remplace $1 par la premiere valeur dans la liste donnée en 2e argument a .query, ici nomCarte. 

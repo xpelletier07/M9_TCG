@@ -38,28 +38,28 @@ function Collection() {
 
             // applique les filtres de toutes les options en premier, puis le nom
             if (mana !== "") {
-                resultats = resultats.filter((a) => a.carte.mana === mana)
+                resultats = resultats.filter((a) => a.mana == mana)
             }
             if (dmg !== "") {
-                resultats = resultats.filter((a) => a.carte.damage === dmg)
+                resultats = resultats.filter((a) => a.damage == dmg)
             }
             if (rarete !== "") {
-                resultats = resultats.filter((a) => a.carte.rarete === rarete)
+                resultats = resultats.filter((a) => a.rarete == rarete)
             }
             if (vie !== "") {
-                resultats = resultats.filter((a) => a.carte.health === rarete)
+                resultats = resultats.filter((a) => a.health == rarete)
             }
 
             // cherche tous les cartes qui ont le nom choisi, appliqué par dessus les autres filtres
             if (nomCarte !== "") {
                 // change les cartes filtrés en prennant la liste déjà filtrée 
                 // filtre en comparant si le nom (en lower case) comprennent le contenu de la barre de recherche (en lower case)
-                resultats = resultats.filter((a) => a.nomCarte.toLowerCase().includes(nomCarte.toLowerCase()))
+                resultats = resultats.filter((a) => a.nom_carte.toLowerCase().includes(nomCarte.toLowerCase()))
             }
             setCartes(resultats)
         }
         filtrerCartes()
-    }, [nomCarte,])
+    }, [nomCarte, mana, dmg, rarete, vie, cartes])
 
     return (
         <>
@@ -90,7 +90,7 @@ function Collection() {
                             </div>
                             <div className="field-body">
                                 <div className="field">
-                                    <div className="control" style={{ minWidth: "200px" }}>
+                                    <div className="control" style={{ minWidth: "100px" }}>
                                         <div className="select is-fullwidth">
                                             <select onChange={(e) => setRarete(e.target.value)}>
                                                 <option></option>
@@ -111,7 +111,7 @@ function Collection() {
                             </div>
                             <div className="field-body">
                                 <div className="field">
-                                    <div className="control" style={{ minWidth: "200px" }}>
+                                    <div className="control" style={{ minWidth: "75px" }}>
                                         <div className="select is-fullwidth">
                                             <select onChange={(e) => setMana(e.target.value)}>
                                                 <option></option>
@@ -130,7 +130,7 @@ function Collection() {
                             </div>
                             <div className="field-body">
                                 <div className="field">
-                                    <div className="control" style={{ minWidth: "200px" }}>
+                                    <div className="control" style={{ minWidth: "75px" }}>
                                         <div className="select is-fullwidth">
                                             {cartes != null &&
                                                 <select onChange={(e) => setDmg(e.target.value)}>
@@ -152,7 +152,7 @@ function Collection() {
                             </div>
                             <div className="field-body">
                                 <div className="field">
-                                    <div className="control" style={{ minWidth: "200px" }}>
+                                    <div className="control" style={{ minWidth: "75px" }}>
                                         <div className="select is-fullwidth">
                                             {cartes != null &&
                                                 <select onChange={(e) => setVie(e.target.value)}>
@@ -177,13 +177,13 @@ function Collection() {
                                             <div className="card large">
                                                 <div className="card-image">
                                                     <figure className="image is-square">
-                                                        <img src={a.image} alt={`Image de la carte ${a.nomCarte}`} />
+                                                        <img src={a.image} alt={`Image de la carte ${a.nom_carte}`} />
                                                     </figure>
                                                 </div>
                                                 <div className="card-content">
                                                     <div className="media">
                                                         <div className="media-content">
-                                                            <p className="title is-4 no-padding">{a.nomCarte}</p>
+                                                            <p className="title is-4 no-padding">{a.nom_carte}</p>
                                                         </div>
                                                     </div>
                                                 </div>
