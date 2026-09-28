@@ -47,7 +47,7 @@
 - **Blocages :** Aucun.
 - **Décisions :** Commencement du sprint 1
 
-#Semaine num 4-2 | Jeudi 17 sdeptembre 2026
+#Semaine num 4-2 | Jeudi 17 septembre 2026
 - **Absence :** Aucune
 - **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
 *Xavier :* Fini le ducker et à fait une bonne parti du Github.
@@ -58,7 +58,7 @@
 - **Blocages :** Alek avait de la difficulté à rentrer dans la BD.
 - **Décisions :** Continuer à avancer dans nos tâches.
 
-#Semaine num 5-1 | Lundi 21 sdeptembre 2026
+#Semaine num 5-1 | Lundi 21 septembre 2026
 - **Absence :** Aucune
 - **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
 *Xavier :* Commencer à optimiser nos outils grâce à l'apprentissage du cours de web.
@@ -69,7 +69,7 @@
 - **Blocages :** Aucun
 - **Décisions :** Continuer à avancer dans nos tâches.
 
-#Semaine num 5-2 | Jeudi 24 sdeptembre 2026
+#Semaine num 5-2 | Jeudi 24 septembre 2026
 - **Absence :** Aucune
 - **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
 *Xavier :* Déploiment des container docker, des relaise automatique et du débug.
@@ -80,13 +80,13 @@
 - **Blocages :** Problème avec une des image de Xavier.
 - **Décisions :** Continuer à avancer dans nos tâches.
 
-#Semaine num 6-1 | Lundi 28 sdeptembre 2026
-- **Absence :** Aucune
-- **Avancées :** La grande majorité des personnes ont fait une bonne avancement dans le temps de leurs tâches.
-*Xavier :* 
-*Alek :* 
-*Marco :* 
-*Lotfi :* 
-*William :* 
-- **Blocages :** Aucun
-- **Décisions :** Continuer à avancer dans nos tâches.
+#Semaine num 6-1 | Lundi 28 septembre 2026
+- **Absence :** Marco
+- **Avancées :**
+*Xavier :* Avancé les decks coté backend, work sur un script pour wipe la bd et la recréer pour que les changements dans le .db soient mis en place
+*Alek :* Fini à 99% la page de collection, manque juste a tester et faire le formatting des cartes
+*Marco :* Rien
+*Lotfi :* Implémenté les images pour les cartes
+*William :* travail sur le backend et frontend de l'inventaire
+- **Blocages :** Marco malade, Alek a eu des problèmes d'ordi (~2-3hrs pour fix)
+- **Décisions :** Finir nos tâches pour la remise du jeudi 
