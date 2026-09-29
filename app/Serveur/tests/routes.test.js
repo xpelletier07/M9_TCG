@@ -69,8 +69,8 @@ test("GET /inventory/cards exige une authentification", async () => {
     assert.equal(body.error, "Authentification requise")
 })
 
-test("POST /collection/newCard valide les champs obligatoires", async () => {
-    const { response, body } = await request("/collection/newCard", {
+test("POST /collection/card valide les champs obligatoires", async () => {
+    const { response, body } = await request("/collection/card", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({}),
@@ -117,7 +117,7 @@ test("GET /collection/all retourne les cartes", async () => {
     const { response, body } = await request("/collection/all")
 
     assert.equal(response.status, 200)
-    assert.equal(body.rows[0].nom_carte, "Carte test")
+    assert.equal(body[0].nom_carte, "Carte test")
 })
 
 test("GET /collection/:id retourne une carte", async () => {
@@ -126,13 +126,13 @@ test("GET /collection/:id retourne une carte", async () => {
     const { response, body } = await request("/collection/3")
 
     assert.equal(response.status, 200)
-    assert.equal(body.rows[0].id_carte, 3)
+    assert.equal(body.id_carte, 3)
 })
 
-test("POST /collection/newCard crée une carte valide", async () => {
+test("POST /collection/card crée une carte valide", async () => {
     setQueryResult({ rows: [{ id_carte: 4, nom_carte: "Carte test" }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/collection/newCard", {
+    const { response, body } = await request("/collection/card", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -151,10 +151,10 @@ test("POST /collection/newCard crée une carte valide", async () => {
     assert.equal(body.id_carte, 4)
 })
 
-test("GET /api/carte/:id retourne une carte", async () => {
+test("GET /api/card/:id retourne une carte", async () => {
     setQueryResult({ rows: [{ id_carte: 5, nom_carte: "Carte test" }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/api/carte/5")
+    const { response, body } = await request("/api/card/5")
 
     assert.equal(response.status, 200)
     assert.equal(body.id_carte, 5)

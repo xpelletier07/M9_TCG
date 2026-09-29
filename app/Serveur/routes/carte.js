@@ -4,7 +4,7 @@ import express from "express"
 const router = express.Router()
 
 // Route pour get la carte, d'apres l'id
-router.get("/api/carte/:id", async (req, res) => {
+router.get("/api/card/:id", async (req, res) => {
     try {
         const id = req.params.id;
         const result = await pool.query("SELECT * FROM carte WHERE id_carte = $1", [id]);
