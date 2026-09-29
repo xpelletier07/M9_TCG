@@ -3,11 +3,11 @@ import { NavLink } from 'react-router-dom'
 import '../css/Sidebar.css'
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: 'home', end: true },
-  { path: '/catalogue', label: 'Catalogue', icon: 'book' },
-  { path: '/bazaar', label: 'Bazaar', icon: 'shop' },
-  { path: '/inventaire', label: 'Inventaire', icon: 'backpack' },
-  { path: '/combat', label: 'Combat', icon: 'sword' },
+  { key: 'accueil', label: 'Dashboard', icon: 'home' },
+  { key: 'collection', label: 'Collection', icon: 'book' },
+  { key: 'bazaar', label: 'Bazaar', icon: 'shop' },
+  { key: 'inventaire', label: 'Inventaire', icon: 'backpack' },
+  { key: 'combat', label: 'Combat', icon: 'sword' },
 ]
 
 function Sidebar({ loggedIn = true, onLogout }) {

@@ -1,15 +1,14 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { AuthProvider } from "./auth/AuthContext"
-import ProtectedRoute from "./auth/ProtectedRoute"
-import App from "./App"
-import Login from "./pages/auth/Login"
-import Signup from "./pages/auth/Signup"
-import Dashboard from "./pages/Dashboard"
-import Collection from "./pages/Collection"
-import Inventaire from "./pages/Inventaire"
-
-// Placeholder pour les pages pas encore développées
-const placeholder = (label) => <div className="section has-text-centered">{label} — Bientôt disponible</div>
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import AppLayout from './layouts/AppLayout.jsx'
+import { AuthProvider } from './auth/AuthContext.jsx'
+import ProtectedRoute from './auth/ProtectedRoute.jsx'
+import Login from './pages/auth/Login.jsx'
+import Signup from './pages/auth/Signup.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Collection from './pages/Collection.jsx'
+import Bazaar from './pages/Bazaar.jsx'
+import Inventaire from './pages/Inventaire.jsx'
+import Combat from './pages/Combat.jsx'
 
 function Routeur() {
     return (
@@ -18,21 +17,14 @@ function Routeur() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
-                    <Route path="/" element={<ProtectedRoute><App /></ProtectedRoute>}>
+                    <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                         <Route index element={<Dashboard />} />
-                        <Route path="catalogue" element={placeholder("Catalogue")} />
-                        <Route path="bazaar" element={placeholder("Bazaar")} />
-                        <Route path="inventaire" element={<Inventaire />} />
-                        <Route path="combat" element={placeholder("Combat")} />
                         <Route path="collection" element={<Collection />} />
+                        <Route path="bazaar" element={<Bazaar />} />
+                        <Route path="inventaire" element={<Inventaire />} />
+                        <Route path="combat" element={<Combat />} />
                     </Route>
-                    {/* 
-                        Insérer vos pages ici, au dessus du Route path="*"
-                    */}
-                    <Route path="*" element={
-                        <div className="section has-text-centered">Page non trouvée</div>
-                    }
-                    />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </AuthProvider>
         </BrowserRouter>
