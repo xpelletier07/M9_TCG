@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CardModal } from "../components/Modals";
 
 function Collection() {
     const serveur = "http://localhost:3000"
@@ -9,6 +10,7 @@ function Collection() {
     const [dmg, setDmg] = useState("")
     const [rarete, setRarete] = useState("")
     const [vie, setVie] = useState("")
+    const [carteSelectionnee, setCarteSelectionnee] = useState(null)
     // mini constante pour avoir une liste de 1-10, utilisée pour faire l'affichage des filtres
     const listeCompte = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -174,7 +176,7 @@ function Collection() {
                                 return (
                                     <>
                                         <div className="column is-3">
-                                            <div className="card large">
+                                            <div className="card large" onClick={()=>{setCarteSelectionnee(a)}}>
                                                 <div className="card-image">
                                                     <figure className="image is-square">
                                                         <img src={a.image} alt={`Image de la carte ${a.nom_carte}`} />
@@ -194,6 +196,7 @@ function Collection() {
                             })}
                         </div>
                     }
+                    <CardModal isOpen={carteSelectionnee !== null} carte={carteSelectionnee} onClose={() => setCarteSelectionnee(null)} />
                 </div>
             </div>
         </main>
