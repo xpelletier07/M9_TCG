@@ -18,6 +18,7 @@ function formatTime(totalSeconds) {
 export default function DropSection(){
   const { token } = useAuth()
   const [remainingSeconds, setRemainingSeconds] = useState(null)
+  const [cooldownRemainingSeconds, setCooldownRemainingSeconds] = useState(null)
   const [dropImage, setDropImage] = useState(FALLBACK_DROP_IMAGE)
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function DropSection(){
     async function loadDropState() {
       if (!token) {
         setRemainingSeconds(null)
+        setCooldownRemainingSeconds(null)
         setDropImage(FALLBACK_DROP_IMAGE)
         return
       }
@@ -48,12 +50,21 @@ export default function DropSection(){
         }
 
         setRemainingSeconds(data.remainingSeconds)
+        setCooldownRemainingSeconds(data.cooldownRemainingSeconds ?? 0)
         setDropImage(data.pack?.image_pack || FALLBACK_DROP_IMAGE)
         const resetAt = new Date(data.resetAt).getTime()
+        const cooldownResetAt = data.cooldownResetAt
+          ? new Date(data.cooldownResetAt).getTime()
+          : null
 
         window.clearInterval(intervalId)
         intervalId = window.setInterval(() => {
           const nextRemaining = Math.max(0, Math.ceil((resetAt - Date.now()) / 1000))
+          const nextCooldownRemaining = cooldownResetAt
+            ? Math.max(0, Math.ceil((cooldownResetAt - Date.now()) / 1000))
+            : 0
+
+          setCooldownRemainingSeconds(nextCooldownRemaining)
 
           if (nextRemaining <= 0) {
             window.clearInterval(intervalId)
@@ -66,6 +77,7 @@ export default function DropSection(){
       } catch (error) {
         if (!cancelled) {
           setRemainingSeconds(null)
+          setCooldownRemainingSeconds(null)
           setDropImage(FALLBACK_DROP_IMAGE)
         }
       }
@@ -99,16 +111,26 @@ export default function DropSection(){
     }
   }, [token])
 
+  const displayedSeconds = cooldownRemainingSeconds > 0
+    ? cooldownRemainingSeconds
+    : remainingSeconds
+  const cooldownMessage = cooldownRemainingSeconds === null
+    ? 'Disponibilité du pack en cours de chargement'
+    : cooldownRemainingSeconds > 0
+      ? `Prochain pack personnel dans ${formatTime(cooldownRemainingSeconds)}`
+      : 'Pack personnel disponible'
+
   return (
     <section className="lg:col-span-8 bg-surface-container-lowest p-lg flex flex-col justify-between">
       <div className="flex justify-between items-start mb-lg">
         <div>
           <h2 className="font-headline-md text-headline-md text-on-surface font-bold uppercase">Drop Commun</h2>
           <p className="font-body-md text-body-md text-on-surface-variant mt-xs">Global Server Supply Drop Event</p>
+          <p className="font-label-md text-label-md text-on-surface-variant mt-xs">{cooldownMessage}</p>
         </div>
         <div className="timer-badge">
           <span className="material-symbols-outlined">timer</span>
-          <span className="font-mono">{remainingSeconds === null ? '--:--:--' : formatTime(remainingSeconds)}</span>
+          <span className="font-mono">{displayedSeconds === null ? '--:--:--' : formatTime(displayedSeconds)}</span>
         </div>
       </div>
       <div className="relative h-48 bg-surface-container overflow-hidden flex items-center justify-center">

@@ -53,6 +53,29 @@ app.get("/api/drop-timer", (req, res) => {
   })
 })
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+
+async function startServer() {
+  await pool.query(
+    "ALTER TABLE Packs ADD COLUMN IF NOT EXISTS actif BOOLEAN NOT NULL DEFAULT TRUE"
+  )
+  await pool.query(
+    "ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS dernier_drop_pack_at TIMESTAMPTZ"
+  )
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS inventaire_packs (
+      id_utilisateur int references utilisateurs(id) on delete cascade,
+      id_pack int references Packs(id_pack) on delete cascade,
+      quantite int not null default 1,
+      primary key (id_utilisateur, id_pack)
+    )`
+  )
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`)
+  })
+}
+
+startServer().catch((error) => {
+  console.error("Erreur lors de la préparation de la base de données :", error)
+  process.exit(1)
+})

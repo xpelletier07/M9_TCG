@@ -6,6 +6,7 @@ import { checkAuth } from "../middlewares/checkAuth.js"
 const router = express.Router()
 
 const CYCLE_SECONDS = 5 * 60
+const PACK_COOLDOWN_HOURS = 24
 const ACTIVE_WINDOW_MS = 70 * 1000
 const activeUsers = new Map()
 let lastProcessedCycle = null
@@ -45,8 +46,19 @@ async function grantPackToUsers(userIds, packId) {
 
     for (const userId of userIds) {
         await pool.query(
-            `insert into inventaire_packs (id_utilisateur, id_pack, quantite)
-             values ($1, $2, 1)
+            `with utilisateur_eligible as (
+                update utilisateurs
+                set dernier_drop_pack_at = now()
+                where id = $1
+                  and (
+                      dernier_drop_pack_at is null
+                      or dernier_drop_pack_at <= now() - interval '${PACK_COOLDOWN_HOURS} hours'
+                  )
+                returning id
+             )
+             insert into inventaire_packs (id_utilisateur, id_pack, quantite)
+             select id, $2, 1
+             from utilisateur_eligible
              on conflict (id_utilisateur, id_pack)
              do update set quantite = inventaire_packs.quantite + 1`,
             [userId, packId]
@@ -99,13 +111,32 @@ router.get("/drop-state", checkAuth, async (req, res) => {
         activeUsers.set(req.user.id, Date.now())
         await processCycle()
 
-        const remainingSeconds = getRemainingSeconds()
-        const resetAt = new Date(Date.now() + remainingSeconds * 1000).toISOString()
+        const nowMs = Date.now()
+        const cycleRemainingSeconds = getRemainingSeconds(nowMs)
+        const userResult = await pool.query(
+            "select dernier_drop_pack_at from utilisateurs where id = $1",
+            [req.user.id]
+        )
+        const lastDropAt = userResult.rows[0]?.dernier_drop_pack_at
+        const cooldownResetMs = lastDropAt
+            ? new Date(lastDropAt).getTime() + PACK_COOLDOWN_HOURS * 60 * 60 * 1000
+            : nowMs
+        const cooldownRemainingSeconds = Math.max(
+            0,
+            Math.ceil((cooldownResetMs - nowMs) / 1000)
+        )
+        const remainingSeconds = Math.max(cycleRemainingSeconds, cooldownRemainingSeconds)
+        const resetAt = new Date(nowMs + remainingSeconds * 1000).toISOString()
+        const cooldownResetAt = lastDropAt
+            ? new Date(cooldownResetMs).toISOString()
+            : null
 
         res.json({
             cycleSeconds: CYCLE_SECONDS,
             remainingSeconds,
             resetAt,
+            cooldownRemainingSeconds,
+            cooldownResetAt,
             pack: currentCyclePack,
         })
     } catch (error) {

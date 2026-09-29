@@ -7,8 +7,12 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     nom_utilisateur VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     mot_de_passe_hash VARCHAR(255) NOT NULL,
-    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
+    cree_le TIMESTAMP NOT NULL DEFAULT NOW(),
+    dernier_drop_pack_at TIMESTAMPTZ
 );
+
+ALTER TABLE utilisateurs
+ADD COLUMN IF NOT EXISTS dernier_drop_pack_at TIMESTAMPTZ;
 
 -- table pour les cartes
 create table if not exists carte (
