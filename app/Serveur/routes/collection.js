@@ -58,7 +58,7 @@ router.post("/add", async (req, res) => {
         const resultat = validationResult(req)
         // S'il y a des erreurs, renvoye une liste de toutes les erreurs
         if (!resultat.isEmpty()) {
-            return res.status(400).json({ erreurs: erreurs.array() })
+            return res.status(400).json({ erreurs: resultat.array() })
         }
         // les $1, $2, etc, sont une méthode incluse avec postgresql, qui aident a garder les accents, charactères spéciaux, et aussi à contrer les injections sql. 
         // postgresql remplace $1 par la premiere valeur dans la liste donnée en 2e argument a .query, ici nomCarte. 
@@ -72,3 +72,5 @@ router.post("/add", async (req, res) => {
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
+
+export default router
