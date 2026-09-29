@@ -2,9 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { pool } from "./db/pool.js"
-import collectionRouter from "./routes/collection.js"
-import inventoryRouter from "./routes/inventory.js"
-import checkAuth from "./routes/auth.js"
+import apiRouter from "./Router/Router_Global.js"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,9 +12,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Importation des routes
-app.use("/collection", collectionRouter)
-app.use("/inventory", inventoryRouter)
-app.use("/auth", checkAuth)
+app.use(apiRouter)
 
 // Route de base
 app.get("/", (req, res) => {
