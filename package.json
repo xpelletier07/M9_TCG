@@ -9,6 +9,7 @@
     "test": "npm run build --workspace=client && npm test --workspace=serveur"
   },
   "dependencies": {
+    "dotenv": "^18.0.4",
     "express-validator": "^7.3.2"
   }
 }
