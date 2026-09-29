@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { NavLink } from 'react-router-dom'
 import '../css/Sidebar.css'
 
 const navItems = [
@@ -9,7 +10,7 @@ const navItems = [
   { key: 'combat', label: 'Combat', icon: 'sword' },
 ]
 
-function Sidebar({ currentPage, onNavigate, loggedIn = true, onLogout }) {
+function Sidebar({ loggedIn = true, onLogout }) {
   const [collapsed, setCollapsed] = useState(false)
   const [dark, setDark] = useState(false)
 
@@ -34,24 +35,22 @@ function Sidebar({ currentPage, onNavigate, loggedIn = true, onLogout }) {
       {!collapsed && (
         <nav className="tcg-nav">
           <ul className="tcg-menu-list">
-            {navItems.map(({ key, label, icon }) => {
-              const isActive = currentPage === key
-              return (
-                <li key={key}>
-                  <a
-                    href="#"
-                    className={isActive ? 'is-active' : ''}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      onNavigate?.(key)
-                    }}
-                  >
-                    <i className={`fi ${isActive ? 'fi-ss-' : 'fi-rs-'}${icon}`}></i>
-                    <span>{label}</span>
-                  </a>
-                </li>
-              )
-            })}
+            {navItems.map(({ path, label, icon, end }) => (
+              <li key={path}>
+                <NavLink
+                  to={path}
+                  end={end}
+                  className={({ isActive }) => (isActive ? 'is-active' : '')}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <i className={`fi ${isActive ? 'fi-ss-' : 'fi-rs-'}${icon}`}></i>
+                      <span>{label}</span>
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            ))}
 
             <li>
               <a
