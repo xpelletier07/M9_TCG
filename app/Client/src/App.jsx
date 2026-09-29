@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
-import Sidebar from './sidebar/Sidebar'
+import Sidebar from './components/Sidebar'
 
 function App() {
   const { logout } = useAuth()
