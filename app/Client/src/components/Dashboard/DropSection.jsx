@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { API_BASE_URL } from '../config'
-import { useAuth } from '../auth/AuthContext'
+import { API_BASE_URL } from '../../config'
+import { useAuth } from '../../auth/AuthContext'
 
 const FALLBACK_DROP_IMAGE = 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80'
 
@@ -121,24 +121,23 @@ export default function DropSection(){
       : 'Pack personnel disponible'
 
   return (
-    <section className="lg:col-span-8 bg-surface-container-lowest p-lg flex flex-col justify-between">
-      <div className="flex justify-between items-start mb-lg">
+    <section className="dashboard-panel dashboard-drop">
+      <div className="dashboard-panel-header">
         <div>
-          <h2 className="font-headline-md text-headline-md text-on-surface font-bold uppercase">Drop Commun</h2>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-xs">Global Server Supply Drop Event</p>
-          <p className="font-label-md text-label-md text-on-surface-variant mt-xs">{cooldownMessage}</p>
+          <h2 className="dashboard-title">Drop Commun</h2>
+          <p className="dashboard-eyebrow">Global Server Supply Drop Event</p>
+          <p className="dashboard-meta">{cooldownMessage}</p>
         </div>
-        <div className="timer-badge">
-          <span className="material-symbols-outlined">timer</span>
-          <span className="font-mono">{displayedSeconds === null ? '--:--:--' : formatTime(displayedSeconds)}</span>
+        <div className="dashboard-timer">
+          <i className="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+          <span>{displayedSeconds === null ? '--:--:--' : formatTime(displayedSeconds)}</span>
         </div>
       </div>
-      <div className="relative h-48 bg-surface-container overflow-hidden flex items-center justify-center">
-        <img alt="Supply Drop Crate" className="absolute inset-0 w-full h-full object-cover opacity-80" src={dropImage} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-        <div className="relative z-10 text-center">
-          <div className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-primary font-black uppercase tracking-widest drop-shadow-md">M9 cache</div>
-          <div className="font-label-md text-label-md text-on-primary/90 uppercase tracking-widest mt-xs">tier not found</div>
+      <div className="dashboard-hero">
+        <img alt="Supply Drop Crate" src={dropImage} />
+        <div className="dashboard-hero-copy">
+          <div className="dashboard-hero-title">M9 cache</div>
+          <div className="dashboard-hero-subtitle">tier not found</div>
         </div>
       </div>
     </section>
