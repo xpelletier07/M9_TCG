@@ -18,12 +18,12 @@ Chemin menant au diagramme entité relation: ![Computer](diagrammes/v6.drawio.pn
 - DELETE user/deleteAccount — Supprime le compte du database.
 
 ### Page Inventaire:
-- GET inv/getCardsInventory — cherche tout les cartes que l'utilisateur possède en ce moment.
-- GET inv/getdecks — Retourne tous les decks de l'utilisateur
-- GET inv/getDeck/:id — Cherche les cartes que le joueur a préparé dans un deck spécifique pour qu'il les joueuent dans le match.
-- POST inv/addCard/:idCarte — Ajoute une carte dans l'inventaire du joueur. L'id du joueur qui optient la carte et l'id de la carte sont obligatoires pour que la route marche.
-- POST inv/addPack — Si l'utilisateur n'a pas de pack lors de l'exectuion de cette route, ça lui en ajoute un.
-- POST inv/openPack — Ouvre un booster pack, et utilise la route inv/addCard pour ajouter des cartes dans l'inventaire du joueur.
+- GET inventory/getCardsInventory — cherche tout les cartes que l'utilisateur possède en ce moment.
+- GET inventory/getdecks — Retourne tous les decks de l'utilisateur
+- GET inventory/getDeck/:id — Cherche les cartes que le joueur a préparé dans un deck spécifique pour qu'il les joueuent dans le match.
+- POST inventory/addCard/:idCarte — Ajoute une carte dans l'inventaire du joueur. L'id du joueur qui optient la carte et l'id de la carte sont obligatoires pour que la route marche.
+- POST inventory/addPack — Si l'utilisateur n'a pas de pack lors de l'exectuion de cette route, ça lui en ajoute un.
+- POST inventory/openPack — Ouvre un booster pack, et utilise la route inventory/addCard pour ajouter des cartes dans l'inventaire du joueur.
 
 ### Page Catalogue des Cartes:
 - GET data/getAllCards — cherche toutes les cartes du catalogue des cartes. Affiche les cartes en ordre alphabétique par tiers.
