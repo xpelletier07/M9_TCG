@@ -215,7 +215,7 @@ export default function BoosterPack() {
             : !token
             ? '1 Pack / 24h'
             : isCooldownActive
-            ? 'Recharge (24h)'
+            ? 'Veuillez patienter avant de réclamer un nouveau pack'
             : 'Prêt à ouvrir !'}
         </span>
       </div>
