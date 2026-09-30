@@ -2,14 +2,14 @@ import React from 'react'
 
 export default function CombatLog(){
   return (
-    <section className="bg-surface-container-lowest p-lg">
-      <div className="flex justify-between items-center mb-md pb-sm">
-        <h2 className="font-headline-md text-headline-md text-on-surface font-bold uppercase">Historique de combats</h2>
-        <button className="font-label-md text-label-md text-tertiary-container uppercase hover:underline">View All</button>
+    <section className="dashboard-panel dashboard-combat">
+      <div className="dashboard-combat-header">
+        <h2 className="dashboard-combat-title">Historique de combats</h2>
+        <button className="dashboard-view-all">View All</button>
       </div>
 
-      <div className="space-y-sm">
-        <div>il y a rien pour l'instant</div>
+      <div>
+        <p className="dashboard-empty">Il n'y a rien pour l'instant.</p>
       </div>
     </section>
   )

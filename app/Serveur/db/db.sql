@@ -76,10 +76,9 @@ BEGIN
 END
 $$;
 
-);
 
 
-CREATE TABLE IF NOT EXISTS Packs (
+CREATE TABLE IF NOT EXISTS packs (
     id_pack SERIAL PRIMARY KEY,
     nom_pack VARCHAR(100) UNIQUE NOT NULL,
     image_pack VARCHAR(255) NOT NULL,
@@ -91,14 +90,14 @@ CREATE TABLE IF NOT EXISTS Packs (
 
 DO $$
 BEGIN
-    RAISE NOTICE 'Table Packs successfully created';
+    RAISE NOTICE 'Table packs successfully created';
 END
 $$;
 
 
 CREATE TABLE IF NOT EXISTS inventaire_packs (
     id_utilisateur int references utilisateurs(id) on delete cascade,
-    id_pack int references Packs(id_pack) on delete cascade,
+    id_pack int references packs(id_pack) on delete cascade,
     quantite int not null default 1,
     primary key (id_utilisateur, id_pack)
 );

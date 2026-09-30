@@ -28,7 +28,7 @@ function Sidebar({ loggedIn = true, onLogout }) {
           aria-label={collapsed ? 'Ouvrir le menu' : 'Réduire le menu'}
           onClick={() => setCollapsed((c) => !c)}
         >
-          <i className={`fi fi-bs-angle-${collapsed ? 'right' : 'left'}`}></i>
+          <i className={`fa-solid fa-angle-${collapsed ? 'right' : 'left'}`}></i>
         </button>
       </div>
 
@@ -44,7 +44,7 @@ function Sidebar({ loggedIn = true, onLogout }) {
                 >
                   {({ isActive }) => (
                     <>
-                      <i className={`fi ${isActive ? 'fi-ss-' : 'fi-rs-'}${icon}`}></i>
+                      <i className={`fa-solid fa-${icon}`}></i>
                       <span>{label}</span>
                     </>
                   )}
@@ -60,7 +60,7 @@ function Sidebar({ loggedIn = true, onLogout }) {
                   setDark((d) => !d)
                 }}
               >
-                <i className={`fi fi-rs-${dark ? 'sun' : 'moon'}`}></i>
+                <i className={`fa-solid fa-${dark ? 'sun' : 'moon'}`}></i>
                 <span>{dark ? 'Thème clair' : 'Thème sombre'}</span>
               </a>
             </li>
@@ -71,7 +71,7 @@ function Sidebar({ loggedIn = true, onLogout }) {
       {!collapsed && loggedIn && (
         <div className="tcg-sidebar-footer">
           <button type="button" className="tcg-logout-btn" onClick={onLogout}>
-            <i className="fi fi-rs-sign-out-alt"></i>
+            <i className="fa-solid fa-right-from-bracket"></i>
             <span>Déconnexion</span>
           </button>
         </div>
