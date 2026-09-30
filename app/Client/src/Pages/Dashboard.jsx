@@ -1,7 +1,7 @@
 import React from 'react'
-import DropSection from './DropSection'
-import BoosterPack from './BoosterPack'
-import CombatLog from './CombatLog'
+import DropSection from '../components/Dashboard/DropSection'
+import BoosterPack from '../components/Dashboard/BoosterPack'
+import CombatLog from '../components/Dashboard/CombatLog'
 
 export default function MainContent(){
   return (
