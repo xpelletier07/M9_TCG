@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     nom_utilisateur VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     mot_de_passe_hash VARCHAR(255) NOT NULL,
-    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
+    cree_le TIMESTAMP NOT NULL DEFAULT NOW(),
+    statut VARCHAR(50) NOT NULL,
+    credits FLOAT NOT NULL
 );
 -- Ce bloc DO $$ ... $$ permet d'afficher un message dans les logs de PostgreSQL pour indiquer que la table a été créée avec succès.
 DO $$
