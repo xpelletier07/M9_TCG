@@ -1,10 +1,3 @@
-
-/* Minimal custom styles */
-:root{
-  --maisonneuve-blue: #0b5fff;
-  --maisonneuve-dark: #0047b3;
-  --maisonneuve-bg: #f0f6ff;
-}
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
@@ -57,7 +50,6 @@
   #social .button-icon {
     filter: invert(1) brightness(2);
   }
-
 }
 
 body {
@@ -78,15 +70,6 @@ h2 {
   font-weight: 500;
   color: var(--text-h);
 }
-
-
-.timer-badge{
-  background: #e7f0ff;
-  border: 1px solid rgba(11,95,255,0.12);
-  color: var(--maisonneuve-dark);
-  padding: 6px 10px;
-  border-radius: 6px;
-
 
 h1 {
   font-size: 56px;
@@ -129,14 +112,6 @@ code {
   background: var(--code-bg);
 }
 
-
-.combat-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(35,25,20,0.04);} 
-.combat-item .left { display:flex; gap:12px; align-items:center }
-.combat-item .icon-box { width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:#fffaf6; border:1px solid rgba(35,25,20,0.04)}
-.combat-status.victory { color:var(--maisonneuve-blue); font-weight:700 }
-.combat-status.defeat { color:#a0a0a0; font-weight:700 }
-
-body { font-family: Sora, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
 /* ── Page Inventaire ─────────────────────────────────────────────────────── */
 .content-left-spacing {
   flex: 1;
@@ -265,6 +240,4 @@ html.tcg-dark .filters .select::after {
     flex-direction: column;
     align-items: stretch;
   }
-}
-
 }

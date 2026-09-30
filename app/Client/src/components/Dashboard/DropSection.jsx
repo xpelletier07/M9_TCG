@@ -18,28 +18,16 @@ function formatTime(totalSeconds) {
 export default function DropSection(){
   const { token } = useAuth()
   const [remainingSeconds, setRemainingSeconds] = useState(null)
-  const [cooldownRemainingSeconds, setCooldownRemainingSeconds] = useState(null)
   const [dropImage, setDropImage] = useState(FALLBACK_DROP_IMAGE)
 
   useEffect(() => {
     let intervalId
-    let heartbeatId
     let cancelled = false
 
     async function loadDropState() {
-      if (!token) {
-        setRemainingSeconds(null)
-        setCooldownRemainingSeconds(null)
-        setDropImage(FALLBACK_DROP_IMAGE)
-        return
-      }
-
       try {
-        const response = await fetch(`${API_BASE_URL}/inventaire-pack/drop-state`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const response = await fetch(`${API_BASE_URL}/inventaire-pack/drop-state`, { headers })
         if (!response.ok) {
           throw new Error('Impossible de récupérer le drop')
         }
@@ -50,21 +38,12 @@ export default function DropSection(){
         }
 
         setRemainingSeconds(data.remainingSeconds)
-        setCooldownRemainingSeconds(data.cooldownRemainingSeconds ?? 0)
         setDropImage(data.pack?.image_pack || FALLBACK_DROP_IMAGE)
         const resetAt = new Date(data.resetAt).getTime()
-        const cooldownResetAt = data.cooldownResetAt
-          ? new Date(data.cooldownResetAt).getTime()
-          : null
 
         window.clearInterval(intervalId)
         intervalId = window.setInterval(() => {
           const nextRemaining = Math.max(0, Math.ceil((resetAt - Date.now()) / 1000))
-          const nextCooldownRemaining = cooldownResetAt
-            ? Math.max(0, Math.ceil((cooldownResetAt - Date.now()) / 1000))
-            : 0
-
-          setCooldownRemainingSeconds(nextCooldownRemaining)
 
           if (nextRemaining <= 0) {
             window.clearInterval(intervalId)
@@ -76,49 +55,29 @@ export default function DropSection(){
         }, 1000)
       } catch (error) {
         if (!cancelled) {
-          setRemainingSeconds(null)
-          setCooldownRemainingSeconds(null)
+          // Fallback calculé en local sur un cycle de 5 minutes
+          const cycleSeconds = 5 * 60
+          const nowSeconds = Math.floor(Date.now() / 1000)
+          const fallbackRemaining = cycleSeconds - (nowSeconds % cycleSeconds)
+          setRemainingSeconds(fallbackRemaining)
           setDropImage(FALLBACK_DROP_IMAGE)
+
+          window.clearInterval(intervalId)
+          intervalId = window.setInterval(() => {
+            const currentSeconds = Math.floor(Date.now() / 1000)
+            setRemainingSeconds(cycleSeconds - (currentSeconds % cycleSeconds))
+          }, 1000)
         }
       }
     }
 
-    async function sendHeartbeat() {
-      if (!token) {
-        return
-      }
-
-      try {
-        await fetch(`${API_BASE_URL}/inventaire-pack/heartbeat`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-      } catch {
-        // L'affichage continue même si un heartbeat échoue ponctuellement.
-      }
-    }
-
     loadDropState()
-    sendHeartbeat()
-    heartbeatId = window.setInterval(sendHeartbeat, 30000)
 
     return () => {
       cancelled = true
       window.clearInterval(intervalId)
-      window.clearInterval(heartbeatId)
     }
   }, [token])
-
-  const displayedSeconds = cooldownRemainingSeconds > 0
-    ? cooldownRemainingSeconds
-    : remainingSeconds
-  const cooldownMessage = cooldownRemainingSeconds === null
-    ? 'Disponibilité du pack en cours de chargement'
-    : cooldownRemainingSeconds > 0
-      ? `Prochain pack personnel dans ${formatTime(cooldownRemainingSeconds)}`
-      : 'Pack personnel disponible'
 
   return (
     <section className="dashboard-panel dashboard-drop">
@@ -126,11 +85,11 @@ export default function DropSection(){
         <div>
           <h2 className="dashboard-title">Drop Commun</h2>
           <p className="dashboard-eyebrow">Global Server Supply Drop Event</p>
-          <p className="dashboard-meta">{cooldownMessage}</p>
+          <p className="dashboard-meta">Drop de cartes toutes les 5 minutes</p>
         </div>
         <div className="dashboard-timer">
           <i className="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-          <span>{displayedSeconds === null ? '--:--:--' : formatTime(displayedSeconds)}</span>
+          <span>{remainingSeconds === null ? '--:--:--' : formatTime(remainingSeconds)}</span>
         </div>
       </div>
       <div className="dashboard-hero">

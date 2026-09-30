@@ -302,3 +302,100 @@ test("DELETE /inventory/decks/:id retourne 404 si le deck est introuvable", asyn
     assert.equal(response.status, 404)
     assert.equal(body.error, "Deck introuvable")
 })
+
+test("GET /inventaire-pack/drop-state retourne un cycle de 5 minutes", async () => {
+    setQueryResult({ rows: [{ id_pack: 1, nom_pack: "Pack Commun", image_pack: "img.png" }], rowCount: 1, ok: true })
+
+    const { response, body } = await request("/inventaire-pack/drop-state")
+
+    assert.equal(response.status, 200)
+    assert.equal(body.cycleSeconds, 300)
+    assert.ok(typeof body.remainingSeconds === "number")
+    assert.ok(body.remainingSeconds <= 300)
+    assert.equal(body.cooldownRemainingSeconds, undefined)
+})
+
+test("GET /inventaire-pack/status exige une authentification", async () => {
+    const { response, body } = await request("/inventaire-pack/status")
+
+    assert.equal(response.status, 401)
+    assert.equal(body.error, "Authentification requise")
+})
+
+test("GET /inventaire-pack/status indique si l'utilisateur peut réclamer", async () => {
+    setQueryResult((sql) => {
+        if (sql.includes("dernier_drop_pack_at")) {
+            return { rows: [{ dernier_drop_pack_at: null }], rowCount: 1, ok: true }
+        }
+        return { rows: [{ id_pack: 1, quantite: 2 }], rowCount: 1, ok: true }
+    })
+
+    const { response, body } = await request("/inventaire-pack/status", {
+        headers: authenticatedHeaders(),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.canClaim, true)
+    assert.equal(body.cooldownRemainingSeconds, 0)
+    assert.deepEqual(body.inventory, [{ id_pack: 1, quantite: 2 }])
+})
+
+test("POST /inventaire-pack/open exige une authentification", async () => {
+    const { response, body } = await request("/inventaire-pack/open", {
+        method: "POST",
+    })
+
+    assert.equal(response.status, 401)
+    assert.equal(body.error, "Authentification requise")
+})
+
+test("POST /inventaire-pack/open refuse si le cooldown de 24h est actif", async () => {
+    setQueryResult((sql) => {
+        if (sql.includes("where id_pack = $1")) {
+            return { rows: [{ id_pack: 1, nom_pack: "Pack Alpha", actif: true }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("update utilisateurs")) {
+            return { rows: [], rowCount: 0, ok: true }
+        }
+        if (sql.includes("dernier_drop_pack_at from utilisateurs")) {
+            return { rows: [{ dernier_drop_pack_at: new Date().toISOString() }], rowCount: 1, ok: true }
+        }
+        return { rows: [], rowCount: 0, ok: true }
+    })
+
+    const { response, body } = await request("/inventaire-pack/open", {
+        method: "POST",
+        headers: { ...authenticatedHeaders(), "content-type": "application/json" },
+        body: JSON.stringify({ id_pack: 1 }),
+    })
+
+    assert.equal(response.status, 429)
+    assert.match(body.error, /24h/)
+    assert.ok(body.cooldownRemainingSeconds > 0)
+})
+
+test("POST /inventaire-pack/open réclame le pack si éligible", async () => {
+    setQueryResult((sql) => {
+        if (sql.includes("where id_pack = $1")) {
+            return { rows: [{ id_pack: 1, nom_pack: "Pack Alpha", actif: true }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("update utilisateurs")) {
+            return { rows: [{ dernier_drop_pack_at: new Date().toISOString() }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("insert into inventaire_packs")) {
+            return { rows: [{ id_pack: 1, quantite: 3 }], rowCount: 1, ok: true }
+        }
+        return { rows: [], rowCount: 0, ok: true }
+    })
+
+    const { response, body } = await request("/inventaire-pack/open", {
+        method: "POST",
+        headers: { ...authenticatedHeaders(), "content-type": "application/json" },
+        body: JSON.stringify({ id_pack: 1 }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.message, "Pack réclamé avec succès !")
+    assert.equal(body.quantite, 3)
+    assert.equal(body.cooldownRemainingSeconds, 24 * 3600)
+})
