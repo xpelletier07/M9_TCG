@@ -33,31 +33,6 @@ create table if not exists carte (
     damage int not null
 );
 
-<<<<<<< HEAD
-DROP TABLE IF EXISTS Packs;
-
-CREATE TABLE IF NOT EXISTS Packs (
-    id_pack SERIAL PRIMARY KEY,
-    nom_pack VARCHAR(100) UNIQUE NOT NULL,
-    image_pack VARCHAR(255) NOT NULL,
-    description_pack TEXT NOT NULL,
-    liste_carte VARCHAR(255)[] NOT NULL,
-    valeur_pack DECIMAL(10, 2) NOT NULL,
-    actif BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-ALTER TABLE IF EXISTS Packs
-ADD COLUMN IF NOT EXISTS actif BOOLEAN NOT NULL DEFAULT TRUE;
-
-DROP TABLE IF EXISTS inventaire_packs;
-
-CREATE TABLE IF NOT EXISTS inventaire_packs (
-    id_utilisateur int references utilisateurs(id) on delete cascade,
-    id_pack int references Packs(id_pack) on delete cascade,
-    quantite int not null default 1,
-    primary key (id_utilisateur, id_pack)
-);
-=======
 DO $$
 BEGIN
     RAISE NOTICE 'Table carte successfully created';
@@ -102,4 +77,3 @@ BEGIN
     RAISE NOTICE 'Table deck_carte successfully created';
 END
 $$;
->>>>>>> 8233dbb87b5abf634264e1a73492da7263e8eafc
