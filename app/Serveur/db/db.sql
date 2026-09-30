@@ -21,6 +21,11 @@ create table if not exists carte (
     mana int not null,
     health int not null,
     damage int not null
-)
+);
 
-
+-- Table pour l'inventaire des cartes d'un utilisateur
+CREATE TABLE IF NOT EXISTS inventaire_carte (
+    id SERIAL PRIMARY KEY,
+    id_user INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    id_carte INT NOT NULL REFERENCES carte(id_carte) ON DELETE CASCADE
+);

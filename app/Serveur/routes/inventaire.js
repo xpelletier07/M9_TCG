@@ -5,11 +5,14 @@ const router = express.Router()
 
 
 // Route pour get l'inventaire de cartes d'un utilisateur
-router.get("/api/inventaire/:id_user", async (req, res) => {
+router.get("/inventaire/:id_user", async (req, res) => {
     try {
         const id_user = req.params.id_user;
         const result = await pool.query("SELECT * FROM inventaire_carte WHERE id_user = $1", [id_user]);
-        res.json(result.rows);
+        if (result.rows.length === 0) {
+            return res.status(200).json({ message: "Aucune carte dans l'inventaire", cartes: [] });
+        }
+        res.status(200).json({ cartes: result.rows });
     } catch (err) {
         console.error("Erreur lors de la récupération de l'inventaire :", err);
         res.status(500).json({ message: "Erreur serveur" });
@@ -17,7 +20,7 @@ router.get("/api/inventaire/:id_user", async (req, res) => {
 })
 
 // Route pour ajouter une carte à l'inventaire d'un utilisateur
-router.post("/api/inventaire/:id_user/:id_carte", async (req, res) => {
+router.post("/carteInventaire/:id_user/:id_carte", async (req, res) => {
     try {
         const id_user = req.params.id_user;
         const id_carte = req.params.id_carte;
@@ -30,7 +33,7 @@ router.post("/api/inventaire/:id_user/:id_carte", async (req, res) => {
 })
 
 // Route pour supprimer une carte de l'inventaire d'un utilisateur
-router.delete("/api/inventaire/:id_user/:id_carte", async (req, res) => {
+router.delete("/carteInventaire/:id_user/:id_carte", async (req, res) => {
     try {
         const id_user = req.params.id_user;
         const id_carte = req.params.id_carte;
