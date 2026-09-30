@@ -15,8 +15,10 @@ function Sidebar({ loggedIn = true, onLogout }) {
   const [dark, setDark] = useState(false)
 
   // Appliqué sur <html> pour que le thème s'étende à toute la page qui héberge la sidebar
+  // On gère à la fois la classe personnalisée 'tcg-dark' et l'attribut 'data-theme' de Bulma
   useEffect(() => {
     document.documentElement.classList.toggle('tcg-dark', dark)
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
   }, [dark])
 
   return (
