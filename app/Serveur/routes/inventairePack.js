@@ -89,7 +89,7 @@ router.post("/heartbeat", checkAuth, async (req, res) => {
 })
 
 // -------------------------------------------------------------
-// ROUTES PERSONNELLES POUR LES PACKS (Cooldown 24h - Open Pack)
+// ROUTES PERSONNELLES POUR LES PACKS (Cooldown 24h - Get Pack)
 // -------------------------------------------------------------
 
 // Vérifier l'état du cooldown de pack pour l'utilisateur connecté

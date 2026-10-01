@@ -152,7 +152,7 @@ export default function BoosterPack() {
     }
   }, [token, pack?.id_pack])
 
-  // Clic sur "Open Pack" pour réclamer le pack (cooldown 24h)
+  // Clic sur "Get Pack" pour réclamer le pack (cooldown 24h)
   const handleOpenPack = async () => {
     if (!token) {
       setFeedback({ type: 'error', message: 'Veuillez vous connecter pour réclamer un pack.' })
@@ -249,7 +249,7 @@ export default function BoosterPack() {
           <span>{`Disponible dans ${formatTime(cooldownRemainingSeconds)}`}</span>
         ) : (
           <>
-            <span>Open Pack</span>
+            <span>Get Pack</span>
             <i className="fa-solid fa-box-open" aria-hidden="true"></i>
           </>
         )}
