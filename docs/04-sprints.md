@@ -50,6 +50,6 @@ Version alpha contenant les fonctionalitées primaires: login/signup, dashboard,
 | [#58](https://github.com/xpelletier07/M9_TCG/issues/58) | Page de Catalogue - Admin | 3 |  |
 | [#71](https://github.com/xpelletier07/M9_TCG/issues/71) | Créer le Dashboard | 2 |  |
 
-Grand total des points: 3+3+3+3+2+3+5+3+2=27
+Grand total des points: 3 + 3 + 3 + 3 + 2 + 3 + 5 + 3 + 2 = 27
 
-
+Notre estimé de base était de 45 points pour le sprint 1. Nous pouvons voir que l'estimé était extrêment optimiste et nous avons conclus que c'était en majeur partie dû à l'estimé de temps par point. Nous avions premièrement pensé à 1,5 hrs par point mais si nous recalculons avec 3hrs par point, on arrive à 23 points pour un sprint, ce qui est beaucoup plus proche de notre vélocité réelle. Nous estimons donc qu'en 3 semaines, en tant qu'équipe, nous pouvons completer l'équivalent de 25 points par sprint.
