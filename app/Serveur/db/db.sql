@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     email VARCHAR(255) UNIQUE NOT NULL,
     mot_de_passe_hash VARCHAR(255) NOT NULL,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW(),
+    statut VARCHAR(50),
+    credits FLOAT,
     dernier_drop_pack_at TIMESTAMPTZ
 );
 -- Ce bloc DO $$ ... $$ permet d'afficher un message dans les logs de PostgreSQL pour indiquer que la table a été créée avec succès.
@@ -75,6 +77,7 @@ BEGIN
     RAISE NOTICE 'Table deck_carte successfully created';
 END
 $$;
+
 
 
 CREATE TABLE IF NOT EXISTS Packs (

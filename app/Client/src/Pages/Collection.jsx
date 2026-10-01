@@ -11,22 +11,43 @@ function Collection() {
     const [rarete, setRarete] = useState("")
     const [vie, setVie] = useState("")
     const [carteSelectionnee, setCarteSelectionnee] = useState(null)
+    // variable pour vérifier si l'utilisateur connecté est administrateur, utilisé seulement pour l'affichage, check aussi coté serveur
+    const [isAdmin, setIsAdmin] = useState(false)
     // mini constante pour avoir une liste de 1-10, utilisée pour faire l'affichage des filtres
     const listeCompte = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    // récupérer le token du local storage
+    const token = localStorage.getItem("token")
 
     // useEffect pour récuperer les cartes au chargement de la page
     useEffect(() => {
         async function getCartes() {
-            const reponse = await fetch(`${serveur}/collection/all`)
+            const reponse = await fetch(`${serveur}/collection/all`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             if (reponse.ok) {
                 const data = await reponse.json()
                 setAllCartes(data)
                 setCartes(data)
             }
         }
-
         getCartes().then(() => { console.log("cartes récupérés de l'API") })
-    }, [])
+    }, [token])
+
+    // useEffect pour checker si l'utilisateur est un admin pour l'affichage dans les modals
+    useEffect(() => {
+        async function getMe() {
+            const reponse = await fetch(`${serveur}/auth/whoAmI`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            if (!reponse.ok) {
+                setIsAdmin(false)
+                return
+            }
+            const user = await reponse.json()
+            if (user.statut === "admin") setIsAdmin(true)
+        }
+        getMe()
+    }, [token])
 
     // useEffect pour filtrer les cartes, change lorsqu'un des filtres est changé (nom, rareté, vie, mana, dmg)
     useEffect(() => {
@@ -194,9 +215,29 @@ function Collection() {
                                     </>
                                 )
                             })}
+                            {/* s'affiche seulement si isAdmin == true, si on modifie ou delete la carte dans le modal
+                                re-fait l'affichage */}
+                            <CardModal isOpen={carteSelectionnee !== null} carte={carteSelectionnee} isAdmin={isAdmin} token={token}
+                                onClose={() => setCarteSelectionnee(null)} onUpdated={(carteModifiee) => {
+                                    setAllCartes((cartesActuelles) =>
+                                        cartesActuelles.map((carte) => carte.id_carte === carteModifiee.id_carte
+                                            ? carteModifiee
+                                            : carte
+                                        )
+                                    )
+                                    setCarteSelectionnee(carteModifiee);
+                                }}
+                                onDeleted={(idCarte) => {
+                                    setAllCartes((cartesActuelles) =>
+                                        cartesActuelles.filter(
+                                            (carte) => carte.id_carte !== idCarte
+                                        )
+                                    );
+                                    setCarteSelectionnee(null);
+                                }}
+                            />
                         </div>
                     }
-                    <CardModal isOpen={carteSelectionnee !== null} carte={carteSelectionnee} onClose={() => setCarteSelectionnee(null)} />
                 </div>
             </div>
         </main>
