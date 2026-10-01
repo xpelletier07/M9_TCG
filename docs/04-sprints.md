@@ -25,3 +25,42 @@ Puisque nous n'avons jamais tous travaillé ensemble, il est difficile de déter
 | 1 | [#63](https://github.com/xpelletier07/M9_TCG/issues/63) | Cette fonctionnalité serait peut-être utile lors du déploiement global de l'application, mais elle est complêtement inutile pour notre objectifs actuelle (on ne demandra pas de vrai argent, pour le moment en tout cas). |
 | 2 | [#62](https://github.com/xpelletier07/M9_TCG/issues/62) | Faire un système d'échange entre joueurs serait peu important contre le nombre de temps de développement qu'il va prendre à l'équipe |
 | 3 | [#50](https://github.com/xpelletier07/M9_TCG/issues/50) | Ajouter des effets uniques au cartes serait une fonctionnalité incroyable mais coûteuse à produire. Malgré que cette fonctionnalité soit importante, elle n'est pas indispensable. |
+
+
+
+
+
+
+
+
+## Objectif du sprint
+Version alpha contenant les fonctionalitées primaires: login/signup, dashboard, drop de cartes simplifié (la matière du protocole WebSocket n'as pas été vue encore), catalogue de toutes les cartes, inventaire du joueur, sidebar pour naviguer entre les pages.
+
+## Récits engagés
+| Numéro Récit | Récit Résumé | Points | Commentaires |
+|-----|-----|-----|-----|
+| [#32](https://github.com/xpelletier07/M9_TCG/issues/32) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+
+
+

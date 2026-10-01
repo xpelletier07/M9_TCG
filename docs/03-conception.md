@@ -64,8 +64,6 @@ Chemin menant au diagramme entité relation: ![Computer](diagrammes/v6.drawio.pn
 - checkAuth — Vérifie qu'un token JWT valide est fourni dans l'en-tête `Authorization`. Si valide, attache l'utilisateur à `req.user` et laisse passer la requête.
 - checkAdmin — Vérifie qu'un token JWT valide est fourni et que l'utilisateur a le statut "admin". Si il est admin, laisse passer la requête. Sinon, retourne une erreur 403.
 
-### Changements Sprint 0 -> 1
-- Plusieurs nom de routes ont étés changées puisque nous utilisions des verbes dans le nom des routes. Après rétroaction du prof, nous avons suivi son conseil de laisser les méthodes HTTP parler d'elles mêmes.
 
 
 ## Registre des décisions:
@@ -90,3 +88,21 @@ Chemin menant au diagramme entité relation: ![Computer](diagrammes/v6.drawio.pn
 - **Décision**: Microsoft Azure
 - **Raison**: Render n'offre pas assez de bonnes performances pour les besoins de notre projet donc nous allons aller vers Microsoft Azure.
 - **Ce que ça coûte**: Le serveur ne pourra être hosté que lorsqu'on est étudiant et après nous devrons payer ou l'annuler.
+
+## Nouvelles décisions prises durant le sprint 1
+
+### Changements Sprint 0 -> 1
+- Plusieurs nom de routes ont étés changées puisque nous utilisions des verbes dans le nom des routes. Après rétroaction du prof, nous avons suivi son conseil de laisser les méthodes HTTP parler d'elles mêmes.
+
+### Décision 4 | Hiérarchie des fichiers
+- **La question**: Comment organiser tous les fichiers
+- **Options envisagées**: Une infinitée de différentes façons d'organiser les dossiers
+- **Décision**: Serveur -> middlewares/ | routes/ | Router/ | tests/ | db/
+                Client -> auth/ | components/ | pages/ | css/ | Routeur.jsx 
+- **Raison**:   Organise les fichiers dans des catégories de tailles raisonnables, sans avoir des milliers de dossiers à naviguer.
+- **Ce que ça coûte**: Une grosse perte de temps parce que Windows pense que "Pages" === "pages" donc il y avait une duplication des fichiers et des dossiers dans GitHub.
+
+
+
+
+
