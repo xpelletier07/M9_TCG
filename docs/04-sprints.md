@@ -45,10 +45,11 @@ Version alpha contenant les fonctionalitées primaires: login/signup, dashboard,
 | [#48](https://github.com/xpelletier07/M9_TCG/issues/48) | Implémentation de l'inventaire | 3 |  |
 | [#49](https://github.com/xpelletier07/M9_TCG/issues/49) | Implémentation des Decks | 2 |  |
 | [#54](https://github.com/xpelletier07/M9_TCG/issues/54) | Système de booster périodiques | 3 |  |
-| [#55](https://github.com/xpelletier07/M9_TCG/issues/55) | Système de drop communs | 8 | Placeholder pour l'instant, nous allons completer lorsque le protocole WebSocket sera vu en cours |
+| [#55](https://github.com/xpelletier07/M9_TCG/issues/55) | Système de drop communs | 8 | Placeholder pour l'instant, nous allons completer lorsque le protocole WebSocket sera vu en cours. Nous n'allons donc pas compter les points pour le sprint 1|
 | [#57](https://github.com/xpelletier07/M9_TCG/issues/57) | Page de Catalogue - User | 5 |  |
 | [#58](https://github.com/xpelletier07/M9_TCG/issues/58) | Page de Catalogue - Admin | 3 |  |
 | [#71](https://github.com/xpelletier07/M9_TCG/issues/71) | Créer le Dashboard | 2 |  |
 
+Grand total des points: 3+3+3+3+2+3+5+3+2=27
 
 
