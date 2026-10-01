@@ -75,7 +75,7 @@ BEGIN
     RAISE NOTICE 'Table deck_carte successfully created';
 END
 $$;
-DROP TABLE IF EXISTS Packs;
+
 
 CREATE TABLE IF NOT EXISTS Packs (
     id_pack SERIAL PRIMARY KEY,
@@ -86,11 +86,6 @@ CREATE TABLE IF NOT EXISTS Packs (
     valeur_pack DECIMAL(10, 2) NOT NULL,
     actif BOOLEAN NOT NULL DEFAULT TRUE
 );
-
-ALTER TABLE IF EXISTS Packs
-ADD COLUMN IF NOT EXISTS actif BOOLEAN NOT NULL DEFAULT TRUE;
-
-DROP TABLE IF EXISTS inventaire_packs;
 
 CREATE TABLE IF NOT EXISTS inventaire_packs (
     id_utilisateur int references utilisateurs(id) on delete cascade,
