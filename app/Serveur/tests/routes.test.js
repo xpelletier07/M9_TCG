@@ -1,5 +1,7 @@
 import assert from "node:assert/strict"
 import { after, before, test } from "node:test"
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 import {
     authenticatedHeaders,
     request,
@@ -8,7 +10,47 @@ import {
     stopTestServer,
 } from "./app.test.js"
 
-before(startTestServer)
+let clientToken
+let adminToken
+
+async function loginAs(email, password, account) {
+    const passwordHash = await bcrypt.hash(password, 10)
+    setQueryResult({
+        rows: [{
+            id: account.id,
+            nom_utilisateur: account.nom_utilisateur,
+            email,
+            mot_de_passe_hash: passwordHash,
+            statut: account.statut,
+        }],
+        rowCount: 1,
+        ok: true,
+    })
+
+    const { response, body } = await request("/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, password }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.ok(body.token)
+    return body.token
+}
+
+before(async () => {
+    await startTestServer()
+    clientToken = await loginAs("client@example.com", "client-password", {
+        id: 2,
+        nom_utilisateur: "client",
+        statut: "actif",
+    })
+    adminToken = await loginAs("admin@example.com", "admin-password", {
+        id: 1,
+        nom_utilisateur: "admin",
+        statut: "admin",
+    })
+})
 after(stopTestServer)
 
 test("GET / retourne le message de l'API", async () => {
@@ -62,6 +104,14 @@ test("POST /auth/login refuse les identifiants incomplets", async () => {
     assert.equal(body.error, "Email et mot de passe requis")
 })
 
+test("POST /auth/login connecte un compte client", async () => {
+    assert.equal(jwt.verify(clientToken, process.env.JWT_SECRET).statut, "actif")
+})
+
+test("POST /auth/login connecte un compte admin", async () => {
+    assert.equal(jwt.verify(adminToken, process.env.JWT_SECRET).statut, "admin")
+})
+
 test("GET /inventory/cards exige une authentification", async () => {
     const { response, body } = await request("/inventory/cards")
 
@@ -72,7 +122,7 @@ test("GET /inventory/cards exige une authentification", async () => {
 test("POST /collection/card valide les champs obligatoires", async () => {
     const { response, body } = await request("/collection/card", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
         body: JSON.stringify({}),
     })
 
@@ -114,7 +164,9 @@ test("POST /auth/signup refuse un utilisateur déjà existant", async () => {
 test("GET /collection/all retourne les cartes", async () => {
     setQueryResult({ rows: [{ id_carte: 1, nom_carte: "Carte test" }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/collection/all")
+    const { response, body } = await request("/collection/all", {
+        headers: { authorization: `Bearer ${clientToken}` },
+    })
 
     assert.equal(response.status, 200)
     assert.equal(body[0].nom_carte, "Carte test")
@@ -123,7 +175,9 @@ test("GET /collection/all retourne les cartes", async () => {
 test("GET /collection/:id retourne une carte", async () => {
     setQueryResult({ rows: [{ id_carte: 3, nom_carte: "Carte test" }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/collection/3")
+    const { response, body } = await request("/collection/3", {
+        headers: { authorization: `Bearer ${clientToken}` },
+    })
 
     assert.equal(response.status, 200)
     assert.equal(body.id_carte, 3)
@@ -134,7 +188,7 @@ test("POST /collection/card crée une carte valide", async () => {
 
     const { response, body } = await request("/collection/card", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
         body: JSON.stringify({
             nomCarte: "Carte test",
             image: "image.png",
@@ -301,4 +355,101 @@ test("DELETE /inventory/decks/:id retourne 404 si le deck est introuvable", asyn
 
     assert.equal(response.status, 404)
     assert.equal(body.error, "Deck introuvable")
+})
+
+test("GET /inventaire-pack/drop-state retourne un cycle de 5 minutes", async () => {
+    setQueryResult({ rows: [{ id_pack: 1, nom_pack: "Pack Commun", image_pack: "img.png" }], rowCount: 1, ok: true })
+
+    const { response, body } = await request("/inventaire-pack/drop-state")
+
+    assert.equal(response.status, 200)
+    assert.equal(body.cycleSeconds, 300)
+    assert.ok(typeof body.remainingSeconds === "number")
+    assert.ok(body.remainingSeconds <= 300)
+    assert.equal(body.cooldownRemainingSeconds, undefined)
+})
+
+test("GET /inventaire-pack/status exige une authentification", async () => {
+    const { response, body } = await request("/inventaire-pack/status")
+
+    assert.equal(response.status, 401)
+    assert.equal(body.error, "Authentification requise")
+})
+
+test("GET /inventaire-pack/status indique si l'utilisateur peut réclamer", async () => {
+    setQueryResult((sql) => {
+        if (sql.includes("dernier_drop_pack_at")) {
+            return { rows: [{ dernier_drop_pack_at: null }], rowCount: 1, ok: true }
+        }
+        return { rows: [{ id_pack: 1, quantite: 2 }], rowCount: 1, ok: true }
+    })
+
+    const { response, body } = await request("/inventaire-pack/status", {
+        headers: authenticatedHeaders(),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.canClaim, true)
+    assert.equal(body.cooldownRemainingSeconds, 0)
+    assert.deepEqual(body.inventory, [{ id_pack: 1, quantite: 2 }])
+})
+
+test("POST /inventaire-pack/open exige une authentification", async () => {
+    const { response, body } = await request("/inventaire-pack/open", {
+        method: "POST",
+    })
+
+    assert.equal(response.status, 401)
+    assert.equal(body.error, "Authentification requise")
+})
+
+test("POST /inventaire-pack/open refuse si le cooldown de 24h est actif", async () => {
+    setQueryResult((sql) => {
+        if (sql.includes("where id_pack = $1")) {
+            return { rows: [{ id_pack: 1, nom_pack: "Pack Alpha", actif: true }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("update utilisateurs")) {
+            return { rows: [], rowCount: 0, ok: true }
+        }
+        if (sql.includes("dernier_drop_pack_at from utilisateurs")) {
+            return { rows: [{ dernier_drop_pack_at: new Date().toISOString() }], rowCount: 1, ok: true }
+        }
+        return { rows: [], rowCount: 0, ok: true }
+    })
+
+    const { response, body } = await request("/inventaire-pack/open", {
+        method: "POST",
+        headers: { ...authenticatedHeaders(), "content-type": "application/json" },
+        body: JSON.stringify({ id_pack: 1 }),
+    })
+
+    assert.equal(response.status, 429)
+    assert.match(body.error, /24h/)
+    assert.ok(body.cooldownRemainingSeconds > 0)
+})
+
+test("POST /inventaire-pack/open réclame le pack si éligible", async () => {
+    setQueryResult((sql) => {
+        if (sql.includes("where id_pack = $1")) {
+            return { rows: [{ id_pack: 1, nom_pack: "Pack Alpha", actif: true }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("update utilisateurs")) {
+            return { rows: [{ dernier_drop_pack_at: new Date().toISOString() }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("insert into inventaire_packs")) {
+            return { rows: [{ id_pack: 1, quantite: 3 }], rowCount: 1, ok: true }
+        }
+        return { rows: [], rowCount: 0, ok: true }
+    })
+
+    const { response, body } = await request("/inventaire-pack/open", {
+        method: "POST",
+        headers: { ...authenticatedHeaders(), "content-type": "application/json" },
+        body: JSON.stringify({ id_pack: 1 }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.message, "Pack réclamé avec succès !")
+    assert.equal(body.quantite, 3)
+    assert.equal(body.cooldownRemainingSeconds, 24 * 3600)
 })
