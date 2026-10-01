@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext'
 import { API_BASE_URL } from '../config'
+import { CardModal } from '../components/Modals'
 
 // Import Bulma CSS
 import 'bulma/css/bulma.min.css';
 
 function Inventaire() {
     const { user } = useAuth()
+    const navigate = useNavigate()
     const [cartes, setCartes] = useState([])
     const [loading, setLoading] = useState(true)
     const [erreur, setErreur] = useState(null)
@@ -15,6 +18,7 @@ function Inventaire() {
     const [collectionCartes, setCollectionCartes] = useState([])
     const [filtreNom, setFiltreNom] = useState('')
     const [isCollectionLoading, setIsCollectionLoading] = useState(false)
+    const [carteSelectionnee, setCarteSelectionnee] = useState(null)
 
     // Fonction qui appelle les routes de inventaire.js pour récupérer les cartes de l'utilisateur
     async function fetchCartes() {
@@ -54,7 +58,10 @@ function Inventaire() {
         if (collectionCartes.length > 0) return // Déjà chargé
         try {
             setIsCollectionLoading(true)
-            const res = await fetch(`${API_BASE_URL}/collection/all`)
+            const token = localStorage.getItem("token")
+            const res = await fetch(`${API_BASE_URL}/collection/all`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             if (!res.ok) throw new Error("Erreur lors de la récupération de la collection")
             const data = await res.json()
             setCollectionCartes(data)
@@ -107,7 +114,7 @@ function Inventaire() {
                         </span>
                         <span>Ajouter une carte</span>
                     </button>
-                    <button className="button is-warning decks-button">
+                    <button className="button is-warning decks-button" onClick={() => navigate('/decks')}>
                         <span className="icon">
                             <i className="fas fa-layer-group"></i>
                         </span>
@@ -155,7 +162,7 @@ function Inventaire() {
                 {!loading && !erreur && cartes.length > 0 && (
                     <div className="cards-grid">
                         {cartes.map((carte) => (
-                            <div key={carte.id_carte} className="card-item">
+                            <div key={carte.id_carte} className="card-item" onClick={() => setCarteSelectionnee(carte)} style={{ cursor: 'pointer' }}>
                                 <div className="card-image-wrapper">
                                     <img
                                         src={carte.image}
@@ -208,7 +215,7 @@ function Inventaire() {
                         ) : (
                             <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
                                 {collectionCartes
-                                    .filter(c => c.nom_carte.toLowerCase().includes(filtreNom.toLowerCase()))
+                                    .filter(c => (c?.nom_carte || "").toLowerCase().includes(filtreNom.toLowerCase()))
                                     .map(carte => (
                                         <div
                                             key={carte.id_carte}
@@ -232,7 +239,7 @@ function Inventaire() {
                                             </div>
                                         </div>
                                     ))}
-                                {collectionCartes.filter(c => c.nom_carte.toLowerCase().includes(filtreNom.toLowerCase())).length === 0 && (
+                                {collectionCartes.filter(c => (c?.nom_carte || "").toLowerCase().includes(filtreNom.toLowerCase())).length === 0 && (
                                     <p className="has-text-grey">Aucune carte trouvée pour "{filtreNom}"</p>
                                 )}
                             </div>
@@ -241,6 +248,16 @@ function Inventaire() {
                 </div>
             </div>
 
+            {/* Modal de visualisation de carte */}
+            <CardModal
+                isOpen={carteSelectionnee !== null}
+                carte={carteSelectionnee}
+                isAdmin={false}
+                token={null}
+                onClose={() => setCarteSelectionnee(null)}
+                onUpdated={() => {}}
+                onDeleted={() => {}}
+            />
         </main>
     )
 }
