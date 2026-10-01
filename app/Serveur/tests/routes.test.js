@@ -214,28 +214,28 @@ test("GET /api/card/:id retourne une carte", async () => {
     assert.equal(body.id_carte, 5)
 })
 
-test("GET /api/inventaire/:id_user retourne l'inventaire", async () => {
-    setQueryResult({ rows: [{ id_user: 7, id_carte: 5 }], rowCount: 1, ok: true })
+test("GET /inventaire/:id_user retourne l'inventaire", async () => {
+    setQueryResult({ rows: [{ id_utilisateur: 7, id_carte: 5 }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/api/inventaire/7")
+    const { response, body } = await request("/inventaire/7")
 
     assert.equal(response.status, 200)
-    assert.deepEqual(body, [{ id_user: 7, id_carte: 5 }])
+    assert.deepEqual(body, { cartes: [{ id_utilisateur: 7, id_carte: 5 }] })
 })
 
-test("POST /api/inventaire/:id_user/:id_carte ajoute une carte", async () => {
-    setQueryResult({ rows: [{ id_user: 7, id_carte: 5 }], rowCount: 1, ok: true })
+test("POST /carteInventaire/:id_user/:id_carte ajoute une carte", async () => {
+    setQueryResult({ rows: [{ id_utilisateur: 7, id_carte: 5 }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/api/inventaire/7/5", { method: "POST" })
+    const { response, body } = await request("/carteInventaire/7/5", { method: "POST" })
 
     assert.equal(response.status, 201)
     assert.equal(body.newCard.id_carte, 5)
 })
 
-test("DELETE /api/inventaire/:id_user/:id_carte supprime une carte", async () => {
-    setQueryResult({ rows: [{ id_user: 7, id_carte: 5 }], rowCount: 1, ok: true })
+test("DELETE /carteInventaire/:id_user/:id_carte supprime une carte", async () => {
+    setQueryResult({ rows: [{ id_utilisateur: 7, id_carte: 5 }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/api/inventaire/7/5", { method: "DELETE" })
+    const { response, body } = await request("/carteInventaire/7/5", { method: "DELETE" })
 
     assert.equal(response.status, 200)
     assert.equal(body.deletedCard.id_carte, 5)
