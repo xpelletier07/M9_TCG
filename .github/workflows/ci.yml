@@ -55,8 +55,8 @@ jobs:
         run: |
           OWNER=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
           SHA=sha-${GITHUB_SHA::7}
-          TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-api:$SHA" -t "$REGISTRY/$OWNER/m9-tcg-api:$BRANCH" -t "$REGISTRY/$OWNER/m9-tcg-api:${BRANCH}-latest")
-          CLIENT_TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-client:$SHA" -t "$REGISTRY/$OWNER/m9-tcg-client:$BRANCH" -t "$REGISTRY/$OWNER/m9-tcg-client:${BRANCH}-latest")
+          TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-api:${BRANCH}-$SHA" -t "$REGISTRY/$OWNER/m9-tcg-api:$BRANCH" -t "$REGISTRY/$OWNER/m9-tcg-api:${BRANCH}-latest")
+          CLIENT_TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-client:${BRANCH}-$SHA" -t "$REGISTRY/$OWNER/m9-tcg-client:$BRANCH" -t "$REGISTRY/$OWNER/m9-tcg-client:${BRANCH}-latest")
 
           if [ "$BRANCH" = "main" ]; then
             TAGS+=(-t "$REGISTRY/$OWNER/m9-tcg-api:release")
