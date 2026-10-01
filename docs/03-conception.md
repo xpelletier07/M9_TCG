@@ -64,6 +64,10 @@ Chemin menant au diagramme entité relation: ![Computer](diagrammes/v6.drawio.pn
 - checkAuth — Vérifie qu'un token JWT valide est fourni dans l'en-tête `Authorization`. Si valide, attache l'utilisateur à `req.user` et laisse passer la requête.
 - checkAdmin — Vérifie qu'un token JWT valide est fourni et que l'utilisateur a le statut "admin". Si il est admin, laisse passer la requête. Sinon, retourne une erreur 403.
 
+### Changements Sprint 0 -> 1
+- Plusieurs nom de routes ont étés changées puisque nous utilisions des verbes dans le nom des routes. Après rétroaction du prof, nous avons suivi son conseil de laisser les méthodes HTTP parler d'elles mêmes.
+
+
 ## Registre des décisions:
 
 ### Décision 1 | Quel modèle de base de données utiliser?
