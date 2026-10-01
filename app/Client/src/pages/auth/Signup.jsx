@@ -13,6 +13,7 @@ export default function Signup() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Vérification en direct (au blur du champ email) : évite d'attendre le submit pour prévenir l'utilisateur
   async function handleEmailBlur() {
     if (!email) return
 
@@ -30,10 +31,12 @@ export default function Signup() {
     }
   }
 
+  // Soumission du formulaire d'inscription
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
 
+    // Validations côté client (champs requis, longueur du mot de passe, confirmation) avant l'appel API
     if (!nomUtilisateur || !email || !password) {
       setError('Tous les champs sont requis')
       return
@@ -52,6 +55,7 @@ export default function Signup() {
     setLoading(true)
 
     try {
+      // Appelle POST /auth/signup pour créer le compte
       const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,6 +69,7 @@ export default function Signup() {
         return
       }
 
+      // Pas de connexion automatique : l'utilisateur doit se connecter après son inscription
       navigate('/login')
     } catch (err) {
       setError('Impossible de contacter le serveur')
@@ -74,12 +79,16 @@ export default function Signup() {
   }
 
   return (
+    // Conteneur plein écran de la page d'authentification
     <div className="auth-page">
+      {/* Carte centrée contenant le formulaire d'inscription */}
       <div className="auth-box">
         <h1>Inscription</h1>
         <p className="auth-subtitle">Créez votre compte pour commencer à jouer</p>
 
+        {/* handleSubmit intercepte le submit natif pour valider puis appeler l'API */}
         <form onSubmit={handleSubmit}>
+          {/* Champ nom d'utilisateur : input contrôlé lié à l'état nomUtilisateur */}
           <div className="auth-input-group">
             <i className="fa-solid fa-user"></i>
             <input
@@ -87,11 +96,13 @@ export default function Signup() {
               placeholder="nom d'utilisateur"
               aria-label="nom d'utilisateur"
               value={nomUtilisateur}
+              // met à jour l'état à chaque frappe
               onChange={(e) => setNomUtilisateur(e.target.value)}
               autoComplete="username"
             />
           </div>
 
+          {/* Champ email : le onBlur déclenche la vérification de disponibilité côté serveur */}
           <div className="auth-input-group">
             <i className="fa-solid fa-envelope"></i>
             <input
@@ -100,12 +111,15 @@ export default function Signup() {
               aria-label="e-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              // appelle /auth/check-email dès que le champ perd le focus
               onBlur={handleEmailBlur}
               autoComplete="email"
             />
           </div>
+          {/* Affiché seulement si check-email a trouvé un email déjà utilisé */}
           {emailError && <p className="auth-error">{emailError}</p>}
 
+          {/* Champ mot de passe : saisie masquée (type="password") */}
           <div className="auth-input-group">
             <i className="fa-solid fa-lock"></i>
             <input
@@ -114,10 +128,12 @@ export default function Signup() {
               aria-label="mot de passe"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              // new-password = indique au navigateur de ne pas réutiliser un mot de passe existant
               autoComplete="new-password"
             />
           </div>
 
+          {/* Confirmation du mot de passe : comparée à password dans handleSubmit */}
           <div className="auth-input-group">
             <i className="fa-solid fa-lock"></i>
             <input
@@ -130,13 +146,16 @@ export default function Signup() {
             />
           </div>
 
+          {/* Erreur globale : validation côté client échouée ou réponse d'erreur de l'API */}
           {error && <p className="auth-error">{error}</p>}
 
+          {/* Désactivé pendant l'appel réseau pour éviter une double soumission */}
           <button type="submit" disabled={loading}>
             {loading ? 'Création...' : 'Créer un compte'}
           </button>
         </form>
 
+        {/* Lien vers la page de connexion pour les comptes déjà existants */}
         <p className="auth-footer">
           Déjà un compte ? <Link to="/login">Se connecter</Link>
         </p>

@@ -1,165 +1,179 @@
+/* Ancien conteneur plein écran (shell) : Sidebar + zone principale côte à côte */
 .tcg-app-shell {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
+  display: flex; /* place les enfants (sidebar + contenu) en ligne, l'un à côté de l'autre */
+  min-height: 100vh; /* occupe au moins toute la hauteur de l'écran, même si peu de contenu */
+  width: 100%; /* s'étend sur toute la largeur disponible du parent */
 }
 
+/* Zone principale du shell : prend tout l'espace restant à droite de la sidebar */
 .tcg-main-shell {
-  flex: 1;
-  min-width: 0;
+  flex: 1; /* grandit pour occuper tout l'espace restant après la largeur fixe de la sidebar */
+  min-width: 0; /* empêche le contenu (ex. texte long) de forcer un débordement horizontal */
 }
 
 /* ── Layout d'une page utilisant la sidebar ───────────────────────────── */
+/* Conteneur utilisé par AppLayout.jsx : place Sidebar + <Outlet/> côte à côte */
 .tcg-layout {
-  display: flex;
-  min-height: 100vh;
-  background-color: #ffffff;
-  color: #363636;
+  display: flex; /* sidebar et contenu en ligne */
+  min-height: 100vh; /* couvre toute la hauteur de la fenêtre même si le contenu est court */
+  background-color: #ffffff; /* fond clair par défaut, écrasé par le thème sombre plus bas */
+  color: #363636; /* couleur de texte par défaut du layout */
 }
 
+/* Zone de contenu à droite de la sidebar (pages Dashboard, Collection, etc.) */
 .tcg-content {
-  flex: 1;
-  padding: 2rem;
+  flex: 1; /* occupe tout l'espace restant à côté de la sidebar */
+  padding: 2rem; /* marge intérieure pour aérer le contenu des pages */
 }
 .tcg-content h1 {
-  margin: 0 0 0.5rem;
-  color: #000000;
+  margin: 0 0 0.5rem; /* retire la marge par défaut du navigateur, garde juste un petit espace sous le titre */
+  color: #000000; /* titre en noir pur pour contraster avec le texte secondaire plus bas */
 }
 .tcg-content p {
-  color: #6b6b6b;
+  color: #6b6b6b; /* gris plus discret que le titre pour hiérarchiser visuellement le texte */
 }
 
 /* ── Sidebar ───────────────────────────────────────────────────────────── */
+/* Barre latérale fixe (sticky) sur toute la hauteur ; largeur animée pour l'effet replié/déplié */
 .tcg-sidebar {
-  width: 220px;
-  flex-shrink: 0;
+  width: 220px; /* largeur par défaut (dépliée) */
+  flex-shrink: 0; /* empêche la sidebar de rétrécir si le contenu voisin manque de place */
   display: flex;
-  flex-direction: column;
-  height: 100vh;
-  position: sticky;
-  top: 0;
-  overflow: hidden;
-  transition: width 0.25s ease;
+  flex-direction: column; /* empile header / nav / footer verticalement */
+  height: 100vh; /* occupe toute la hauteur visible */
+  position: sticky; /* reste visible même si la page défile */
+  top: 0; /* collée au sommet de la fenêtre */
+  overflow: hidden; /* cache le texte des liens pendant l'animation de réduction de largeur */
+  transition: width 0.25s ease; /* anime le changement de largeur replié/déplié */
   background-color: #ffffff;
-  border-right: 1px solid #dbdbdb;
+  border-right: 1px solid #dbdbdb; /* sépare visuellement la sidebar du contenu */
 }
 
+/* Appliqué par Sidebar.jsx quand collapsed=true : ne garde que la colonne d'icônes */
 .tcg-sidebar.collapsed {
-  width: 52px;
+  width: 52px; /* juste assez large pour les icônes, le texte des liens est masqué par le JS */
 }
 
+/* Bandeau du haut contenant le bouton replier/déplier */
 .tcg-sidebar-header {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  align-items: center; /* centre le bouton verticalement dans le bandeau */
+  justify-content: flex-end; /* pousse le bouton à droite */
   padding: 0.75rem;
-  border-bottom: 1px solid #dbdbdb;
+  border-bottom: 1px solid #dbdbdb; /* sépare le header du reste de la nav */
 }
 
+/* Bouton icône générique (ex. toggle replier/déplier) */
 .tcg-icon-btn {
-  background: transparent;
-  border: 1px solid transparent;
+  background: transparent; /* pas de fond par défaut, seulement au survol (voir :hover) */
+  border: 1px solid transparent; /* réserve l'espace d'une bordure sans l'afficher, évite un saut au hover */
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
-  color: #0d2a6e;
-  cursor: pointer;
+  color: #0d2a6e; /* bleu marine, couleur d'accent de la sidebar */
+  cursor: pointer; /* indique que l'élément est cliquable même si c'est un <button> */
   font-size: 1rem;
-  line-height: 1;
+  line-height: 1; /* évite un espacement vertical parasite autour de l'icône */
 }
 .tcg-icon-btn:hover {
-  background-color: #e8eefc;
+  background-color: #e8eefc; /* léger fond bleu pâle au survol pour le retour visuel */
 }
 
+/* Zone scrollable contenant la liste de navigation */
 .tcg-nav {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1; /* pousse le footer (déconnexion) tout en bas de la sidebar */
+  overflow-y: auto; /* scroll interne si la liste de liens dépasse la hauteur de l'écran */
   padding: 0.75rem 0.5rem;
 }
 
+/* Liste des liens de navigation (un <li> par entrée de navItems dans Sidebar.jsx) */
 .tcg-menu-list {
-  list-style: none;
+  list-style: none; /* retire les puces par défaut des <li> */
   margin: 0;
   padding: 0;
 }
 .tcg-menu-list li {
-  margin-bottom: 4px;
+  margin-bottom: 4px; /* petit espace entre chaque lien */
 }
 .tcg-menu-list a {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  white-space: nowrap;
+  align-items: center; /* aligne icône et texte sur la même ligne */
+  gap: 0.75rem; /* espace entre l'icône et le label */
+  white-space: nowrap; /* empêche le texte de retourner à la ligne quand la sidebar est repliée */
   padding: 0.5rem 0.75rem;
   color: #0d2a6e;
-  text-decoration: none;
+  text-decoration: none; /* retire le soulignement par défaut des liens */
   border-radius: 6px;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s; /* adoucit le changement de couleur au survol/actif */
 }
 .tcg-menu-list a i {
   font-size: 1.1rem;
-  width: 1.2em;
+  width: 1.2em; /* largeur fixe pour que les icônes restent alignées même repliées */
   text-align: center;
 }
 .tcg-menu-list a:hover {
-  background-color: #e8eefc;
+  background-color: #e8eefc; /* même fond de survol que les boutons icônes, pour la cohérence */
 }
+/* Classe posée par NavLink (react-router) sur le lien de la route active */
 .tcg-menu-list a.is-active {
-  background-color: #0d2a6e;
-  color: #ffffff;
+  background-color: #0d2a6e; /* fond plein pour bien distinguer la page actuelle des autres liens */
+  color: #ffffff; /* texte blanc pour rester lisible sur le fond bleu marine */
 }
 
+/* Bas de la sidebar : contient le bouton de déconnexion (affiché seulement si loggedIn) */
 .tcg-sidebar-footer {
   padding: 0.75rem;
 }
 .tcg-logout-btn {
-  width: 100%;
+  width: 100%; /* occupe toute la largeur du footer pour une grande zone cliquable */
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* centre icône + texte */
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background-color: #cc0f35;
+  background-color: #cc0f35; /* rouge pour signaler une action destructive/de sortie */
   border: none;
   border-radius: 6px;
   color: #ffffff;
   cursor: pointer;
 }
 .tcg-logout-btn:hover {
-  background-color: #b30d2e;
+  background-color: #b30d2e; /* rouge légèrement plus foncé pour le retour visuel au survol */
 }
 
 /* ── Thème sombre (appliqué sur <html>) ───────────────────────────────── */
+/* La classe "tcg-dark" est ajoutée/retirée sur <html> par le useEffect de Sidebar.jsx */
 html.tcg-dark body,
 html.tcg-dark .tcg-layout {
-  background-color: #18191a;
-  color: #e4e6eb;
+  background-color: #18191a; /* fond quasi noir du thème sombre */
+  color: #e4e6eb; /* texte clair pour garder le contraste sur fond sombre */
 }
 html.tcg-dark .tcg-content h1 {
-  color: #e4e6eb;
+  color: #e4e6eb; /* même texte clair que le reste du thème sombre */
 }
 html.tcg-dark .tcg-content p {
-  color: #b0b3b8;
+  color: #b0b3b8; /* gris plus clair que le body pour garder la hiérarchie titre/texte en sombre */
 }
 html.tcg-dark .tcg-sidebar {
-  background-color: #242526;
-  border-right-color: #3a3b3c;
+  background-color: #242526; /* gris foncé légèrement plus clair que le fond pour distinguer la sidebar */
+  border-right-color: #3a3b3c; /* bordure adaptée au thème sombre */
 }
 html.tcg-dark .tcg-sidebar-header {
-  border-bottom-color: #3a3b3c;
+  border-bottom-color: #3a3b3c; /* même gris de séparation que la bordure de la sidebar */
 }
 html.tcg-dark .tcg-icon-btn {
-  color: #e4e6eb;
+  color: #e4e6eb; /* icône claire visible sur fond sombre */
 }
 html.tcg-dark .tcg-icon-btn:hover {
-  background-color: #3a3b3c;
+  background-color: #3a3b3c; /* survol gris foncé au lieu du bleu pâle du thème clair */
 }
 html.tcg-dark .tcg-menu-list a {
-  color: #e4e6eb;
+  color: #e4e6eb; /* liens clairs lisibles sur fond sombre */
 }
 html.tcg-dark .tcg-menu-list a:hover {
-  background-color: #3a3b3c;
+  background-color: #3a3b3c; /* même gris de survol que les boutons icônes en thème sombre */
 }
+/* Lien actif en thème sombre : même fond que le hover pour rester lisible sur fond foncé */
 html.tcg-dark .tcg-menu-list a.is-active {
-  background-color: #3a3b3c;
-  color: #ffffff;
+  background-color: #3a3b3c; /* le bleu marine du thème clair serait trop sombre/peu contrasté ici */
+  color: #ffffff; /* texte blanc pour bien ressortir sur le fond gris */
 }

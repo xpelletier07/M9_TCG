@@ -1,83 +1,87 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
+/* Variables globales (thème clair) : réutilisées partout, y compris Auth.css et Sidebar.css */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
+  --text: #6b6375; /* couleur de texte secondaire par défaut */
+  --text-h: #08060d; /* couleur des titres (plus foncée/contrastée que --text) */
+  --bg: #fff; /* fond de page par défaut */
+  --border: #e5e4e7; /* couleur générique de bordure/séparateur */
+  --code-bg: #f4f3ec; /* fond des balises <code> */
+  --accent: #aa3bff; /* couleur d'accent (focus, liens, éléments actifs) */
+  --accent-bg: rgba(170, 59, 255, 0.1); /* version très pâle de l'accent, pour les halos de focus */
+  --accent-border: rgba(170, 59, 255, 0.5); /* version semi-transparente de l'accent pour les bordures */
+  --social-bg: rgba(244, 243, 236, 0.5); /* fond semi-transparent pour les icônes/boutons sociaux */
+  --shadow: /* ombre portée réutilisable (cartes, boutons) */
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif; /* police par défaut du corps de texte */
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif; /* police des titres (identique ici) */
+  --mono: ui-monospace, Consolas, monospace; /* police pour le texte de code */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  font: 18px/145% var(--sans); /* taille de base 18px, hauteur de ligne 145% */
+  letter-spacing: 0.18px; /* léger espacement pour améliorer la lisibilité */
+  color-scheme: light dark; /* indique au navigateur que les deux thèmes sont supportés (scrollbars, etc.) */
   color: var(--text);
   background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none; /* empêche le navigateur de générer un faux gras/italique si la police ne l'a pas */
+  text-rendering: optimizeLegibility; /* favorise la lisibilité (crénage) plutôt que la vitesse de rendu */
+  -webkit-font-smoothing: antialiased; /* lissage des polices sur WebKit/Blink (Chrome, Safari) */
+  -moz-osx-font-smoothing: grayscale; /* lissage équivalent sur Firefox/macOS */
 
   @media (max-width: 1024px) {
-    font-size: 16px;
+    font-size: 16px; /* texte de base légèrement plus petit sur tablette/mobile */
   }
 }
 
+/* Redéfinit les mêmes variables selon la préférence système (indépendant de la classe .tcg-dark
+   posée manuellement par Sidebar.jsx, qui ne surcharge que les couleurs du layout/sidebar) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
+    --text: #9ca3af; /* texte secondaire plus clair pour rester lisible sur fond sombre */
+    --text-h: #f3f4f6; /* titres quasi blancs */
+    --bg: #16171d; /* fond sombre de page */
+    --border: #2e303a; /* bordures plus claires que le fond pour rester visibles */
+    --code-bg: #1f2028; /* fond de code légèrement plus clair que le fond de page */
+    --accent: #c084fc; /* violet plus clair, mieux contrasté sur fond sombre */
     --accent-bg: rgba(192, 132, 252, 0.15);
     --accent-border: rgba(192, 132, 252, 0.5);
     --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
+    --shadow: /* ombre plus marquée car le fond sombre réduit le contraste naturel */
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
   }
 
   #social .button-icon {
-    filter: invert(1) brightness(2);
+    filter: invert(1) brightness(2); /* inverse les icônes sombres (pensées pour fond clair) pour le mode sombre */
   }
 }
 
 body {
-  margin: 0;
+  margin: 0; /* retire la marge par défaut du navigateur pour un vrai plein écran */
 }
 
+/* Conteneur racine monté par main.jsx ; colonne pleine hauteur pour que Sidebar/pages s'étendent bien */
 #root {
   width: 100%;
-  min-height: 100svh;
+  min-height: 100svh; /* 100svh = hauteur visible réelle, plus fiable que 100vh sur mobile (barres d'adresse) */
   display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  flex-direction: column; /* empile les éléments enfants verticalement (ex. layout puis footer) */
+  box-sizing: border-box; /* padding/bordure inclus dans la largeur/hauteur déclarées */
 }
 
 h1,
 h2 {
   font-family: var(--heading);
-  font-weight: 500;
+  font-weight: 500; /* semi-gras, plus léger qu'un gras classique (700) */
   color: var(--text-h);
 }
 
 h1 {
   font-size: 56px;
-  letter-spacing: -1.68px;
+  letter-spacing: -1.68px; /* resserre les lettres sur les gros titres pour un rendu plus compact */
   margin: 32px 0;
 
   @media (max-width: 1024px) {
-    font-size: 36px;
+    font-size: 36px; /* titre réduit sur petits écrans */
     margin: 20px 0;
   }
 }
@@ -94,142 +98,143 @@ h2 {
 }
 
 p {
-  margin: 0;
+  margin: 0; /* laisse chaque composant gérer son propre espacement plutôt que la marge par défaut du navigateur */
 }
 
 code,
 .counter {
-  font-family: var(--mono);
+  font-family: var(--mono); /* police à chasse fixe pour aligner les caractères (code, compteurs) */
   display: inline-flex;
   border-radius: 4px;
   color: var(--text-h);
 }
 
 code {
-  font-size: 15px;
+  font-size: 15px; /* légèrement plus petit que le texte courant */
   line-height: 135%;
-  padding: 4px 8px;
+  padding: 4px 8px; /* petit coussin autour du texte pour simuler un badge */
   background: var(--code-bg);
 }
 
 /* ── Page Inventaire ─────────────────────────────────────────────────────── */
+/* Conteneur principal de la page Inventaire (à droite de la sidebar) */
 .content-left-spacing {
-  flex: 1;
-  padding: 2.5rem 4rem 2rem;
-  text-align: left;
+  flex: 1; /* occupe tout l'espace restant à côté de la sidebar */
+  padding: 2.5rem 4rem 2rem; /* grande marge horizontale pour aérer le contenu sur grand écran */
+  text-align: left; /* force l'alignement à gauche (évite un héritage centré) */
 }
 
 .inventory-title {
   margin: 0 0 0.5rem;
-  font-family: 'Inter', var(--sans);
+  font-family: 'Inter', var(--sans); /* police importée en haut du fichier, avec repli sur --sans */
   font-size: 2.25rem;
-  font-weight: 800;
+  font-weight: 800; /* très gras pour un titre de page bien visible */
   line-height: 1.15;
-  letter-spacing: -0.035em;
-  color: #111827;
+  letter-spacing: -0.035em; /* resserre les lettres, cohérent avec le style des gros titres */
+  color: #111827; /* quasi noir, propre à cette page (n'utilise pas --text-h) */
   text-align: left;
 }
 
 .inventory-subtitle {
   margin: 0;
-  max-width: 480px;
+  max-width: 480px; /* limite la largeur du texte pour garder des lignes courtes et lisibles */
   font-family: 'Inter', var(--sans);
   font-size: 0.95rem;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: -0.01em;
-  color: #6b7280;
+  color: #6b7280; /* gris plus discret que le titre */
   text-align: left;
 }
 
 .inventory-divider {
   width: 100%;
-  margin: 2rem 0;
-  border: none;
-  border-top: 2px solid #e5e7eb;
+  margin: 2rem 0; /* espace vertical avant/après le séparateur */
+  border: none; /* retire la bordure par défaut du <hr> */
+  border-top: 2px solid #e5e7eb; /* ne garde qu'un trait du haut comme ligne de séparation */
 }
 
 /* Thème sombre pour l'inventaire */
 html.tcg-dark .inventory-title {
-  color: #f3f4f6;
+  color: #f3f4f6; /* titre clair sur fond sombre */
 }
 
 html.tcg-dark .inventory-subtitle {
-  color: #9ca3af;
+  color: #9ca3af; /* sous-titre plus discret, cohérent avec --text en mode sombre */
 }
 
 html.tcg-dark .inventory-divider {
-  border-top-color: #2e303a;
+  border-top-color: #2e303a; /* séparateur moins contrasté, adapté au fond sombre */
 }
 
 /* Filtres */
 .filters {
   display: flex;
-  gap: 1rem;
-  align-items: flex-end;
+  gap: 1rem; /* espace entre chaque filtre */
+  align-items: flex-end; /* aligne les champs sur leur bas, utile si les labels ont des hauteurs différentes */
 }
 
 .filter-text {
-  flex: 1;
-  min-width: 0;
+  flex: 1; /* le champ texte prend tout l'espace restant à côté des filtres à largeur fixe */
+  min-width: 0; /* empêche le champ de forcer un débordement si son contenu est trop long */
 }
 
 .filter-select {
-  flex: 0 0 auto;
+  flex: 0 0 auto; /* garde sa largeur naturelle, ne grandit pas comme filter-text */
 }
 
 .filters .label {
   font-family: 'Inter', var(--sans);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 600; /* semi-gras pour distinguer le label du contenu du champ */
   color: #374151;
 }
 
 .filter-input,
 .filters .input,
 .filters .select select {
-  background-color: #f9fafb;
+  background-color: #f9fafb; /* fond légèrement grisé pour les champs, plus doux qu'un blanc pur */
   border-color: #d1d5db;
   color: #111827;
 }
 
 .filters .input:focus,
 .filters .select select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-bg);
+  border-color: var(--accent); /* bordure colorée pour indiquer clairement le champ actif */
+  box-shadow: 0 0 0 2px var(--accent-bg); /* halo doux autour du champ au focus */
 }
 
 /* Thème sombre pour les filtres */
 html.tcg-dark .filters .label {
-  color: #d1d5db;
+  color: #d1d5db; /* label clair, lisible sur fond sombre */
 }
 
 html.tcg-dark .filter-input,
 html.tcg-dark .filters .input,
 html.tcg-dark .filters .select select {
-  background-color: #1f2028;
+  background-color: #1f2028; /* même fond que --code-bg en mode sombre, cohérent avec le reste de l'UI */
   border-color: #3f4150;
   color: #f3f4f6;
 }
 
 html.tcg-dark .filters .input:focus,
 html.tcg-dark .filters .select select:focus {
-  border-color: var(--accent);
+  border-color: var(--accent); /* l'accent reste identique entre les deux thèmes (déjà adapté plus haut) */
   box-shadow: 0 0 0 2px var(--accent-bg);
 }
 
 html.tcg-dark .filters .select::after {
-  border-color: #9ca3af;
+  border-color: #9ca3af; /* flèche du <select> recolorée pour rester visible sur fond sombre */
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
   .content-left-spacing {
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 2rem; /* marges réduites sur petits écrans pour laisser plus de place au contenu */
   }
 
   .inventory-title {
-    font-size: 1.85rem;
+    font-size: 1.85rem; /* titre plus petit pour éviter qu'il ne déborde sur mobile */
   }
 
   .inventory-subtitle {
@@ -237,7 +242,7 @@ html.tcg-dark .filters .select::after {
   }
 
   .filters {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: column; /* empile les filtres verticalement faute de place horizontale */
+    align-items: stretch; /* chaque filtre prend toute la largeur disponible */
   }
 }
