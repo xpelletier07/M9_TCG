@@ -37,30 +37,18 @@ Puisque nous n'avons jamais tous travaillé ensemble, il est difficile de déter
 Version alpha contenant les fonctionalitées primaires: login/signup, dashboard, drop de cartes simplifié (la matière du protocole WebSocket n'as pas été vue encore), catalogue de toutes les cartes, inventaire du joueur, sidebar pour naviguer entre les pages.
 
 ## Récits engagés
-| Numéro Récit | Récit Résumé | Points | Commentaires |
+| Numéro Récit | Titre du Récit | Points | Commentaires |
 |-----|-----|-----|-----|
-| [#32](https://github.com/xpelletier07/M9_TCG/issues/32) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
-| [#](https://github.com/xpelletier07/M9_TCG/issues/) |  |  |  |
+| [#32](https://github.com/xpelletier07/M9_TCG/issues/32) | Formulaire d'inscription | 3 |  |
+| [#34](https://github.com/xpelletier07/M9_TCG/issues/34) | Formulaire de connexion | 3-5 | Ce qui à été fait, est un 3, il manque juste le OF2, ce qui sera fait dans les prochains sprints |
+| [#44](https://github.com/xpelletier07/M9_TCG/issues/44) | Navigation entre les pages | 3 | Inclus aussi le thème principal du site |
+| [#48](https://github.com/xpelletier07/M9_TCG/issues/48) | Implémentation de l'inventaire | 3 |  |
+| [#49](https://github.com/xpelletier07/M9_TCG/issues/49) | Implémentation des Decks | 2 |  |
+| [#54](https://github.com/xpelletier07/M9_TCG/issues/54) | Système de booster périodiques | 3 |  |
+| [#55](https://github.com/xpelletier07/M9_TCG/issues/55) | Système de drop communs | 8 | Placeholder pour l'instant, nous allons completer lorsque le protocole WebSocket sera vu en cours |
+| [#57](https://github.com/xpelletier07/M9_TCG/issues/57) | Page de Catalogue - User | 5 |  |
+| [#58](https://github.com/xpelletier07/M9_TCG/issues/58) | Page de Catalogue - Admin | 3 |  |
+| [#71](https://github.com/xpelletier07/M9_TCG/issues/71) | Créer le Dashboard | 2 |  |
 
 
 
