@@ -8,8 +8,9 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     email VARCHAR(255) UNIQUE NOT NULL,
     mot_de_passe_hash VARCHAR(255) NOT NULL,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW(),
-    statut VARCHAR(50),
-    credits FLOAT
+    statut VARCHAR(50) default 'actif',
+    credits FLOAT,
+    dernier_drop_pack_at TIMESTAMPTZ
 );
 -- Ce bloc DO $$ ... $$ permet d'afficher un message dans les logs de PostgreSQL pour indiquer que la table a été créée avec succès.
 DO $$
@@ -17,6 +18,7 @@ BEGIN
     RAISE NOTICE 'Table utilisateurs successfully created';
 END
 $$;
+
 
 -- table pour les cartes
 create table if not exists carte (
@@ -73,5 +75,30 @@ create table if not exists deck_carte (
 DO $$
 BEGIN
     RAISE NOTICE 'Table deck_carte successfully created';
+END
+$$;
+
+
+
+CREATE TABLE IF NOT EXISTS Packs (
+    id_pack SERIAL PRIMARY KEY,
+    nom_pack VARCHAR(100) UNIQUE NOT NULL,
+    image_pack VARCHAR(255) NOT NULL,
+    description_pack TEXT NOT NULL,
+    liste_carte VARCHAR(255)[] NOT NULL,
+    valeur_pack DECIMAL(10, 2) NOT NULL,
+    actif BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS inventaire_packs (
+    id_utilisateur int references utilisateurs(id) on delete cascade,
+    id_pack int references Packs(id_pack) on delete cascade,
+    quantite int not null default 1,
+    primary key (id_utilisateur, id_pack)
+);
+
+DO $$
+BEGIN
+    RAISE NOTICE 'Table inventaire_packs successfully created';
 END
 $$;

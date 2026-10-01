@@ -41,7 +41,11 @@ export async function stopTestServer() {
 }
 
 export function setQueryResult(result) {
-    queryMock = async () => result
+    if (typeof result === "function") {
+        queryMock = result
+    } else {
+        queryMock = async () => result
+    }
 }
 
 export function authenticatedHeaders() {
