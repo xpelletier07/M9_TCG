@@ -7,8 +7,8 @@ const raretes = {
     4: "Légendaire",
 }
 
-export function CardModal({ isOpen, carte, isAdmin, token, onClose, onUpdated, onDeleted }) {
-    const [isEditing, setIsEditing] = useState(false);
+export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, onDeleted }) {
+    const [isEditing, setIsEditing] = useState(isNew);
     const [form, setForm] = useState(null);
     const [erreur, setErreur] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,9 +27,9 @@ export function CardModal({ isOpen, carte, isAdmin, token, onClose, onUpdated, o
             damage: carte.damage,
         });
 
-        setIsEditing(false);
+        setIsEditing(isNew);
         setErreur("");
-    }, [carte]);
+    }, [carte, isNew]);
 
     // fonction générique pour modifier un champ, est utilisé pour modifier chaque champ lorsque l'utilisateur est admin
     function modifierChamp(event) {
@@ -46,30 +46,51 @@ export function CardModal({ isOpen, carte, isAdmin, token, onClose, onUpdated, o
         setIsSubmitting(true);
         setErreur("");
         try {
-            const reponse = await fetch(`http://localhost:3000/collection/${carte.id_carte}`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    ...form,
-                    // besoin de mettre des Number(), sinon prends des string et essaye de les envoyer dans la bd qui eux sont en int
-                    rarete: Number(form.rarete),
-                    valeur: Number(form.valeur),
-                    mana: Number(form.mana),
-                    health: Number(form.health),
-                    damage: Number(form.damage),
-                }),
+            let reponse;
+            if (isNew === false) {
+                reponse = await fetch(`http://localhost:3000/collection/${carte.id_carte}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        ...form,
+                        // besoin de mettre des Number(), sinon prends des string et essaye de les envoyer dans la bd qui eux sont en int
+                        rarete: Number(form.rarete),
+                        valeur: Number(form.valeur),
+                        mana: Number(form.mana),
+                        health: Number(form.health),
+                        damage: Number(form.damage),
+                    }),
+                })
             }
-            )
+            // juste au cas ou un bug et ce soit undefined ou qqch du genre
+            else if (isNew === true) {
+                reponse = await fetch(`http://localhost:3000/collection/card`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        ...form,
+                        // besoin de mettre des Number(), sinon prends des string et essaye de les envoyer dans la bd qui eux sont en int
+                        rarete: Number(form.rarete),
+                        valeur: Number(form.valeur),
+                        mana: Number(form.mana),
+                        health: Number(form.health),
+                        damage: Number(form.damage),
+                    }),
+                })
+            }
             // si erreur
             if (!reponse.ok) {
                 const resultat = await reponse.json();
                 throw new Error(
                     resultat.message ??
                     resultat.error ??
-                    "Impossible de modifier la carte"
+                    "Impossible de modifier ou ajouter la carte"
                 );
             }
             // sinon update côté client, et enleve le mode d'édition => retour au mode d'affichage normal
@@ -112,6 +133,11 @@ export function CardModal({ isOpen, carte, isAdmin, token, onClose, onUpdated, o
     }
 
     function annulerModification() {
+        if (isNew) {
+            onClose();
+            return;
+        }
+
         setForm({
             nomCarte: carte.nom_carte,
             image: carte.image,
@@ -126,7 +152,7 @@ export function CardModal({ isOpen, carte, isAdmin, token, onClose, onUpdated, o
         setIsEditing(false);
     }
 
-    if (!isOpen || !carte || !form) return null
+    if (!carte || !form) return null
 
     return (
         <div className="modal is-active" role="dialog" aria-modal="true" aria-labelledby="card-modal-title">
@@ -239,18 +265,18 @@ export function CardModal({ isOpen, carte, isAdmin, token, onClose, onUpdated, o
                     {/* si on est admin et PAS en mode d'édition, les bouttons sont pour entrer dans le mode édition ou pour delete */}
                     {isAdmin && !isEditing && (
                         <>
-                            <button type="button" className="button is-warning" style={{'margin-left': '0.5em'}} onClick={() => setIsEditing(true)}>Modifier</button>
-                            <button type="button" className="button is-danger" style={{'margin-left': '0.5em'}} onClick={supprimerCarte} disabled={isSubmitting}>Supprimer</button>
+                            <button type="button" className="button is-warning" style={{ 'margin-left': '0.5em' }} onClick={() => setIsEditing(true)}>Modifier</button>
+                            <button type="button" className="button is-danger" style={{ 'margin-left': '0.5em' }} onClick={supprimerCarte} disabled={isSubmitting}>Supprimer</button>
                         </>
                     )}
                     {/* si on est admin et EN mode d'édition, bouttons sont pour enregistrer ou annuler */}
                     {isAdmin && isEditing && (
                         <>
-                            <button type="button" className={`button is-primary ${isSubmitting ? "is-loading" : ""}`} style={{'margin-left': '0.5em'}}
+                            <button type="button" className={`button is-primary ${isSubmitting ? "is-loading" : ""}`} style={{ 'margin-left': '0.5em' }}
                                 onClick={enregistrerModification} disabled={isSubmitting}>
                                 Enregistrer
                             </button>
-                            <button type="button" className="button" style={{'margin-left': '0.5em'}} onClick={annulerModification} disabled={isSubmitting}>Annuler</button>
+                            <button type="button" className="button" style={{ 'margin-left': '0.5em' }} onClick={annulerModification} disabled={isSubmitting}>Annuler</button>
                         </>
                     )}
                 </footer>

@@ -29,7 +29,7 @@ export function checkAdmin(req, res, next) {
     try {
         const payload = jwt.verify(token, process.env.JWT_SECRET)
         req.user = payload
-        if (req.user.statut != 'admin') {
+        if (payload.statut != 'admin') {
             return res.status(403).json({ message: "Accès refusé" })
         }
         else {
