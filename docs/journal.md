@@ -90,3 +90,14 @@
 *William :* travail sur le backend et frontend de l'inventaire
 - **Blocages :** Marco malade, Alek a eu des problèmes d'ordi (~2-3hrs pour fix)
 - **Décisions :** Finir nos tâches pour la remise du jeudi 
+
+#Semaine num 6-2 | Jeudi 01 octobre 2026
+- **Absence :** 
+- **Avancées :**
+*Xavier :* C'est focus sur les debugs/fix/continue.
+*Alek :* Réussi a fix son docker, a fait les modals et l'ajouts de cartes dans collection.
+*Marco :* Fix de la sidebar et de inscription.
+*Lotfi :* Implémentation des drops et fix le dashboard.
+*William :* Affichage des cartes dans inventaire, ajouts de fonctions et a fix certaines routes.
+- **Blocages :** Aucune
+- **Décisions :** Commencer à se distribuer les tâches pour le sprint 2
