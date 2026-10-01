@@ -1,0 +1,216 @@
+{
+  "info": {
+    "_postman_id": "8acaaf33-8e63-4fe4-85e8-0e8fb7e55f25",
+    "name": "M9TCG",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53455980"
+  },
+  "item": [
+    {
+      "name": "POST /collection/carte",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"nomCarte\": \"dogs belle pro v2\", \n    \"image\": \"https://imgs.search.brave.com/xAd8TXklCKzK3uvt8vYddcf1IRGteyBzVWf7Pskch7I/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9jaGVm/Y3Vpc3RvLmNvbS9m/aWxlcy8yMDE4LzA2/L3NhbGFkZS1jaG91/LWJlbGxlLXByb3Zp/bmNlLmpwZw\", \n    \"rarete\": 1, \n    \"valeur\": 2, \n    \"mana\": \"4\", \n    \"health\": \"5\", \n    \"damage\": \"2\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/collection/card",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "collection",
+            "card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /collection/all",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/collection/all",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "collection",
+            "all"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /collection/:id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/collection/:id",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "collection",
+            ":id"
+          ],
+          "variable": [
+            {
+              "id": 0,
+              "key": "id",
+              "value": "1",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "signup",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"nom_utilisateur\": \"wannaBeAdmin\", \r\n    \"email\": \"stuff@stuff.com\", \r\n    \"password\": \"123456798\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/auth/signup",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "signup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var reponse = pm.response.json()\r",
+              "if (reponse.token) {\r",
+              "    pm.environment.set(\"access_token\", reponse.token)\r",
+              "}\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"stuff@stuff.com\", \r\n    \"password\": \"123456798\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/auth/login",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "make admin",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/auth/makeMeAdmin",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "makeMeAdmin"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "whoAmI",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/auth/whoAmI",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "auth",
+            "whoAmI"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
