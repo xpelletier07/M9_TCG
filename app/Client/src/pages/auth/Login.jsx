@@ -38,7 +38,7 @@ export default function Login() {
       }
 
       login(data.user, data.token)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError('Impossible de contacter le serveur')
     } finally {
@@ -54,7 +54,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="auth-input-group">
-            <i className="fi fi-rs-envelope"></i>
+            <i className="fa-solid fa-envelope"></i>
             <input
               type="email"
               placeholder="e-mail"
@@ -66,7 +66,7 @@ export default function Login() {
           </div>
 
           <div className="auth-input-group">
-            <i className="fi fi-rs-lock"></i>
+            <i className="fa-solid fa-lock"></i>
             <input
               type="password"
               placeholder="mot de passe"
