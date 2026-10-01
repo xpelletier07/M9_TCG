@@ -2,6 +2,7 @@ import { pool } from "./../db/pool.js"
 import express from "express"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import { checkAuth } from "../middlewares/checkAuth.js"
 
 const router = express.Router()
 
@@ -59,7 +60,7 @@ router.post("/login", async (req, res) => {
 
     try {
         const result = await pool.query(
-            "select id, nom_utilisateur, email, mot_de_passe_hash from utilisateurs where email = $1",
+            "select id, nom_utilisateur, email, mot_de_passe_hash, statut from utilisateurs where email = $1",
             [email]
         )
 
@@ -77,7 +78,7 @@ router.post("/login", async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, nom_utilisateur: user.nom_utilisateur },
+            { id: user.id, nom_utilisateur: user.nom_utilisateur, statut: user.statut },
             process.env.JWT_SECRET,
             { expiresIn: "2h" }
         )
@@ -104,6 +105,29 @@ router.post("/check-email", async (req, res) => {
         res.status(200).json({ exists: result.rows.length > 0 })
     } catch (error) {
         console.error("Erreur dans /auth/check-email", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    }
+})
+
+// route pour afficher les infos de l'utilisateur connecté, utilisé pour obtenir le solde et autres.
+router.get("/whoAmI", checkAuth, async (req, res) => {
+    try {
+        const result = await pool.query("select * from utilisateurs where id = $1", [req.user.id])
+        res.status(200).json(result.rows[0])
+    } catch (error) {
+        console.error("Erreur dans /auth/whoAmI", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    }
+})
+
+// A SUPPRIMER LORSQU'ON VA AVOIR UNE SEUL BD QUI ROULE TOUT LE TEMPS
+// route temporaire pour rendre les utilisateurs de tests admin
+router.put("/makeMeAdmin", checkAuth, async (req, res) => {
+    try {
+        const rows = await pool.query("update utilisateurs set statut = $1 where id = $2", ["admin", req.user.id])
+        res.status(204).send()
+    } catch (error) {
+        console.error("Erreur dans /auth/whoAmI", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
