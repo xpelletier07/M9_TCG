@@ -45,8 +45,8 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       # Ce job est déclenché par le push créé lors de la fusion d'une PR.
-      # Chaque image reçoit un tag de commit et un tag de branche.
-      # Seule main reçoit latest : c'est la version publique stable.
+      # Chaque image reçoit un tag de commit, un tag de branche et un tag
+      # latest propre à sa branche. Seule main reçoit aussi release.
       - name: Construire et publier les images
         env:
           REGISTRY: ghcr.io
@@ -55,12 +55,12 @@ jobs:
         run: |
           OWNER=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
           SHA=sha-${GITHUB_SHA::7}
-          TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-api:$SHA" -t "$REGISTRY/$OWNER/m9-tcg-api:$BRANCH")
-          CLIENT_TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-client:$SHA" -t "$REGISTRY/$OWNER/m9-tcg-client:$BRANCH")
+          TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-api:${BRANCH}-$SHA" -t "$REGISTRY/$OWNER/m9-tcg-api:$BRANCH" -t "$REGISTRY/$OWNER/m9-tcg-api:${BRANCH}-latest")
+          CLIENT_TAGS=(-t "$REGISTRY/$OWNER/m9-tcg-client:${BRANCH}-$SHA" -t "$REGISTRY/$OWNER/m9-tcg-client:$BRANCH" -t "$REGISTRY/$OWNER/m9-tcg-client:${BRANCH}-latest")
 
           if [ "$BRANCH" = "main" ]; then
-            TAGS+=(-t "$REGISTRY/$OWNER/m9-tcg-api:latest")
-            CLIENT_TAGS+=(-t "$REGISTRY/$OWNER/m9-tcg-client:latest")
+            TAGS+=(-t "$REGISTRY/$OWNER/m9-tcg-api:release")
+            CLIENT_TAGS+=(-t "$REGISTRY/$OWNER/m9-tcg-client:release")
           fi
 
           docker build -f app/Serveur/Dockerfile \

@@ -124,6 +124,13 @@ code {
   text-align: left; /* force l'alignement à gauche (évite un héritage centré) */
 }
 
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
 .inventory-title {
   margin: 0 0 0.5rem;
   font-family: 'Inter', var(--sans); /* police importée en haut du fichier, avec repli sur --sans */
@@ -245,4 +252,273 @@ html.tcg-dark .filters .select::after {
     flex-direction: column; /* empile les filtres verticalement faute de place horizontale */
     align-items: stretch; /* chaque filtre prend toute la largeur disponible */
   }
+}
+
+/* Cartes Container */
+.cards-container {
+  margin-top: 2rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.card-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.card-item:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+.card-image-wrapper {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card-item:hover .card-image {
+  transform: scale(1.05);
+}
+
+.card-info {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.card-name {
+  font-family: 'Inter', var(--sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-description {
+  font-family: 'Inter', var(--sans);
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin: 0 0 0.6rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-stats {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  font-family: 'Inter', var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Cartes Loading / Error / Empty */
+.cards-loading,
+.cards-error,
+.cards-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: #6b7280;
+  font-family: 'Inter', var(--sans);
+  font-size: 0.9rem;
+}
+
+.loader {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cards-error p {
+  color: #b45309;
+}
+
+/* Theme sombre pour les cartes */
+html.tcg-dark .card-item {
+  background: #1f2028;
+  border-color: #2e303a;
+}
+
+html.tcg-dark .card-item:hover {
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+html.tcg-dark .card-image-wrapper {
+  background: #2a2b35;
+}
+
+html.tcg-dark .card-name {
+  color: #f3f4f6;
+}
+
+html.tcg-dark .card-description {
+  color: #9ca3af;
+}
+
+html.tcg-dark .stat {
+  background: #2a2b35;
+  color: #d1d5db;
+}
+
+html.tcg-dark .cards-loading,
+html.tcg-dark .cards-error,
+html.tcg-dark .cards-empty {
+  color: #9ca3af;
+}
+
+html.tcg-dark .loader {
+  border-color: #2e303a;
+  border-top-color: var(--accent);
+}
+
+html.tcg-dark .cards-error p {
+  color: #fbbf24;
+}
+
+/* Responsive cartes */
+@media (max-width: 1024px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* ── Modal d'ajout de carte ─────────────────────────────────────────────── */
+
+/* Scrollbar personnalisée dans le modal */
+.modal-card-body {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.modal-card-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-card-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-card-body::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.modal-card-body::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Thème clair (défaut) pour le modal, écrase le dark mode natif de Bulma */
+.modal-card-head {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-card-title {
+  color: #111827;
+  font-weight: 700;
+  font-family: 'Inter', var(--sans);
+}
+
+.modal-card-body {
+  background: #ffffff;
+}
+
+.modal-card-body .label {
+  color: #374151;
+  font-weight: 600;
+}
+
+.modal-card-body .input {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.modal-card-body .input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+/* Thème sombre pour le modal */
+html.tcg-dark .modal-card-head {
+  background: #1a1b23;
+  border-bottom-color: #2e303a;
+}
+
+html.tcg-dark .modal-card-title {
+  color: #f3f4f6;
+}
+
+html.tcg-dark .modal-card-body {
+  background: #16171d;
+  scrollbar-color: #3f4150 transparent;
+}
+
+html.tcg-dark .modal-card-body::-webkit-scrollbar-thumb {
+  background: #3f4150;
+}
+
+html.tcg-dark .modal-card-body::-webkit-scrollbar-thumb:hover {
+  background: #5a5d6e;
+}
+
+html.tcg-dark .modal-card-body .label {
+  color: #d1d5db;
+}
+
+html.tcg-dark .modal-card-body .input {
+  background-color: #1f2028;
+  border-color: #3f4150;
+  color: #f3f4f6;
+}
+
+html.tcg-dark .modal-card-body .input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
 }

@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { CardModal } from "../components/Modals";
 
+const nouvelleCarte = {
+    nom_carte: "",
+    image: "",
+    description: "",
+    rarete: 1,
+    valeur: 0,
+    mana: 0,
+    health: 0,
+    damage: 0,
+};
+
 function Collection() {
     const serveur = "http://localhost:3000"
     const [cartes, setAllCartes] = useState(null)
@@ -11,6 +22,7 @@ function Collection() {
     const [rarete, setRarete] = useState("")
     const [vie, setVie] = useState("")
     const [carteSelectionnee, setCarteSelectionnee] = useState(null)
+    const [ajoutCarteOuvert, setAjoutCarteOuvert] = useState(false)
     // variable pour vérifier si l'utilisateur connecté est administrateur, utilisé seulement pour l'affichage, check aussi coté serveur
     const [isAdmin, setIsAdmin] = useState(false)
     // mini constante pour avoir une liste de 1-10, utilisée pour faire l'affichage des filtres
@@ -93,6 +105,7 @@ function Collection() {
                             <h1 className="title">Collection</h1><br />
                         </div>
                     </div>
+                    {/* label et filtre pour le nom de la carte */}
                     <div className="columns">
                         <div className="field is-horizontal">
                             <div className="field-label is-normal">
@@ -106,7 +119,7 @@ function Collection() {
                                 </div>
                             </div>
                         </div>
-
+                        {/* label et filtre pour la rareté de la carte */}
                         <div className="field is-horizontal" style={{ paddingLeft: "20px" }}>
                             <div className="field-label is-normal">
                                 <label className="label">Rareté</label>
@@ -128,6 +141,7 @@ function Collection() {
                                 </div>
                             </div>
                         </div>
+                        {/* label et filtre pour le mana de la carte */}
                         <div className="field is-horizontal" style={{ paddingLeft: "20px" }}>
                             <div className="field-label is-normal">
                                 <label className="label">Mana</label>
@@ -147,6 +161,7 @@ function Collection() {
                                 </div>
                             </div>
                         </div>
+                        {/* label et filtre pour l'attaque de la carte */}
                         <div className="field is-horizontal" style={{ paddingLeft: "20px" }}>
                             <div className="field-label is-normal">
                                 <label className="label">Attaque</label>
@@ -169,6 +184,7 @@ function Collection() {
                                 </div>
                             </div>
                         </div>
+                        {/* label et filtre pour la vie de la carte */}
                         <div className="field is-horizontal" style={{ paddingLeft: "20px" }}>
                             <div className="field-label is-normal">
                                 <label className="label">Vie</label>
@@ -191,6 +207,31 @@ function Collection() {
                             </div>
                         </div>
                     </div>
+                    {/* boutton pour ajouter une carte dans la collection 
+                        s'affiche seulement lorsque l'utilisateur connecté est admin*/}
+                    {isAdmin &&
+                        <div className="field">
+                            <div className="control">
+                                <button type="button" className="button is-success" style={{ marginRight: "1em" }}
+                                    onClick={() => setAjoutCarteOuvert(true)}>
+                                    Ajouter une carte
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    {ajoutCarteOuvert && (
+                        <CardModal
+                            carte={nouvelleCarte}
+                            isNew={true}
+                            isAdmin={isAdmin}
+                            token={token}
+                            onClose={() => setAjoutCarteOuvert(false)}
+                            onUpdated={(carteAjoutee) => {
+                                setAllCartes((cartesActuelles) => [carteAjoutee, ...cartesActuelles]);
+                                setAjoutCarteOuvert(false);
+                            }}
+                        />
+                    )}
                     {cartesFiltres != null &&
                         <div className="row columns is-multiline">
                             {cartesFiltres.map((a) => {
@@ -217,7 +258,7 @@ function Collection() {
                             })}
                             {/* s'affiche seulement si isAdmin == true, si on modifie ou delete la carte dans le modal
                                 re-fait l'affichage */}
-                            <CardModal isOpen={carteSelectionnee !== null} carte={carteSelectionnee} isAdmin={isAdmin} token={token}
+                            <CardModal carte={carteSelectionnee} isNew={false} isAdmin={isAdmin} token={token}
                                 onClose={() => setCarteSelectionnee(null)} onUpdated={(carteModifiee) => {
                                     setAllCartes((cartesActuelles) =>
                                         cartesActuelles.map((carte) => carte.id_carte === carteModifiee.id_carte
