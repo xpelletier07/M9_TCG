@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     email VARCHAR(255) UNIQUE NOT NULL,
     mot_de_passe_hash VARCHAR(255) NOT NULL,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW(),
-    statut VARCHAR(50),
+    statut VARCHAR(50) default 'actif',
     credits FLOAT,
     dernier_drop_pack_at TIMESTAMPTZ
 );
