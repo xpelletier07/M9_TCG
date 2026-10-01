@@ -7,7 +7,7 @@ import Signup from './pages/auth/Signup.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Collection from './pages/Collection.jsx'
 import Bazaar from './pages/Bazaar.jsx'
-import Inventaire from './Pages/Inventaire.jsx'
+import Inventaire from './pages/Inventaire.jsx'
 import Combat from './pages/Combat.jsx'
 
 function Routeur() {
