@@ -1,10 +1,12 @@
 services:
   db-init:
     image: curlimages/curl:8.11.1
+    user: "0:0"
     command:
       - sh
       - -ec
       - |
+        mkdir -p /initdb
         curl -fsSL https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/app/Serveur/db/db.sql -o /initdb/db.sql
     volumes:
       - dbinit:/initdb
