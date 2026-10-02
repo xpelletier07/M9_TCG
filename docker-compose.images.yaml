@@ -1,0 +1,39 @@
+services:
+  client:
+    image: ghcr.io/xpelletier07/m9-tcg-client:main-latest
+    ports:
+      - "5173:80"
+    depends_on:
+      server:
+        condition: service_started
+
+  server:
+    image: ghcr.io/xpelletier07/m9-tcg-api:main-latest
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
+      JWT_SECRET: cle-locale-m9tcg
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: m9tcg
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./app/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d m9tcg"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
