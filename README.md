@@ -16,6 +16,31 @@ Cette commande utilise les deux images produites par la CI, sans `.env` ni confi
 docker compose -f docker-compose.images.yaml up -d
 ```
 
+#### Windows (environnement neuf)
+
+Si tu veux lancer **seulement les conteneurs** (sans installer/cloner le code source), lance :
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/set-up/Docker-Install/setup-docker-images-windows.ps1 -OutFile $env:TEMP\setup-m9-images.ps1; powershell -ExecutionPolicy Bypass -File $env:TEMP\setup-m9-images.ps1"
+```
+
+Le script :
+- vérifie Docker Desktop + Docker Compose + moteur Docker ;
+- utilise `docker-compose.images.yaml` local s'il existe, sinon le télécharge automatiquement ;
+- lance `docker compose` avec un nom de projet stable.
+
+Si les images GHCR sont privées, connecte-toi d'abord :
+
+```bash
+docker login ghcr.io
+```
+
+#### Depuis la racine du dépôt (tous OS)
+
+```bash
+docker compose -f docker-compose.images.yaml up -d
+```
+
 ### Développer et tester localement
 
 Cette commande utilise les Dockerfiles et le code local, avec rechargement du client Vite :

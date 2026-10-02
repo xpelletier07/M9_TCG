@@ -1,4 +1,15 @@
 services:
+  db-init:
+    image: curlimages/curl:8.11.1
+    command:
+      - sh
+      - -ec
+      - |
+        curl -fsSL https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/app/Serveur/db/db.sql -o /initdb/db.sql
+    volumes:
+      - dbinit:/initdb
+    restart: "no"
+
   client:
     image: ghcr.io/xpelletier07/m9-tcg-client:main-latest
     ports:
@@ -22,13 +33,16 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: m9tcg
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./app/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql:ro
+      - dbinit:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d m9tcg"]
       interval: 5s
@@ -37,3 +51,4 @@ services:
 
 volumes:
   pgdata:
+  dbinit:
