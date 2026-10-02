@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { API_BASE_URL } from "../config"
+
 const raretes = {
     1: "Commun",
     2: "Rare",
@@ -48,7 +50,7 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
         try {
             let reponse;
             if (isNew === false) {
-                reponse = await fetch(`http://localhost:3000/collection/${carte.id_carte}`, {
+                reponse = await fetch(`${API_BASE_URL}/collection/${carte.id_carte}`, {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
@@ -67,7 +69,7 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
             }
             // juste au cas ou un bug et ce soit undefined ou qqch du genre
             else if (isNew === true) {
-                reponse = await fetch(`http://localhost:3000/collection/card`, {
+                reponse = await fetch(`${API_BASE_URL}/collection/card`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -112,7 +114,7 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
         setIsSubmitting(true);
         setErreur("");
         try {
-            const reponse = await fetch(`http://localhost:3000/collection/${carte.id_carte}`, {
+            const reponse = await fetch(`${API_BASE_URL}/collection/${carte.id_carte}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });

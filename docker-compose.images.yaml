@@ -1,32 +1,21 @@
 services:
   client:
-    build:
-      context: ./app/Client
-      target: build
+    image: ghcr.io/xpelletier07/m9-tcg-client:main-latest
     ports:
       - "5173:5173"
-    environment:
-      VITE_API_URL: http://localhost:3000
-    volumes:
-      - ./app/Client:/app
-      - /app/node_modules
     command: npm run dev -- --host 0.0.0.0
     depends_on:
       server:
         condition: service_started
 
   server:
-    build: ./app/Serveur
+    image: ghcr.io/xpelletier07/m9-tcg-api:main-latest
     ports:
       - "3000:3000"
     environment:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
       JWT_SECRET: cle-locale-m9tcg
-    volumes:
-      - ./app/Serveur:/app
-      - /app/node_modules
-    command: npm start
     depends_on:
       db:
         condition: service_healthy
@@ -38,8 +27,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: m9tcg
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./app/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql:ro
