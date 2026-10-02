@@ -16,6 +16,40 @@ Cette commande utilise les deux images produites par la CI, sans `.env` ni confi
 docker compose -f docker-compose.images.yaml up -d
 ```
 
+Cette commande fonctionne **uniquement depuis la racine du dépôt** (là où se trouve `docker-compose.images.yaml`).
+
+#### Windows (environnement neuf)
+
+Si tu es dans le dossier parent qui contient `M9_TCG` (ou si tu exécutes le script depuis une copie locale), lance :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\M9_TCG\set-up\Docker-Install\setup-docker-images-windows.ps1
+```
+
+Le script :
+- vérifie Docker Desktop + Docker Compose + moteur Docker ;
+- détecte automatiquement la racine du dépôt (ou clone `M9_TCG` si nécessaire) ;
+- vérifie `docker-compose.images.yaml` et `app/Serveur/db/db.sql` ;
+- lance `docker compose` avec un nom de projet stable.
+
+Si tu n'as pas encore le dépôt localement, clone-le d'abord :
+
+```bash
+git clone https://github.com/xpelletier07/M9_TCG.git
+```
+
+Si les images GHCR sont privées, connecte-toi d'abord :
+
+```bash
+docker login ghcr.io
+```
+
+#### Depuis la racine du dépôt (tous OS)
+
+```bash
+docker compose -f docker-compose.images.yaml up -d
+```
+
 ### Développer et tester localement
 
 Cette commande utilise les Dockerfiles et le code local, avec rechargement du client Vite :
