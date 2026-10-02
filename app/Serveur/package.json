@@ -8,11 +8,15 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^18.0.4",
     "express": "^4.21.2",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.13.1"
   }
 }

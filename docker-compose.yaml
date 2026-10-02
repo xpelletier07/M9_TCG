@@ -8,6 +8,7 @@ services:
     volumes:
       - ./app/Client:/app
       - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     depends_on:
       - server
 
@@ -18,9 +19,11 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
+      JWT_SECRET: ${JWT_SECRET:?la variable JWT_SECRET doit être définie dans un fichier .env}
     volumes:
       - ./app/Serveur:/app
       - /app/node_modules
+    command: sh -c "npm install && npm start"
     depends_on:
       db:
         condition: service_healthy
