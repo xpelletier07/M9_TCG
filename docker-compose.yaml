@@ -1,6 +1,8 @@
 services:
   client:
-    build: ./app/Client
+    build:
+      context: ./app/Client
+      target: build
     ports:
       - "5173:5173"
     environment:
@@ -8,8 +10,10 @@ services:
     volumes:
       - ./app/Client:/app
       - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
     depends_on:
-      - server
+      server:
+        condition: service_started
 
   server:
     build: ./app/Serveur
@@ -18,9 +22,11 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
+      JWT_SECRET: cle-locale-m9tcg
     volumes:
       - ./app/Serveur:/app
       - /app/node_modules
+    command: npm start
     depends_on:
       db:
         condition: service_healthy
@@ -36,9 +42,9 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./app/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./app/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d m9tcg"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -1,3 +1,6 @@
+# Ajouter whatever AI agent ajoute comme fichiers/dossiers
+.openclaude/
+
 *.env
 # Logs
 logs
@@ -125,6 +128,8 @@ dist
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+# pour pas save les settings de vscode
+.vscode/
 
 # pnpm
 .pnpm-store
