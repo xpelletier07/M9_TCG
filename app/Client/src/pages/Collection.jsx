@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { CardModal } from "../components/Modals";
 
+import { API_BASE_URL } from "../config"
+
 const nouvelleCarte = {
     nom_carte: "",
     image: "",
@@ -13,7 +15,7 @@ const nouvelleCarte = {
 };
 
 function Collection() {
-    const serveur = "http://localhost:3000"
+    const serveur = API_BASE_URL
     const [cartes, setAllCartes] = useState(null)
     const [cartesFiltres, setCartes] = useState(null)
     const [nomCarte, setNomCarte] = useState("")

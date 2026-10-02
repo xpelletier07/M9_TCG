@@ -47,3 +47,9 @@ Les estimés de points par sprints ne sont pas atteints (estimé de 45 pts/sprin
 **Résolution et mesure :**
 - Ajouter un cap lorsque nécéssaire au nombre de transaction que notre stack peut gérer
 - Accepter qu'un certain taut de fluctuations est normale
+
+## Rétrospective sprint 1
+- Le manque de communication n'as pas été vu du tout! Même si quelques fois des tâches mineures avaient étées faites en double, nous en avons profité pour prendre des parties des deux membres et faire un meilleur tout.
+- Les absences ne se sont pas faites voir à un niveau démesuré, quelques personnes ont étés absentes une ou deux fois mais rien de ahurissant.
+- Pour l'instant la taille du projet n'est pas un enjeu. Même si nous avions dit que nous alions nous inquiéter si seulement 30 points ont été complétés durant le sprint, nous réalisons que c'était simplement par mauvaise hestimation et non par trop grande envergure du projet.
+- Pas encore applicable, le Bazaar va commencer à être implémenté dans le sprint 2. 

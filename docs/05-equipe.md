@@ -30,7 +30,7 @@ Nous considérons qu'un récit est terminé lorsque:
 - 2 branches principales resteront toujours: main & dev. Main sert comme branche de remise/production. Dev sert comme branche principale secondaire de développement du sprint. Les branches de développement des récits sont créées à partir de dev;
 - Garder les commits simples. Un commit par fonctionnalité ajoutée. Généralement un verbe et courte description de l'ajout.
 
-## Contribution individuelle
+## Contribution individuelle Sprint 0
 | Membre | Contributions à la soumission | Issues |
 |--------|-------------------------------|--------|
 | Alek | Rédaction des documents 02-backlog & 05-équipe. Double check de tous les autres documents.  | [#25](https://github.com/xpelletier07/M9_TCG/issues/25), [#10](https://github.com/xpelletier07/M9_TCG/issues/10), [#12](https://github.com/xpelletier07/M9_TCG/issues/12), [#13](https://github.com/xpelletier07/M9_TCG/issues/13) |
@@ -38,3 +38,14 @@ Nous considérons qu'un récit est terminé lorsque:
 | Marco | Rédaction du journal à chaque séance. Rédaction du document 06-risques. | [#6](https://github.com/xpelletier07/M9_TCG/issues/6), [#14](https://github.com/xpelletier07/M9_TCG/issues/14) |
 | Xavier | Conception des issues et setup du projet GitHub. Setup du Docker. Setup du CI/CD | [#3](https://github.com/xpelletier07/M9_TCG/issues/3), [#5](https://github.com/xpelletier07/M9_TCG/issues/5), [#10](https://github.com/xpelletier07/M9_TCG/issues/10) |
 | William | Création du diagramme entité-relation. Rédaction du document 03-conception. | [#11](https://github.com/xpelletier07/M9_TCG/issues/11) |
+
+## Contribution individuelle sprint 1
+| Membre | Contributions à la soumission | Issues |
+|-----|------|------|------|
+| Alek | Frontend & backend pour la collection | [#5](https://github.com/xpelletier07/M9_TCG/issues/5), [#57](https://github.com/xpelletier07/M9_TCG/issues/57), [#58](https://github.com/xpelletier07/M9_TCG/issues/58) |
+| Lotfi | Frontend & backend pour le dashboard (inclus les drops de cartes) | [#54](https://github.com/xpelletier07/M9_TCG/issues/54), [#71](https://github.com/xpelletier07/M9_TCG/issues/71)|
+| Marco | Thème/CSS général, frontend & backend pour la connection et l'inscription, sidebar | [#32](https://github.com/xpelletier07/M9_TCG/issues/32), [#34](https://github.com/xpelletier07/M9_TCG/issues/34), [#40](https://github.com/xpelletier07/M9_TCG/issues/40), [#44](https://github.com/xpelletier07/M9_TCG/issues/44) |
+| Xavier | Aide générale partout,  | [#5](https://github.com/xpelletier07/M9_TCG/issues/5), [#49](https://github.com/xpelletier07/M9_TCG/issues/49), [#71](https://github.com/xpelletier07/M9_TCG/issues/71), [#73](https://github.com/xpelletier07/M9_TCG/issues/73), [#82](https://github.com/xpelletier07/M9_TCG/issues/82)[#86](https://github.com/xpelletier07/M9_TCG/issues/86) |
+| William | Frontend & backend pour l'inventaire | [#48](https://github.com/xpelletier07/M9_TCG/issues/48), [#49](https://github.com/xpelletier07/M9_TCG/issues/49) |
+
+Notre définition de "terminé" n'a pas changé mais 2 récits mis dans le tableau n'ont pas étés à 100% complétés. Pour la connexion, la connexion OF2 était un could, et sera peut être implémentée dans un sprint futur. Pour le système de drops périodique de cartes, nous avons mis un placeholder pour la démonstration et la remise du sprint 1 mais la matière pour cette fonctionalité (WebSocket) n'as pas encore étée vue et sera aussi donc complété dans un sprint futur.

@@ -116,12 +116,44 @@ code {
   background: var(--code-bg);
 }
 
-/* ── Page Inventaire ─────────────────────────────────────────────────────── */
-/* Conteneur principal de la page Inventaire (à droite de la sidebar) */
+/* Conteneur principal des pages secondaires (à droite de la sidebar) */
 .content-left-spacing {
-  flex: 1; /* occupe tout l'espace restant à côté de la sidebar */
-  padding: 2.5rem 4rem 2rem; /* grande marge horizontale pour aérer le contenu sur grand écran */
-  text-align: left; /* force l'alignement à gauche (évite un héritage centré) */
+  flex: 1;
+  padding: 2.5rem 4rem 2rem;
+  text-align: left;
+}
+
+.feature-status {
+  max-width: 44rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #f0b429;
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #5f4300;
+}
+
+.feature-status-label {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  color: #8a5a00;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.feature-status p {
+  margin: 0;
+}
+
+html.tcg-dark .feature-status {
+  border-color: #9a7415;
+  background: #3d3218;
+  color: #f8e9b0;
+}
+
+html.tcg-dark .feature-status-label {
+  color: #ffd76a;
 }
 
 .inventory-header {
