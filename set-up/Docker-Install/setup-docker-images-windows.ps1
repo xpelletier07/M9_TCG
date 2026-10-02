@@ -9,11 +9,10 @@
 
 $ErrorActionPreference = "Stop"
 
-$RepoUrl = "https://github.com/xpelletier07/M9_TCG.git"
-$RepoDirName = "M9_TCG"
 $ComposeFile = "docker-compose.images.yaml"
-$SqlInitFile = "app/Serveur/db/db.sql"
+$ComposeFileRawUrl = "https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/docker-compose.images.yaml"
 $ComposeProjectName = "m9tcg-images"
+$DefaultRunDir = Join-Path $Env:LOCALAPPDATA "M9_TCG\images-stack"
 
 function Write-Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function Write-Ok($msg)   { Write-Host "    [OK] $msg" -ForegroundColor Green }
@@ -33,16 +32,7 @@ function Stop-WithError {
     exit 1
 }
 
-function Test-M9RepoRoot {
-    param([Parameter(Mandatory = $true)][string]$Path)
-
-    $composePath = Join-Path $Path $ComposeFile
-    $sqlPath = Join-Path $Path $SqlInitFile
-
-    return (Test-Path $composePath -PathType Leaf) -and (Test-Path $sqlPath -PathType Leaf)
-}
-
-function Add-CandidateRoot {
+function Add-CandidatePath {
     param(
         [System.Collections.Generic.List[string]]$List,
         [string]$Path
@@ -74,63 +64,52 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Ok "Moteur Docker actif"
 
-Write-Step "Recherche de la racine du depot"
-$currentDir = (Get-Location).Path
-$candidateRoots = New-Object 'System.Collections.Generic.List[string]'
-Add-CandidateRoot -List $candidateRoots -Path $currentDir
-Add-CandidateRoot -List $candidateRoots -Path (Join-Path $currentDir $RepoDirName)
-
+Write-Step "Preparation du fichier Compose (sans code source local)"
+$candidateComposePaths = New-Object 'System.Collections.Generic.List[string]'
+Add-CandidatePath -List $candidateComposePaths -Path (Join-Path (Get-Location).Path $ComposeFile)
 if ($PSScriptRoot) {
-    Add-CandidateRoot -List $candidateRoots -Path (Join-Path $PSScriptRoot "..\..")
+    Add-CandidatePath -List $candidateComposePaths -Path (Join-Path (Join-Path $PSScriptRoot "..\..") $ComposeFile)
 }
 
-$repoRoot = $null
-foreach ($candidate in $candidateRoots) {
-    if (Test-M9RepoRoot -Path $candidate) {
-        $repoRoot = $candidate
+$composePath = $null
+foreach ($candidate in $candidateComposePaths) {
+    if (Test-Path $candidate -PathType Leaf) {
+        $composePath = (Resolve-Path $candidate).Path
         break
     }
 }
 
-if (-not $repoRoot) {
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        Stop-WithError "Depot introuvable et git absent." "Installe Git ou execute ce script depuis un clone M9_TCG."
+if ($composePath) {
+    Write-Ok "Fichier Compose local detecte: $composePath"
+} else {
+    $runDir = $DefaultRunDir
+    if (-not (Test-Path $runDir -PathType Container)) {
+        New-Item -ItemType Directory -Path $runDir -Force | Out-Null
+    }
+    $composePath = Join-Path $runDir $ComposeFile
+
+    Write-Warn "Fichier Compose local introuvable. Telechargement depuis GitHub..."
+    try {
+        Invoke-WebRequest -Uri $ComposeFileRawUrl -OutFile $composePath -UseBasicParsing
+    } catch {
+        Stop-WithError "Impossible de telecharger $ComposeFile." "Verifie l'acces a GitHub (internet/proxy/firewall) puis relance."
     }
 
-    $cloneTarget = Join-Path $currentDir $RepoDirName
-    if (Test-Path $cloneTarget) {
-        Stop-WithError "Le dossier '$cloneTarget' existe deja mais ne contient pas les fichiers attendus." "Supprime/renomme ce dossier ou lance le script depuis la racine du vrai depot."
+    if (-not (Test-Path $composePath -PathType Leaf)) {
+        Stop-WithError "Le telechargement de $ComposeFile a echoue." "Relance le script ou recupere manuellement le fichier Compose."
     }
-
-    Write-Warn "Depot non detecte. Clonage de $RepoUrl dans $cloneTarget..."
-    git clone $RepoUrl $cloneTarget
-    if ($LASTEXITCODE -ne 0) {
-        Stop-WithError "Echec du clonage du depot." "Verifie ta connexion Internet et l'acces a GitHub."
-    }
-    $repoRoot = (Resolve-Path $cloneTarget).Path
+    Write-Ok "Fichier Compose telecharge: $composePath"
 }
-
-Set-Location $repoRoot
-Write-Ok "Racine du depot: $repoRoot"
-
-Write-Step "Verification des fichiers de lancement"
-if (-not (Test-Path $ComposeFile -PathType Leaf)) {
-    Stop-WithError "Fichier '$ComposeFile' manquant a la racine du depot." "Verifie que le depot n'est pas incomplet."
-}
-if (-not (Test-Path $SqlInitFile -PathType Leaf)) {
-    Stop-WithError "Fichier SQL '$SqlInitFile' introuvable." "Verifie que le depot est complet avant de lancer Compose."
-}
-Write-Ok "Fichiers requis presents"
 
 Write-Step "Lancement de la stack d'images publiees"
-docker compose --project-name $ComposeProjectName -f $ComposeFile up -d
+docker compose --project-name $ComposeProjectName -f $composePath up -d
 if ($LASTEXITCODE -ne 0) {
-    Stop-WithError "Echec du demarrage via docker compose." "Si l'erreur mentionne GHCR/access denied, execute 'docker login ghcr.io' (si les images sont privees), puis relance."
+    Stop-WithError "Echec du demarrage via docker compose." "Si l'erreur mentionne GHCR/access denied, execute 'docker login ghcr.io'."
 }
 
 Write-Host ""
 Write-Ok "Stack demarree avec succes."
 Write-Ok "Client : http://localhost:5173"
 Write-Ok "API    : http://localhost:3000"
-Write-Ok "Etat   : docker compose --project-name $ComposeProjectName -f $ComposeFile ps"
-Write-Ok "Logs   : docker compose --project-name $ComposeProjectName -f $ComposeFile logs -f"
+Write-Ok "Etat   : docker compose --project-name $ComposeProjectName -f `"$composePath`" ps"
+Write-Ok "Logs   : docker compose --project-name $ComposeProjectName -f `"$composePath`" logs -f"
