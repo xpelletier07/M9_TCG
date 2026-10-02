@@ -6,13 +6,19 @@ Chaque joueurs possède leurs propre collection de carte à jouer et peuvent enc
 
 ## Démarrer l'application
 
-Prérequis : Docker Desktop démarré. À la racine du dépôt, créer un fichier `.env` contenant une clé JWT locale :
+Prérequis : Docker Desktop démarré.
 
-```env
-JWT_SECRET=cle-locale-m9tcg
+### Tester avec les images publiées
+
+Cette commande utilise les deux images produites par la CI, sans `.env` ni configuration supplémentaire :
+
+```bash
+docker compose -f docker-compose.images.yaml up -d
 ```
 
-Démarrer les conteneurs :
+### Développer et tester localement
+
+Cette commande utilise les Dockerfiles et le code local, avec rechargement du client Vite :
 
 ```bash
 docker compose up --build
@@ -20,7 +26,13 @@ docker compose up --build
 
 Ouvrir ensuite [http://localhost:5173](http://localhost:5173). L'API est disponible sur [http://localhost:3000](http://localhost:3000).
 
-La base de données et les comptes de démonstration sont préparés automatiquement au démarrage du serveur. Les données sont conservées dans le volume Docker `pgdata`.
+Les deux modes configurent automatiquement la clé JWT et la base de données. Les données sont conservées dans le volume Docker `pgdata`.
+
+Pour arrêter l'application :
+
+```bash
+docker compose down
+```
 
 ## Comptes de démonstration
 
@@ -47,5 +59,3 @@ Cette commande construit le client puis exécute les tests du serveur.
 - **Historique des combats** : le panneau affiche actuellement un état vide et le bouton `View All` n'ouvre pas encore de parcours. Il sera remplacé par le système de combat entre joueurs au sprint 3.
 - **Bazaar** : la page est présente, mais les achats, les ventes et les échanges ne sont pas encore implémentés. Le Bazaar sera développé aux sprints 2 et 3.
 - **Combat** : la page est présente comme point d'entrée, mais le parcours de combat n'est pas encore implémenté. Il sera livré au sprint 3.
-
-
