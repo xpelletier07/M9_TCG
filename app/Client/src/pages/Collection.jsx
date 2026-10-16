@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react";
 import { CardModal } from "../components/Modals";
+import Card from "../components/Card";
 
 import { API_BASE_URL } from "../config"
-import "../css/InventoryCards.css"
-
-const rareteLabels = {
-    1: "Commun",
-    2: "Rare",
-    3: "Épique",
-    4: "Légendaire",
-}
 
 const nouvelleCarte = {
     nom_carte: "",
@@ -244,54 +237,13 @@ function Collection() {
                     )}
                     {cartesFiltres != null &&
                         <div className="inventory-cards-grid">
-                            {cartesFiltres.map((a) => {
-                                return (
-                                    <div
-                                        key={a.id_carte}
-                                        className={`inventory-card inventory-card--rarity-${a.rarete}`}
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => setCarteSelectionnee(a)}
-                                        onKeyDown={(event) => {
-                                            if (event.key === "Enter" || event.key === " ") {
-                                                event.preventDefault()
-                                                setCarteSelectionnee(a)
-                                            }
-                                        }}
-                                    >
-                                        <div className="inventory-card__eyebrow">
-                                            <span className="inventory-card__rank">
-                                                {rareteLabels[a.rarete] ?? "Carte"}
-                                            </span>
-                                            <span className="inventory-card__serial">
-                                                ID {String(a.id_carte).padStart(3, "0")}
-                                            </span>
-                                        </div>
-                                        <div className="inventory-card__image-frame">
-                                            <img
-                                                src={a.image}
-                                                alt={`Image de la carte ${a.nom_carte}`}
-                                                className="inventory-card__image"
-                                            />
-                                        </div>
-                                        <div className="inventory-card__content">
-                                            <h3 className="inventory-card__name">{a.nom_carte}</h3>
-                                            <p className="inventory-card__description">{a.description}</p>
-                                            <div className="inventory-card__stats">
-                                                <span className="inventory-card__stat inventory-card__stat--mana" title="Mana">
-                                                    <span>Mana</span><strong>{a.mana}</strong>
-                                                </span>
-                                                <span className="inventory-card__stat inventory-card__stat--health" title="Vie">
-                                                    <span>Vie</span><strong>{a.health}</strong>
-                                                </span>
-                                                <span className="inventory-card__stat inventory-card__stat--damage" title="Dégâts">
-                                                    <span>ATQ</span><strong>{a.damage}</strong>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            })}
+                            {cartesFiltres.map((carte) => (
+                                <Card
+                                    key={carte.id_carte}
+                                    carte={carte}
+                                    onClick={() => setCarteSelectionnee(carte)}
+                                />
+                            ))}
                             {/* s'affiche seulement si isAdmin == true, si on modifie ou delete la carte dans le modal
                                 re-fait l'affichage */}
                             <CardModal carte={carteSelectionnee} isNew={false} isAdmin={isAdmin} token={token}
