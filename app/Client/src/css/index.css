@@ -202,6 +202,11 @@ code {
   gap: 1rem;
 }
 
+.combat-layout.join-only {
+  grid-template-columns: minmax(0, 36rem);
+  justify-content: center;
+}
+
 .combat-join-panel,
 .combat-chat-panel,
 .combat-activity-panel {

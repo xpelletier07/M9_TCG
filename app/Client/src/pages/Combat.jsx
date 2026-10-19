@@ -135,7 +135,7 @@ function Combat() {
         </div>
       </header>
 
-      <section className="combat-layout" aria-live="polite">
+      <section className={`combat-layout ${joinedMatchId ? 'has-combat' : 'join-only'}`} aria-live="polite">
         <div className="combat-join-panel">
           <div className="combat-panel-heading">
             <div>
@@ -169,7 +169,7 @@ function Combat() {
           </div>
         </div>
 
-        <div className="combat-chat-panel">
+        {joinedMatchId && <div className="combat-chat-panel">
           <div className="combat-panel-heading">
             <div>
               <span className="combat-panel-index">02</span>
@@ -200,9 +200,9 @@ function Combat() {
               <button type="submit" disabled={!joinedMatchId || !message.trim()} aria-label="Envoyer le message">→</button>
             </div>
           </form>
-        </div>
+        </div>}
 
-        <aside className="combat-activity-panel">
+        {joinedMatchId && <aside className="combat-activity-panel">
           <div className="combat-panel-heading">
             <div>
               <span className="combat-panel-index">03</span>
@@ -238,7 +238,7 @@ function Combat() {
             {events.length === 0 && <li className="combat-empty-message">En attente d’activité...</li>}
             {events.map((event) => <li key={event.id}>{event.message}</li>)}
           </ul>
-        </aside>
+        </aside>}
       </section>
     </main>
   )
