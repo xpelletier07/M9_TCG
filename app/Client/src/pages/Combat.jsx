@@ -7,10 +7,12 @@ import { API_BASE_URL } from '../config'
 
 function Combat() {
   const socketRef = useRef(null)
+  const eventTimersRef = useRef(new Set())
   const [connectionStatus, setConnectionStatus] = useState('Connexion...')
   const [matchStatus, setMatchStatus] = useState('Aucun combat rejoint')
   const [events, setEvents] = useState([])
   const [joinedMatchId, setJoinedMatchId] = useState(null)
+  const [matchCode, setMatchCode] = useState('')
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
 
@@ -19,7 +21,14 @@ function Combat() {
     socketRef.current = socket
 
     const addEvent = (message) => {
-      setEvents((currentEvents) => [message, ...currentEvents].slice(0, 8))
+      const eventId = `${Date.now()}-${Math.random()}`
+      setEvents((currentEvents) => [{ id: eventId, message }, ...currentEvents].slice(0, 8))
+
+      const timer = setTimeout(() => {
+        setEvents((currentEvents) => currentEvents.filter((event) => event.id !== eventId))
+        eventTimersRef.current.delete(timer)
+      }, 5000)
+      eventTimersRef.current.add(timer)
     }
 
     socket.on('connect', () => setConnectionStatus('Connecté'))
@@ -51,8 +60,11 @@ function Combat() {
     })
     socket.on('combat:error', ({ message }) => addEvent(`Erreur : ${message}`))
 
+    const eventTimers = eventTimersRef.current
     return () => {
       socket.disconnect()
+      eventTimers.forEach((timer) => clearTimeout(timer))
+      eventTimers.clear()
       socketRef.current = null
     }
   }, [])
@@ -63,7 +75,16 @@ function Combat() {
       return
     }
 
-    socketRef.current?.emit('combat:join', { matchId: 'lobby' })
+    const trimmedMatchCode = matchCode.trim()
+    if (!trimmedMatchCode) {
+      setEvents((currentEvents) => [
+        { id: `${Date.now()}-${Math.random()}`, message: 'Entrez un code de partie.' },
+        ...currentEvents,
+      ].slice(0, 8))
+      return
+    }
+
+    socketRef.current?.emit('combat:join', { matchId: trimmedMatchCode })
   }
 
   function sendMessage(event) {
@@ -82,9 +103,22 @@ function Combat() {
         <span className="feature-status-label">Socket.IO</span>
         <p>Connexion : {connectionStatus}</p>
         <p>{matchStatus}</p>
-        <button type="button" onClick={toggleCombat} disabled={connectionStatus !== 'Connecté'}>
-          {joinedMatchId ? 'Quitter le combat' : 'Rejoindre le lobby'}
-        </button>
+        <div className="combat-room-controls">
+          <label htmlFor="combat-room-code">Code de partie</label>
+          <input
+            id="combat-room-code"
+            type="text"
+            value={matchCode}
+            onChange={(event) => setMatchCode(event.target.value)}
+            placeholder="Ex. match-42"
+            maxLength={80}
+            pattern="[A-Za-z0-9_-]+"
+            disabled={Boolean(joinedMatchId)}
+          />
+          <button type="button" onClick={toggleCombat} disabled={connectionStatus !== 'Connecté'}>
+            {joinedMatchId ? 'Quitter le combat' : 'Rejoindre la partie'}
+          </button>
+        </div>
         <form className="combat-chat-form" onSubmit={sendMessage}>
           <label htmlFor="combat-message">Message à la salle</label>
           <div>
@@ -108,7 +142,7 @@ function Combat() {
           ))}
         </ul>
         <ul>
-          {events.map((event, index) => <li key={`${event}-${index}`}>{event}</li>)}
+          {events.map((event) => <li key={event.id}>{event.message}</li>)}
         </ul>
       </section>
     </main>

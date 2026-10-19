@@ -162,13 +162,35 @@ code {
 }
 
 .feature-status button:disabled,
-.combat-chat-form input:disabled {
+.combat-chat-form input:disabled,
+.combat-room-controls input:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .combat-chat-form {
   margin-top: 1rem;
+}
+
+.combat-room-controls {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.combat-room-controls label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+}
+
+.combat-room-controls input {
+  width: 12rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #c7a044;
+  border-radius: 4px;
+  font: inherit;
 }
 
 .combat-chat-form label {

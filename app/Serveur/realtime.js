@@ -19,8 +19,9 @@ function registerCombat(io) {
 		console.log(`Socket connecté : ${socket.id}`);
 
 		socket.on("combat:join", ({ matchId = "lobby" } = {}) => {
-			if (typeof matchId !== "string" || matchId.length > 80) {
-				socket.emit("combat:error", { message: "Match invalide." });
+			const normalizedMatchId = typeof matchId === "string" ? matchId.trim() : "";
+			if (!normalizedMatchId || normalizedMatchId.length > 80 || !/^[a-zA-Z0-9_-]+$/.test(normalizedMatchId)) {
+				socket.emit("combat:error", { message: "Code de partie invalide." });
 				return;
 			}
 
@@ -28,10 +29,10 @@ function registerCombat(io) {
 				socket.leave(socket.data.combatRoom);
 			}
 
-			const room = `combat:${matchId}`;
+			const room = `combat:${normalizedMatchId}`;
 			socket.join(room);
 			socket.data.combatRoom = room;
-			socket.emit("combat:joined", { matchId });
+			socket.emit("combat:joined", { matchId: normalizedMatchId });
 			socket.to(room).emit("combat:player-joined", { playerId: socket.id });
 			io.to(room).emit("combat:message", {
 				message: `Le joueur ${socket.id} a rejoint la salle.`,
