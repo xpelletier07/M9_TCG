@@ -43,9 +43,9 @@ function Combat() {
       addEvent(`${reason === 'left' ? 'Joueur parti' : 'Joueur déconnecté'} : ${playerId}`)
     })
     socket.on('combat:action', ({ action }) => addEvent(`Action reçue : ${action}`))
-    socket.on('combat:message', ({ playerId, message: receivedMessage }) => {
+    socket.on('combat:message', ({ playerId, message: receivedMessage, system }) => {
       setMessages((currentMessages) => [
-        { playerId, message: receivedMessage },
+        { playerId, message: receivedMessage, system },
         ...currentMessages,
       ].slice(0, 30))
     })
@@ -101,8 +101,10 @@ function Combat() {
           </div>
         </form>
         <ul className="combat-messages" aria-live="polite">
-          {messages.map(({ playerId, message: receivedMessage }, index) => (
-            <li key={`${playerId}-${index}`}><strong>{playerId}</strong> : {receivedMessage}</li>
+          {messages.map(({ playerId, message: receivedMessage, system }, index) => (
+            <li key={`${playerId ?? 'system'}-${index}`}>
+              {system ? receivedMessage : <><strong>{playerId}</strong> : {receivedMessage}</>}
+            </li>
           ))}
         </ul>
         <ul>

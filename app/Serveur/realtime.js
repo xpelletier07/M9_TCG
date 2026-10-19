@@ -33,12 +33,20 @@ function registerCombat(io) {
 			socket.data.combatRoom = room;
 			socket.emit("combat:joined", { matchId });
 			socket.to(room).emit("combat:player-joined", { playerId: socket.id });
+			io.to(room).emit("combat:message", {
+				message: `Le joueur ${socket.id} a rejoint la salle.`,
+				system: true,
+			});
 		});
 
 		socket.on("combat:leave", () => {
 			if (!socket.data.combatRoom) return;
 
 			const room = socket.data.combatRoom;
+			io.to(room).emit("combat:message", {
+				message: `Le joueur ${socket.id} a quitté la salle.`,
+				system: true,
+			});
 			socket.leave(room);
 			socket.data.combatRoom = null;
 			socket.to(room).emit("combat:player-left", { playerId: socket.id, reason: "left" });
