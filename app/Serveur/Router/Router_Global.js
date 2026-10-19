@@ -6,6 +6,7 @@ import inventaireRouter from "../routes/inventaire.js"
 import inventoryRouter from "../routes/decks.js"
 import packsRouter from "../routes/packs.js"
 import inventairePackRouter from "../routes/inventairePack.js"
+import randomCardRouter from "../routes/randomcard.js"
 
 const apiRouter = express.Router()
 
@@ -14,6 +15,7 @@ apiRouter.use("/collection", collectionRouter)
 apiRouter.use("/inventory", inventoryRouter)
 apiRouter.use("/pack", packsRouter)
 apiRouter.use("/inventaire-pack", inventairePackRouter)
+apiRouter.use("/cards", randomCardRouter)
 apiRouter.use(carteRouter)
 apiRouter.use(inventaireRouter)
 
