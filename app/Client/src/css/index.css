@@ -600,6 +600,128 @@ code {
   }
 }
 
+html.tcg-dark .combat-page {
+  background:
+    radial-gradient(circle at 92% 4%, rgba(41, 184, 157, 0.12), transparent 24rem),
+    linear-gradient(135deg, #18191a 0%, #202729 100%);
+  color: #e4e6eb;
+}
+
+html.tcg-dark .combat-page-header h1 {
+  color: #f2f4f5;
+}
+
+html.tcg-dark .combat-page-header p,
+html.tcg-dark .combat-connection {
+  color: #b0b3b8;
+}
+
+html.tcg-dark .combat-connection {
+  border-color: #3a3b3c;
+  background: rgba(36, 37, 38, 0.82);
+}
+
+html.tcg-dark .combat-join-panel {
+  border-color: #31565d;
+  background: #183b43;
+}
+
+html.tcg-dark .combat-chat-panel,
+html.tcg-dark .combat-activity-panel {
+  border-color: #3a3b3c;
+  background: rgba(36, 37, 38, 0.92);
+  box-shadow: none;
+}
+
+html.tcg-dark .combat-panel-heading h2 {
+  color: #f2f4f5;
+}
+
+html.tcg-dark .combat-panel-copy,
+html.tcg-dark .combat-room-controls label {
+  color: #b7c7ca;
+}
+
+html.tcg-dark .combat-message-count {
+  background: #293d40;
+  color: #8fe0ce;
+}
+
+html.tcg-dark .combat-live-label {
+  background: #293d40;
+  color: #8fe0ce;
+}
+
+html.tcg-dark .combat-room-controls input {
+  border-color: #54747a;
+  background: #102d34;
+  color: #f0fffc;
+}
+
+html.tcg-dark .combat-room-controls input::placeholder {
+  color: #8aa9ad;
+}
+
+html.tcg-dark .combat-chat-form input {
+  border-color: #4a4d4e;
+  background: #303233;
+  color: #e4e6eb;
+}
+
+html.tcg-dark .combat-chat-form input::placeholder {
+  color: #a5aaad;
+}
+
+html.tcg-dark .combat-current-room {
+  color: #b7c7ca;
+}
+
+html.tcg-dark .combat-messages li,
+html.tcg-dark .combat-events li,
+html.tcg-dark .combat-player-list li {
+  border-color: #454849;
+  background: #2b2d2e;
+  color: #d0d4d5;
+}
+
+html.tcg-dark .combat-messages strong,
+html.tcg-dark .combat-player-summary strong,
+html.tcg-dark .combat-player-name {
+  color: #f0f3f3;
+}
+
+html.tcg-dark .combat-system-message {
+  border-left-color: #42bda5 !important;
+  color: #7bd4c1 !important;
+}
+
+html.tcg-dark .combat-empty-message,
+html.tcg-dark .combat-player-summary span {
+  color: #9ba5a7 !important;
+}
+
+html.tcg-dark .combat-player-avatar {
+  background: #294b4b;
+  color: #9ce3d4;
+}
+
+html.tcg-dark .combat-ready-state {
+  color: #e3b17e;
+}
+
+html.tcg-dark .combat-ready-state.is-ready {
+  color: #79d7c2;
+}
+
+html.tcg-dark .combat-started-label {
+  background: #294b4b;
+  color: #9ce3d4;
+}
+
+html.tcg-dark .combat-started-message {
+  color: #79d7c2;
+}
+
 .feature-status-label {
   display: inline-block;
   margin-bottom: 0.4rem;
