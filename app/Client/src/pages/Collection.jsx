@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CardModal } from "../components/Modals";
+import Card from "../components/Card";
 
 import { API_BASE_URL } from "../config"
 
@@ -235,29 +236,14 @@ function Collection() {
                         />
                     )}
                     {cartesFiltres != null &&
-                        <div className="row columns is-multiline">
-                            {cartesFiltres.map((a) => {
-                                return (
-                                    <>
-                                        <div className="column is-3">
-                                            <div className="card large" onClick={() => { setCarteSelectionnee(a) }}>
-                                                <div className="card-image">
-                                                    <figure className="image is-square">
-                                                        <img src={a.image} alt={`Image de la carte ${a.nom_carte}`} />
-                                                    </figure>
-                                                </div>
-                                                <div className="card-content">
-                                                    <div className="media">
-                                                        <div className="media-content">
-                                                            <p className="title is-4 no-padding">{a.nom_carte}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                )
-                            })}
+                        <div className="inventory-cards-grid">
+                            {cartesFiltres.map((carte) => (
+                                <Card
+                                    key={carte.id_carte}
+                                    carte={carte}
+                                    onClick={() => setCarteSelectionnee(carte)}
+                                />
+                            ))}
                             {/* s'affiche seulement si isAdmin == true, si on modifie ou delete la carte dans le modal
                                 re-fait l'affichage */}
                             <CardModal carte={carteSelectionnee} isNew={false} isAdmin={isAdmin} token={token}

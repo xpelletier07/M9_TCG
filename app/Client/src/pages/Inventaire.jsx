@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { API_BASE_URL } from '../config'
 import { CardModal } from '../components/Modals'
+import Card from '../components/Card'
 
 // Import Bulma CSS
 import 'bulma/css/bulma.min.css';
@@ -160,26 +161,13 @@ function Inventaire() {
                 )}
 
                 {!loading && !erreur && cartes.length > 0 && (
-                    <div className="cards-grid">
+                    <div className="inventory-cards-grid">
                         {cartes.map((carte) => (
-                            <div key={carte.id_carte} className="card-item" onClick={() => setCarteSelectionnee(carte)} style={{ cursor: 'pointer' }}>
-                                <div className="card-image-wrapper">
-                                    <img
-                                        src={carte.image}
-                                        alt={carte.nom_carte}
-                                        className="card-image"
-                                    />
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-name">{carte.nom_carte}</h3>
-                                    <p className="card-description">{carte.description}</p>
-                                    <div className="card-stats">
-                                        <span className="stat stat-mana" title="Mana">💧 {carte.mana}</span>
-                                        <span className="stat stat-health" title="Vie">❤️ {carte.health}</span>
-                                        <span className="stat stat-damage" title="Dégâts">⚔️ {carte.damage}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <Card
+                                key={carte.id_carte}
+                                carte={carte}
+                                onClick={() => setCarteSelectionnee(carte)}
+                            />
                         ))}
                     </div>
                 )}
