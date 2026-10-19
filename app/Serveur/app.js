@@ -1,10 +1,14 @@
 import "dotenv/config";
+import { createServer } from "node:http";
 import express from "express";
 import cors from "cors";
 import { pool } from "./db/pool.js"
 import apiRouter from "./Router/Router_Global.js"
+import attachRealtime from "./realtime.js"
 
 const app = express();
+const server = createServer(app);
+attachRealtime(server);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -71,7 +75,7 @@ async function startServer() {
     ON CONFLICT DO NOTHING
   `)
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
   })
 }
