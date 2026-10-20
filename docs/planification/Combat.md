@@ -1,3 +1,8 @@
+# Combat
+Les informations mises dans ce document sont pour nous aider au développement du combat. Les règles métier ont été déterminées d'avance pour que nous les ayons d'écrites d'avance. L'onglet de valeurs/balancing contient des valeurs par défaut qui sont arbitraires et sujet au changement plus tard si nous voyons qu'elle ne font pas de sens.
+
+---
+
 ### Mana
 Le mana commence à 1 et augmente de 1 à chaque tour jusqu'à 10 (tour 2 = 2 mana, tour 3 = 3 mana, etc.). Chaque carte a un coût de mana qui lui est relié, les cartes plus fortes couttent généralement plus de mana. Au début de chaque tour, le joueur reprends tout son mana (ex: avait 1/3 mana au dernier tour, prochain tour il a 4/4).
 
