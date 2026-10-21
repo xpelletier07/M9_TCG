@@ -23,6 +23,10 @@ services:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
       JWT_SECRET: cle-locale-m9tcg
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_CALLBACK_URL: http://localhost:3000/auth/github/callback
+      CLIENT_URL: http://localhost:5173
     volumes:
       - ./app/Serveur:/app
       - /app/node_modules

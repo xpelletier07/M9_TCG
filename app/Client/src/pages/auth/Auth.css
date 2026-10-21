@@ -91,6 +91,24 @@
   cursor: not-allowed;
 }
 
+.auth-github-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #24292f;
+  color: #fff;
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.auth-github-button:hover {
+  background: #1b1f23;
+}
+
 .auth-error {
   margin: 0;
   color: #dc2626;
