@@ -7,7 +7,7 @@ export function attachRealtime(server) {
 		cors: { origin: process.env.CLIENT_URL || true },
 	});
 
-	registerCombat(io);
+	registerCombat(io.of("/combat"));
 
 	return io;
 }
@@ -144,6 +144,5 @@ function registerCombat(io) {
 }
 
 export default attachRealtime;
-
 
 

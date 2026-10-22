@@ -8,7 +8,8 @@ import { API_BASE_URL } from '../config'
 function Combat() {
   const socketRef = useRef(null)
   const eventTimersRef = useRef(new Set())
-  const [connectionStatus, setConnectionStatus] = useState('Connexion...')
+  const joinedMatchRef = useRef(false)
+  const [connectionStatus, setConnectionStatus] = useState('Déconnecté')
   const [matchStatus, setMatchStatus] = useState('Aucun combat rejoint')
   const [events, setEvents] = useState([])
   const [joinedMatchId, setJoinedMatchId] = useState(null)
@@ -19,8 +20,17 @@ function Combat() {
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
 
-  useEffect(() => {
-    const socket = io(API_BASE_URL)
+  function resetCombatState() {
+    setJoinedMatchId(null)
+    setMatchStatus('Aucun combat rejoint')
+    setPlayers([])
+    setCombatStarted(false)
+    setMessages([])
+    setMessage('')
+  }
+
+  function connectToCombat(matchId) {
+    const socket = io(`${API_BASE_URL}/combat`, { autoConnect: false })
     socketRef.current = socket
 
     const addEvent = (message) => {
@@ -34,27 +44,35 @@ function Combat() {
       eventTimersRef.current.add(timer)
     }
 
-    socket.on('connect', () => setConnectionStatus('Connecté'))
-    socket.on('disconnect', () => setConnectionStatus('Déconnecté'))
-    socket.on('connect_error', () => setConnectionStatus('Serveur indisponible'))
+    socket.on('connect', () => {
+      setConnectionStatus('Connecté')
+      socket.emit('combat:join', { matchId })
+    })
+    socket.on('disconnect', () => {
+      setConnectionStatus('Déconnecté')
+      setSocketId(null)
+      if (socketRef.current === socket) socketRef.current = null
+    })
+    socket.on('connect_error', () => {
+      setConnectionStatus('Serveur indisponible')
+      socket.disconnect()
+    })
     socket.on('combat:connected', ({ socketId: connectedSocketId }) => {
       setSocketId(connectedSocketId)
       addEvent('Socket de combat prête')
     })
     socket.on('combat:joined', ({ matchId }) => {
+      joinedMatchRef.current = true
       setJoinedMatchId(matchId)
       setCombatStarted(false)
       setMatchStatus(`Combat rejoint : ${matchId}`)
       addEvent(`Vous avez rejoint ${matchId}`)
     })
     socket.on('combat:left', () => {
-      setJoinedMatchId(null)
-      setMatchStatus('Aucun combat rejoint')
-      setPlayers([])
-      setCombatStarted(false)
-      setMessages([])
-      setMessage('')
+      joinedMatchRef.current = false
+      resetCombatState()
       addEvent('Vous avez quitté le combat')
+      socket.disconnect()
     })
     socket.on('combat:room-state', ({ players: roomPlayers, started }) => {
       setPlayers(roomPlayers)
@@ -75,13 +93,19 @@ function Combat() {
         ...currentMessages,
       ].slice(0, 30))
     })
-    socket.on('combat:error', ({ message }) => addEvent(`Erreur : ${message}`))
+    socket.on('combat:error', ({ message }) => {
+      addEvent(`Erreur : ${message}`)
+      if (!joinedMatchRef.current) socket.disconnect()
+    })
 
-    const eventTimers = eventTimersRef.current
+    socket.connect()
+  }
+
+  useEffect(() => {
     return () => {
-      socket.disconnect()
-      eventTimers.forEach((timer) => clearTimeout(timer))
-      eventTimers.clear()
+      socketRef.current?.disconnect()
+      eventTimersRef.current.forEach((timer) => clearTimeout(timer))
+      eventTimersRef.current.clear()
       socketRef.current = null
     }
   }, [])
@@ -109,7 +133,8 @@ function Combat() {
       return
     }
 
-    socketRef.current?.emit('combat:join', { matchId: trimmedMatchCode })
+    setConnectionStatus('Connexion...')
+    connectToCombat(trimmedMatchCode)
   }
 
   function sendMessage(event) {
@@ -158,7 +183,7 @@ function Combat() {
                 pattern="[A-Za-z0-9_-]+"
                 disabled={Boolean(joinedMatchId)}
               />
-              <button className={joinedMatchId ? 'combat-leave-button' : ''} type="button" onClick={toggleCombat} disabled={connectionStatus !== 'Connecté'}>
+              <button className={joinedMatchId ? 'combat-leave-button' : ''} type="button" onClick={toggleCombat} disabled={connectionStatus === 'Connexion...'}>
                 {joinedMatchId ? 'Quitter' : 'Rejoindre'}
               </button>
             </div>
