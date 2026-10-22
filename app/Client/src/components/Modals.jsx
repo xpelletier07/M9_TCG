@@ -232,26 +232,26 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
                         <div className="column is-half">
                             <strong>Mana :</strong>{" "}
                             {isEditing ? (
-                                <input className="input" type="number" name="mana" value={form.mana} onChange={modifierChamp} />
-                            ) : carte.mana}
+                                <input className="input" type="number" name="mana" min={"0"} max={"10"}
+                                    value={form.mana} onChange={modifierChamp} />) : carte.mana}
                         </div>
                         <div className="column is-half">
                             <strong>Attaque :</strong>{" "}
                             {isEditing ? (
-                                <input className="input" type="number" name="damage" value={form.damage} onChange={modifierChamp} />
-                            ) : carte.damage}
+                                <input className="input" type="number" name="damage" min={"0"} max={"1000"}
+                                    value={form.damage} onChange={modifierChamp} />) : carte.damage}
                         </div>
                         <div className="column is-half">
                             <strong>Vie :</strong>{" "}
                             {isEditing ? (
-                                <input className="input" type="number" name="health" value={form.health} onChange={modifierChamp} />
-                            ) : carte.health}
+                                <input className="input" type="number" name="health" min={"1"} max={"1000"}
+                                    value={form.health} onChange={modifierChamp} />) : carte.health}
                         </div>
                         <div className="column is-half">
                             <strong>Valeur :</strong>{" "}
                             {isEditing ? (
-                                <input className="input" type="number" name="valeur" value={form.valeur} onChange={modifierChamp} />
-                            ) : carte.valeur}
+                                <input className="input" type="number" name="valeur" min={"1"} max={"1000"}
+                                    value={form.valeur} onChange={modifierChamp} />) : carte.valeur}
                         </div>
                     </div>
                 </section>
