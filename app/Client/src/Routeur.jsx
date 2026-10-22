@@ -4,6 +4,7 @@ import { AuthProvider } from './auth/AuthContext.jsx'
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import Login from './pages/auth/Login.jsx'
 import Signup from './pages/auth/Signup.jsx'
+import GithubCallback from './pages/auth/GithubCallback.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Collection from './pages/Collection.jsx'
 import Bazaar from './pages/Bazaar.jsx'
@@ -18,6 +19,7 @@ function Routeur() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
+                    <Route path="/auth/github/callback" element={<GithubCallback />} />
                     <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                         <Route index element={<Dashboard />} />
                         <Route path="collection" element={<Collection />} />
