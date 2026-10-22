@@ -150,7 +150,7 @@ function Collection() {
                             <div className="field-body">
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
-                                        <div className="select is-fullwidth">
+                                        <div className="is-fullwidth">
                                             <input className="input" type="number" min={"0"} max={"10"} onChange={(e) => setMana(e.target.value)} />
                                         </div>
                                     </div>
@@ -165,7 +165,7 @@ function Collection() {
                             <div className="field-body">
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
-                                        <div className="select is-fullwidth">
+                                        <div className="is-fullwidth">
                                             <input className="input" type="number" min={"0"} max={"1000"} onChange={(e) => setDmg(e.target.value)} />
                                         </div>
                                     </div>
@@ -180,7 +180,7 @@ function Collection() {
                             <div className="field-body">
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
-                                        <div className="select is-fullwidth">
+                                        <div className="is-fullwidth">
                                             <input className="input" type="number" min={"1"} max={"1000"} onChange={(e) => setVie(e.target.value)} />
                                         </div>
                                     </div>
