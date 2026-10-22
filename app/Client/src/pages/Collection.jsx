@@ -28,8 +28,6 @@ function Collection() {
     const [ajoutCarteOuvert, setAjoutCarteOuvert] = useState(false)
     // variable pour vérifier si l'utilisateur connecté est administrateur, utilisé seulement pour l'affichage, check aussi coté serveur
     const [isAdmin, setIsAdmin] = useState(false)
-    // mini constante pour avoir une liste de 1-10, utilisée pour faire l'affichage des filtres
-    const listeCompte = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     // récupérer le token du local storage
     const token = localStorage.getItem("token")
 
@@ -153,12 +151,7 @@ function Collection() {
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
                                         <div className="select is-fullwidth">
-                                            <select onChange={(e) => setMana(e.target.value)}>
-                                                <option></option>
-                                                {listeCompte.map((a) => {
-                                                    return <option key={a}>{a}</option>
-                                                })}
-                                            </select>
+                                            <input className="input" type="number" min={"0"} max={"10"} onChange={(e) => setMana(e.target.value)} />
                                         </div>
                                     </div>
                                 </div>
@@ -173,15 +166,7 @@ function Collection() {
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
                                         <div className="select is-fullwidth">
-                                            {cartes != null &&
-                                                <select onChange={(e) => setDmg(e.target.value)}>
-                                                    <option></option>
-                                                    {listeCompte.map((a) => {
-                                                        return <option key={a}>{a}</option>
-                                                    })}
-
-                                                </select>
-                                            }
+                                            <input className="input" type="number" min={"0"} max={"1000"} onChange={(e) => setDmg(e.target.value)} />
                                         </div>
                                     </div>
                                 </div>
@@ -196,14 +181,7 @@ function Collection() {
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
                                         <div className="select is-fullwidth">
-                                            {cartes != null &&
-                                                <select onChange={(e) => setVie(e.target.value)}>
-                                                    <option></option>
-                                                    {listeCompte.map((a) => {
-                                                        return <option key={a}>{a}</option>
-                                                    })}
-                                                </select>
-                                            }
+                                            <input className="input" type="number" min={"1"} max={"1000"} onChange={(e) => setVie(e.target.value)} />
                                         </div>
                                     </div>
                                 </div>
