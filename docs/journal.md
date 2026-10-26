@@ -128,3 +128,14 @@
     - *William :* Nouveau désign des cartes
 - **Blocages :**
 - **Décisions :** Déplacer le Bazaar au 3e sprint puisque nous avions 38 points pour le sprint 2 et seulement ~20 pour le sprint 3. 
+
+## Semaine 9-1 | Lundi 26 octobre 2026
+- **Absence :** Marco
+- **Avancées :** 
+    - *Xavier :* Avancées sur la page de combat & chat de combat
+    - *Alek :* Fix de bugs dans la page de collection que le prof nous avait surlevé à la revue du sprint 1
+    - *Marco :* 
+    - *Lotfi :* Rien
+    - *William :* Menu/page utilisateur
+- **Blocages :** Plusieurs examens donc le travail a été mis de côté un peu pour la plupart des membres de l'équipe
+- **Décisions :** Aucunes décisions importantes
