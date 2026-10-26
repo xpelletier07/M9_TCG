@@ -8,7 +8,7 @@ import attachRealtime from "./realtime.js"
 
 const app = express();
 const server = createServer(app);
-attachRealtime(server);
+const io = attachRealtime(server);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -34,10 +34,14 @@ app.get("/api/db-check", async (req, res) => {
     const result = await pool.query("SELECT NOW() AS current_time");
     res.json({ db: "connected", time: result.rows[0].current_time });
   } catch (err) {
-    console.error("Erreur de connexion à la base de données :", err);
+    console.error("Erreur de connexion à la  base de données :", err);
     res.status(500).json({ db: "error", message: err.message });
   }
 });
+
+app.get('/api/online-users', (_req, res) => {
+  res.json({ connectedUsers: io.engine.clientsCount })
+})
 
 app.get("/api/drop-timer", (req, res) => {
   const cycleSeconds = 5 * 60
@@ -58,6 +62,7 @@ async function startServer() {
   await pool.query(`
     ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS github_id VARCHAR(50) UNIQUE;
     ALTER TABLE utilisateurs ALTER COLUMN mot_de_passe_hash DROP NOT NULL;
+    ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS dernier_claim_carte_at TIMESTAMPTZ;
   `)
 
   // Insert des comptes de démonstration si ils n'existent pas déjà
