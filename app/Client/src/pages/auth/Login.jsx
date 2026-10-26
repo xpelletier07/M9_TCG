@@ -1,15 +1,27 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { API_BASE_URL } from '../../config'
 import { useAuth } from '../../auth/AuthContext'
+import GithubButton from './GithubButton'
 import './Auth.css'
+
+// Messages affichés quand le serveur nous renvoie ici avec ?error=<code> après un échec GitHub
+const GITHUB_ERRORS = {
+  github_non_configure: "La connexion GitHub n'est pas configurée sur le serveur",
+  github_refuse: "Connexion GitHub annulée",
+  state_invalide: "Session GitHub expirée, veuillez réessayer",
+  echange_code_echoue: "GitHub a refusé l'échange du code d'autorisation",
+  profil_github_indisponible: "Impossible de lire votre profil GitHub",
+  erreur_serveur: "Une erreur est survenue lors de la connexion GitHub",
+}
 
 export default function Login() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(GITHUB_ERRORS[searchParams.get('error')] || '')
   const [loading, setLoading] = useState(false)
 
   // Soumission du formulaire de connexion
@@ -96,6 +108,8 @@ export default function Login() {
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
+
+        <GithubButton />
 
         {/* Lien vers la page d'inscription pour les nouveaux utilisateurs */}
         <p className="auth-footer">

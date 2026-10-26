@@ -1,5 +1,6 @@
 import express from "express"
 import authRouter from "../routes/auth.js"
+import githubAuthRouter from "../routes/githubAuth.js"
 import carteRouter from "../routes/carte.js"
 import collectionRouter from "../routes/collection.js"
 import inventaireRouter from "../routes/inventaire.js"
@@ -10,6 +11,7 @@ import randomCardRouter from "../routes/randomcard.js"
 
 const apiRouter = express.Router()
 
+apiRouter.use("/auth/github", githubAuthRouter)
 apiRouter.use("/auth", authRouter)
 apiRouter.use("/collection", collectionRouter)
 apiRouter.use("/inventory", inventoryRouter)

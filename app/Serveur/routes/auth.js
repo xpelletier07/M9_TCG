@@ -83,8 +83,10 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Email ou mot de passe incorrect" })
         }
 
-        // Compare le mot de passe fourni avec le hash stocké (bcrypt recalcule le même sel)
-        const motDePasseValide = await bcrypt.compare(password, user.mot_de_passe_hash)
+        // Compte créé via GitHub : aucun mot de passe local, la connexion par mot de passe est impossible
+        const motDePasseValide = user.mot_de_passe_hash
+            ? await bcrypt.compare(password, user.mot_de_passe_hash)
+            : false
 
         if (!motDePasseValide) {
             return res.status(401).json({ error: "Email ou mot de passe incorrect" })

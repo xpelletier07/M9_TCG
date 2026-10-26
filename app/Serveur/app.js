@@ -1,10 +1,14 @@
 import "dotenv/config";
+import { createServer } from "node:http";
 import express from "express";
 import cors from "cors";
 import { pool } from "./db/pool.js"
 import apiRouter from "./Router/Router_Global.js"
+import attachRealtime from "./realtime.js"
 
 const app = express();
+const server = createServer(app);
+attachRealtime(server);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -50,6 +54,12 @@ app.get("/api/drop-timer", (req, res) => {
 
 
 async function startServer() {
+  // Migration pour les bases existantes (db.sql ne s'exécute qu'à la création du volume) : support de la connexion GitHub
+  await pool.query(`
+    ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS github_id VARCHAR(50) UNIQUE;
+    ALTER TABLE utilisateurs ALTER COLUMN mot_de_passe_hash DROP NOT NULL;
+  `)
+
   // Insert des comptes de démonstration si ils n'existent pas déjà
   await pool.query(`
     INSERT INTO utilisateurs
@@ -71,7 +81,7 @@ async function startServer() {
     ON CONFLICT DO NOTHING
   `)
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
   })
 }
