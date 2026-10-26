@@ -269,14 +269,6 @@ code {
   padding-block: 0.45rem;
 }
 
-.combat-page.is-joined .combat-events {
-  margin-top: 0.65rem;
-}
-
-.combat-page.is-joined .combat-events li {
-  padding-block: 0.45rem;
-}
-
 .combat-join-panel {
   background: #12343d;
   color: #e9f8f5;
@@ -552,8 +544,7 @@ code {
   opacity: 0.5;
 }
 
-.combat-messages,
-.combat-events {
+.combat-messages {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -564,8 +555,7 @@ code {
   list-style: none;
 }
 
-.combat-messages li,
-.combat-events li {
+.combat-messages li {
   padding: 0.65rem 0.75rem;
   border-left: 3px solid #d9ebe8;
   background: #f4f8f8;
@@ -588,17 +578,6 @@ code {
   border-left-color: #d9e3e5 !important;
   color: #80969b !important;
   font-style: italic;
-}
-
-.combat-events {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  height: auto;
-  margin-top: 1rem;
-}
-
-.combat-events li {
-  font-size: 0.76rem;
 }
 
 .combat-player-summary {
@@ -751,10 +730,6 @@ code {
     width: 100%;
   }
 
-  .combat-events {
-    grid-template-columns: 1fr;
-  }
-
   .combat-player-list {
     grid-template-columns: 1fr;
   }
@@ -861,7 +836,6 @@ html.tcg-dark .combat-current-room {
 }
 
 html.tcg-dark .combat-messages li,
-html.tcg-dark .combat-events li,
 html.tcg-dark .combat-player-list li {
   border-color: #454849;
   background: #2b2d2e;

@@ -8,13 +8,12 @@ import { API_BASE_URL } from '../config'
 
 function Combat() {
   const socketRef = useRef(null)
-  const eventTimersRef = useRef(new Set())
   const previewTimerRef = useRef(null)
+  const isChatOpenRef = useRef(false)
   const joinedMatchRef = useRef(false)
   const navigate = useNavigate()
   const [connectionStatus, setConnectionStatus] = useState('Déconnecté')
   const [matchStatus, setMatchStatus] = useState('Aucun combat rejoint')
-  const [events, setEvents] = useState([])
   const [joinedMatchId, setJoinedMatchId] = useState(null)
   const [socketId, setSocketId] = useState(null)
   const [players, setPlayers] = useState([])
@@ -22,6 +21,7 @@ function Combat() {
   const [matchCode, setMatchCode] = useState('')
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [messagePreview, setMessagePreview] = useState(null)
 
@@ -31,6 +31,7 @@ function Combat() {
     setPlayers([])
     setCombatStarted(false)
     setMessages([])
+    setUnreadMessageCount(0)
     setMessage('')
     setMessagePreview(null)
     setIsChatOpen(false)
@@ -39,17 +40,6 @@ function Combat() {
   function connectToCombat(matchId) {
     const socket = io(`${API_BASE_URL}/combat`, { autoConnect: false })
     socketRef.current = socket
-
-    const addEvent = (message) => {
-      const eventId = `${Date.now()}-${Math.random()}`
-      setEvents((currentEvents) => [{ id: eventId, message }, ...currentEvents].slice(0, 8))
-
-      const timer = setTimeout(() => {
-        setEvents((currentEvents) => currentEvents.filter((event) => event.id !== eventId))
-        eventTimersRef.current.delete(timer)
-      }, 5000)
-      eventTimersRef.current.add(timer)
-    }
 
     socket.on('connect', () => {
       setConnectionStatus('Connecté')
@@ -66,19 +56,16 @@ function Combat() {
     })
     socket.on('combat:connected', ({ socketId: connectedSocketId }) => {
       setSocketId(connectedSocketId)
-      addEvent('Socket de combat prête')
     })
     socket.on('combat:joined', ({ matchId }) => {
       joinedMatchRef.current = true
       setJoinedMatchId(matchId)
       setCombatStarted(false)
       setMatchStatus(`Combat rejoint : ${matchId}`)
-      addEvent(`Vous avez rejoint ${matchId}`)
     })
     socket.on('combat:left', () => {
       joinedMatchRef.current = false
       resetCombatState()
-      addEvent('Vous avez quitté le combat')
       socket.disconnect()
       navigate('/combat')
     })
@@ -89,19 +76,16 @@ function Combat() {
     socket.on('combat:started', () => {
       setCombatStarted(true)
       navigate(`/combat/${matchId}`)
-      addEvent('Les deux joueurs sont prêts. La partie commence !')
     })
-    socket.on('combat:player-joined', ({ playerId }) => addEvent(`Joueur connecté : ${playerId}`))
-    socket.on('combat:player-left', ({ playerId, reason }) => {
-      addEvent(`${reason === 'left' ? 'Joueur parti' : 'Joueur déconnecté'} : ${playerId}`)
-    })
-    socket.on('combat:action', ({ action }) => addEvent(`Action reçue : ${action}`))
     socket.on('combat:message', ({ playerId, message: receivedMessage, system }) => {
       const newMessage = { playerId, message: receivedMessage, system }
       setMessages((currentMessages) => [
         newMessage,
         ...currentMessages,
       ].slice(0, 30))
+      if (!isChatOpenRef.current) {
+        setUnreadMessageCount((count) => count + 1)
+      }
       setMessagePreview(newMessage)
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
       previewTimerRef.current = setTimeout(() => {
@@ -110,7 +94,7 @@ function Combat() {
       }, 4000)
     })
     socket.on('combat:error', ({ message }) => {
-      addEvent(`Erreur : ${message}`)
+      setMatchStatus(`Erreur : ${message}`)
       if (!joinedMatchRef.current) socket.disconnect()
     })
 
@@ -118,10 +102,12 @@ function Combat() {
   }
 
   useEffect(() => {
+    isChatOpenRef.current = isChatOpen
+  }, [isChatOpen])
+
+  useEffect(() => {
     return () => {
       socketRef.current?.disconnect()
-      eventTimersRef.current.forEach((timer) => clearTimeout(timer))
-      eventTimersRef.current.clear()
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
       socketRef.current = null
     }
@@ -143,10 +129,7 @@ function Combat() {
 
     const trimmedMatchCode = matchCode.trim()
     if (!trimmedMatchCode) {
-      setEvents((currentEvents) => [
-        { id: `${Date.now()}-${Math.random()}`, message: 'Entrez un code de partie.' },
-        ...currentEvents,
-      ].slice(0, 8))
+      setMatchStatus('Entrez un code de partie.')
       return
     }
 
@@ -161,6 +144,15 @@ function Combat() {
 
     socketRef.current?.emit('combat:message', { message: trimmedMessage })
     setMessage('')
+  }
+
+  function toggleChat() {
+    setIsChatOpen((open) => {
+      const nextOpen = !open
+      isChatOpenRef.current = nextOpen
+      if (nextOpen) setUnreadMessageCount(0)
+      return nextOpen
+    })
   }
 
   return (
@@ -254,13 +246,13 @@ function Combat() {
           <button
             className="combat-chat-toggle"
             type="button"
-            onClick={() => setIsChatOpen((open) => !open)}
+            onClick={toggleChat}
             aria-expanded={isChatOpen}
             aria-label={isChatOpen ? 'Fermer le chat' : 'Ouvrir le chat'}
           >
             <span aria-hidden="true">☵</span>
             <span>{isChatOpen ? 'Fermer' : 'Chat'}</span>
-            {!isChatOpen && messages.length > 0 && <b>{messages.length}</b>}
+            {!isChatOpen && unreadMessageCount > 0 && <b>{unreadMessageCount}</b>}
           </button>
         </div>}
 
@@ -296,10 +288,6 @@ function Combat() {
             </button>
           )}
           {combatStarted && <p className="combat-started-message">La partie est lancée. Bon combat !</p>}
-          <ul className="combat-events">
-            {events.length === 0 && <li className="combat-empty-message">En attente d’activité...</li>}
-            {events.map((event) => <li key={event.id}>{event.message}</li>)}
-          </ul>
         </aside>}
       </section>
     </main>
