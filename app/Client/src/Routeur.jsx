@@ -26,6 +26,7 @@ function Routeur() {
                         <Route path="bazaar" element={<Bazaar />} />
                         <Route path="inventaire" element={<Inventaire />} />
                         <Route path="combat" element={<Combat />} />
+                        <Route path="combat/:matchId" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />

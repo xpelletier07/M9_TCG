@@ -23,6 +23,10 @@ function Sidebar({ loggedIn = true, onLogout }) {
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
   }, [dark])
 
+  useEffect(() => {
+    document.documentElement.style.setProperty('--sidebar-width', collapsed ? '52px' : '220px')
+  }, [collapsed])
+
   return (
     // La classe "collapsed" rétrécit la sidebar (gérée en CSS) selon l'état local
     <aside className={`tcg-sidebar${collapsed ? ' collapsed' : ''}`}>

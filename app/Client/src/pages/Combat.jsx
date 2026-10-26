@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
+import { useNavigate } from 'react-router-dom'
 import { API_BASE_URL } from '../config'
 
 
@@ -8,7 +9,9 @@ import { API_BASE_URL } from '../config'
 function Combat() {
   const socketRef = useRef(null)
   const eventTimersRef = useRef(new Set())
+  const previewTimerRef = useRef(null)
   const joinedMatchRef = useRef(false)
+  const navigate = useNavigate()
   const [connectionStatus, setConnectionStatus] = useState('Déconnecté')
   const [matchStatus, setMatchStatus] = useState('Aucun combat rejoint')
   const [events, setEvents] = useState([])
@@ -19,6 +22,8 @@ function Combat() {
   const [matchCode, setMatchCode] = useState('')
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [messagePreview, setMessagePreview] = useState(null)
 
   function resetCombatState() {
     setJoinedMatchId(null)
@@ -27,6 +32,8 @@ function Combat() {
     setCombatStarted(false)
     setMessages([])
     setMessage('')
+    setMessagePreview(null)
+    setIsChatOpen(false)
   }
 
   function connectToCombat(matchId) {
@@ -73,6 +80,7 @@ function Combat() {
       resetCombatState()
       addEvent('Vous avez quitté le combat')
       socket.disconnect()
+      navigate('/combat')
     })
     socket.on('combat:room-state', ({ players: roomPlayers, started }) => {
       setPlayers(roomPlayers)
@@ -80,6 +88,7 @@ function Combat() {
     })
     socket.on('combat:started', () => {
       setCombatStarted(true)
+      navigate(`/combat/${matchId}`)
       addEvent('Les deux joueurs sont prêts. La partie commence !')
     })
     socket.on('combat:player-joined', ({ playerId }) => addEvent(`Joueur connecté : ${playerId}`))
@@ -88,10 +97,17 @@ function Combat() {
     })
     socket.on('combat:action', ({ action }) => addEvent(`Action reçue : ${action}`))
     socket.on('combat:message', ({ playerId, message: receivedMessage, system }) => {
+      const newMessage = { playerId, message: receivedMessage, system }
       setMessages((currentMessages) => [
-        { playerId, message: receivedMessage, system },
+        newMessage,
         ...currentMessages,
       ].slice(0, 30))
+      setMessagePreview(newMessage)
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
+      previewTimerRef.current = setTimeout(() => {
+        setMessagePreview(null)
+        previewTimerRef.current = null
+      }, 4000)
     })
     socket.on('combat:error', ({ message }) => {
       addEvent(`Erreur : ${message}`)
@@ -106,6 +122,7 @@ function Combat() {
       socketRef.current?.disconnect()
       eventTimersRef.current.forEach((timer) => clearTimeout(timer))
       eventTimersRef.current.clear()
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
       socketRef.current = null
     }
   }, [])
@@ -147,7 +164,7 @@ function Combat() {
   }
 
   return (
-    <main className="content-left-spacing combat-page">
+    <main className={`content-left-spacing combat-page ${joinedMatchId ? 'is-joined' : ''}`}>
       <header className="combat-page-header">
         <div>
           <span className="combat-kicker">Arène en ligne</span>
@@ -194,37 +211,57 @@ function Combat() {
           </div>
         </div>
 
-        {joinedMatchId && <div className="combat-chat-panel">
-          <div className="combat-panel-heading">
-            <div>
-              <span className="combat-panel-index">02</span>
-              <h2>Chat de la partie</h2>
+        {joinedMatchId && <div className={`combat-chat-widget ${isChatOpen ? 'is-open' : ''}`}>
+          {!isChatOpen && messagePreview && (
+            <div className="combat-chat-preview" role="status">
+              <strong>{messagePreview.system ? 'Arène' : messagePreview.playerId}</strong>
+              <span>{messagePreview.message}</span>
             </div>
-            <span className="combat-message-count">{messages.length}/30</span>
-          </div>
-          <ul className="combat-messages" aria-live="polite">
-            {messages.length === 0 && <li className="combat-empty-message">Rejoins une salle pour commencer la conversation.</li>}
-            {messages.map(({ playerId, message: receivedMessage, system }, index) => (
-              <li key={`${playerId ?? 'system'}-${index}`} className={system ? 'combat-system-message' : ''}>
-                {system ? receivedMessage : <><strong>{playerId}</strong> : {receivedMessage}</>}
-              </li>
-            ))}
-          </ul>
-          <form className="combat-chat-form" onSubmit={sendMessage}>
-            <label className="visually-hidden" htmlFor="combat-message">Message à la salle</label>
-            <div>
-              <input
-                id="combat-message"
-                type="text"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder={joinedMatchId ? 'Écrire un message à la salle...' : 'Rejoins une salle pour écrire'}
-                maxLength={500}
-                disabled={!joinedMatchId}
-              />
-              <button type="submit" disabled={!joinedMatchId || !message.trim()} aria-label="Envoyer le message">→</button>
+          )}
+          {isChatOpen && (
+            <div className="combat-chat-popover">
+              <div className="combat-chat-popover-header">
+                <div>
+                  <span className="combat-panel-index">02</span>
+                  <h2>Chat de l’arène</h2>
+                </div>
+                <span className="combat-message-count">{messages.length}/30</span>
+              </div>
+              <ul className="combat-messages" aria-live="polite">
+                {messages.length === 0 && <li className="combat-empty-message">Aucun message pour le moment.</li>}
+                {messages.map(({ playerId, message: receivedMessage, system }, index) => (
+                  <li key={`${playerId ?? 'system'}-${index}`} className={system ? 'combat-system-message' : ''}>
+                    {system ? receivedMessage : <><strong>{playerId}</strong> : {receivedMessage}</>}
+                  </li>
+                ))}
+              </ul>
+              <form className="combat-chat-form" onSubmit={sendMessage}>
+                <label className="visually-hidden" htmlFor="combat-message">Message à la salle</label>
+                <div>
+                  <input
+                    id="combat-message"
+                    type="text"
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    placeholder="Écrire un message..."
+                    maxLength={500}
+                  />
+                  <button type="submit" disabled={!message.trim()} aria-label="Envoyer le message">→</button>
+                </div>
+              </form>
             </div>
-          </form>
+          )}
+          <button
+            className="combat-chat-toggle"
+            type="button"
+            onClick={() => setIsChatOpen((open) => !open)}
+            aria-expanded={isChatOpen}
+            aria-label={isChatOpen ? 'Fermer le chat' : 'Ouvrir le chat'}
+          >
+            <span aria-hidden="true">☵</span>
+            <span>{isChatOpen ? 'Fermer' : 'Chat'}</span>
+            {!isChatOpen && messages.length > 0 && <b>{messages.length}</b>}
+          </button>
         </div>}
 
         {joinedMatchId && <aside className="combat-activity-panel">

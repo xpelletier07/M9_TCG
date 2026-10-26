@@ -2,6 +2,7 @@
 
 /* Variables globales (thème clair) : réutilisées partout, y compris Auth.css et Sidebar.css */
 :root {
+  --sidebar-width: 220px;
   --text: #6b6375; /* couleur de texte secondaire par défaut */
   --text-h: #08060d; /* couleur des titres (plus foncée/contrastée que --text) */
   --bg: #fff; /* fond de page par défaut */
@@ -130,10 +131,25 @@ code {
   color: #16343c;
 }
 
+.combat-page.is-joined {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-block: 1.5rem;
+}
+
 .combat-page-header,
 .combat-layout {
   width: min(100%, 1080px);
   margin: 0 auto;
+}
+
+.combat-page.is-joined .combat-page-header {
+  margin-bottom: 1rem;
+}
+
+.combat-page.is-joined .combat-page-header h1 {
+  margin-block: 0.15rem 0.35rem;
+  font-size: clamp(2rem, 4vw, 3rem);
 }
 
 .combat-page-header {
@@ -202,9 +218,20 @@ code {
   gap: 1rem;
 }
 
+.combat-layout.has-combat {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.combat-layout.has-combat .combat-join-panel {
+  grid-column: 1 / -1;
+}
+
 .combat-layout.join-only {
-  grid-template-columns: minmax(0, 36rem);
-  justify-content: center;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.combat-layout.join-only .combat-join-panel {
+  width: 100%;
 }
 
 .combat-join-panel,
@@ -217,6 +244,39 @@ code {
   box-shadow: 0 18px 45px rgba(22, 52, 60, 0.08);
 }
 
+.combat-page.is-joined .combat-join-panel,
+.combat-page.is-joined .combat-activity-panel {
+  padding: 1rem 1.25rem;
+}
+
+.combat-page.is-joined .combat-panel-copy {
+  margin-block: 0.5rem 0.75rem;
+}
+
+.combat-page.is-joined .combat-current-room {
+  margin-top: 0.75rem;
+}
+
+.combat-page.is-joined .combat-player-summary {
+  margin-top: 0.75rem;
+}
+
+.combat-page.is-joined .combat-player-list {
+  margin-top: 0.5rem;
+}
+
+.combat-page.is-joined .combat-player-list li {
+  padding-block: 0.45rem;
+}
+
+.combat-page.is-joined .combat-events {
+  margin-top: 0.65rem;
+}
+
+.combat-page.is-joined .combat-events li {
+  padding-block: 0.45rem;
+}
+
 .combat-join-panel {
   background: #12343d;
   color: #e9f8f5;
@@ -225,6 +285,106 @@ code {
 .combat-chat-panel,
 .combat-activity-panel {
   background: rgba(255, 255, 255, 0.82);
+}
+
+.combat-chat-widget {
+  position: fixed;
+  z-index: 10;
+  bottom: 1.5rem;
+  left: var(--sidebar-width);
+  width: min(22rem, calc(100vw - var(--sidebar-width) - 3rem));
+}
+
+.combat-chat-popover {
+  margin-bottom: 0.65rem;
+  padding: 1rem;
+  border: 1px solid rgba(214, 227, 229, 0.9);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 45px rgba(22, 52, 60, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.combat-chat-popover-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.combat-chat-popover-header h2 {
+  margin: 0.25rem 0 0;
+  color: #12343d;
+  font-size: 1.1rem;
+}
+
+.combat-chat-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(214, 227, 229, 0.85);
+  border-radius: 10px;
+  background: rgba(18, 52, 61, 0.88);
+  color: #e9f8f5;
+  animation: combat-chat-fade 4s ease forwards;
+  box-shadow: 0 10px 24px rgba(22, 52, 60, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.combat-chat-preview strong {
+  color: #9ce3d4;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.combat-chat-preview span {
+  overflow: hidden;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combat-chat-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(214, 227, 229, 0.9);
+  border-radius: 999px;
+  background: rgba(18, 52, 61, 0.9);
+  color: #e9f8f5;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(22, 52, 60, 0.18);
+  backdrop-filter: blur(10px);
+}
+
+.combat-chat-toggle:hover {
+  background: #205762;
+}
+
+.combat-chat-toggle > span:first-child {
+  font-size: 1.25rem;
+  line-height: 0.7;
+}
+
+.combat-chat-toggle b {
+  min-width: 1.25rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 999px;
+  background: #35c5a8;
+  color: #092e2c;
+  font-size: 0.65rem;
+  text-align: center;
+}
+
+@keyframes combat-chat-fade {
+  0%, 75% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .combat-activity-panel {
@@ -598,6 +758,11 @@ code {
   .combat-player-list {
     grid-template-columns: 1fr;
   }
+
+  .combat-chat-widget {
+    left: var(--sidebar-width);
+    width: calc(100vw - var(--sidebar-width) - 1.5rem);
+  }
 }
 
 html.tcg-dark .combat-page {
@@ -631,6 +796,25 @@ html.tcg-dark .combat-activity-panel {
   border-color: #3a3b3c;
   background: rgba(36, 37, 38, 0.92);
   box-shadow: none;
+}
+
+html.tcg-dark .combat-chat-popover {
+  border-color: #3a3b3c;
+  background: rgba(36, 37, 38, 0.94);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.3);
+}
+
+html.tcg-dark .combat-chat-popover-header h2 {
+  color: #f2f4f5;
+}
+
+html.tcg-dark .combat-chat-toggle {
+  border-color: #3a3b3c;
+  background: rgba(24, 59, 67, 0.94);
+}
+
+html.tcg-dark .combat-chat-toggle:hover {
+  background: #205762;
 }
 
 html.tcg-dark .combat-panel-heading h2 {
