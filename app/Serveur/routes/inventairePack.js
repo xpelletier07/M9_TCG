@@ -226,6 +226,11 @@ router.post("/claim", checkAuth, handleOpenPack)
 // ROUTES D'INVENTAIRE EXISTANTES
 // -------------------------------------------------------------
 
+
+//
+//          À MODIFIER, DONNE L'INVENTAIRE DE TOUT LE MONDE??
+//
+
 router.get("/", async (req, res) => {
     try {
         const result = await pool.query(
@@ -241,6 +246,9 @@ router.get("/", async (req, res) => {
     }
 })
 
+//
+//          À MODIFIER FAIT AUCUN SENS??
+//
 router.post(
     "/",
     [
@@ -273,5 +281,22 @@ router.post(
         }
     }
 )
+
+// GET pour obtenir les packs du joueur connecté
+router.get("/me", checkAuth, async (req, res) => {
+    try {
+        // join les deux tables pour obtenir tous les packs de l'utilisateur et la quantité de chaque
+        const resultat = await pool.query(`
+            select p.*, ip.quantite from inventaire_packs as ip 
+            join Packs as p on p.id_pack = ip.id_pack
+            where ip.id_utilisateur = $1`,
+            [req.user.id]
+        )
+        res.status(200).json(resultat.rows)
+    } catch (error) {
+        console.error("Erreur dans ", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    }
+})
 
 export default router

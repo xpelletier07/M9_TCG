@@ -1,10 +1,11 @@
 import { pool } from "./../db/pool.js"
 import express from "express"
+import { checkAuth, checkAdmin } from "../middlewares/checkAuth.js"
 
 const router = express.Router()
 
-
-router.get("/", async (req, res) => {
+// GET pour obtenir tous les packs
+router.get("/", checkAuth, async (req, res) => {
     try {
         const result = await pool.query("select * from Packs order by id_pack desc")
         res.status(200).json(result.rows)
@@ -14,9 +15,8 @@ router.get("/", async (req, res) => {
     }
 })
 
-
-
-router.post("/", async (req, res) => {
+// POST pour ajouter un nouveau pack
+router.post("/", checkAdmin, async (req, res) => {
     const { nom_pack, image_pack, description_pack, liste_carte, valeur_pack, actif } = req.body
 
     if (!nom_pack || !image_pack || !description_pack || !Array.isArray(liste_carte) || valeur_pack === undefined || actif === undefined) {
@@ -42,7 +42,8 @@ router.post("/", async (req, res) => {
     }
 })
 
-router.put("/:id", async (req, res) => {
+// PUT pour modifier un pack existant
+router.put("/:id", checkAdmin, async (req, res) => {
     const { id } = req.params
     const { nom_pack, image_pack, description_pack, liste_carte, valeur_pack, actif } = req.body
 
@@ -64,7 +65,8 @@ router.put("/:id", async (req, res) => {
     }
 })
 
-router.delete("/:id", async (req, res) => {
+// DELETE pour supprimer un pack avec l'id
+router.delete("/:id", checkAdmin, async (req, res) => {
     const { id } = req.params
 
     try {
