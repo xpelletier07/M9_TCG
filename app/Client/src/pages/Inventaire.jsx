@@ -17,6 +17,7 @@ function Inventaire() {
     const [erreur, setErreur] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [collectionCartes, setCollectionCartes] = useState([])
+    const [boosters, setBoosters] = useState([])
     const [filtreNom, setFiltreNom] = useState('')
     const [isCollectionLoading, setIsCollectionLoading] = useState(false)
     const [carteSelectionnee, setCarteSelectionnee] = useState(null)
@@ -125,6 +126,13 @@ function Inventaire() {
             </div>
             <p className="inventory-subtitle">C&apos;est trop bien les cartes ngl</p>
             <hr className="inventory-divider" />
+
+            {/* boosters packs du joueur */}
+            <div className="">
+
+            </div>
+
+
 
             {/* Filtres */}
             <div className="filters">
