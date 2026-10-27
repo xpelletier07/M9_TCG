@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { io } from 'socket.io-client'
 import Card from '../components/Card'
 import { useAuth } from '../auth/AuthContext'
 import { API_BASE_URL } from '../config'
@@ -31,13 +32,14 @@ function ClaimCarte() {
     const [claimedCardIds, setClaimedCardIds] = useState([])
     const [claimedCount, setClaimedCount] = useState(0)
     const [expectedClaimCount, setExpectedClaimCount] = useState(0)
+    const [hasClaimedCurrentRound, setHasClaimedCurrentRound] = useState(false)
     const [feedback, setFeedback] = useState(null)
     const [error, setError] = useState('')
 
     // Claim possible seulement si pas de cooldown global et pas encore claim dans le round.
     const canClaimNow = useMemo(() => {
-        return Boolean(token) && cooldownRemainingSeconds === 0
-    }, [token, cooldownRemainingSeconds])
+        return Boolean(token) && cooldownRemainingSeconds === 0 && !hasClaimedCurrentRound
+    }, [token, cooldownRemainingSeconds, hasClaimedCurrentRound])
 
     useEffect(() => {
         let cancelled = false
@@ -45,7 +47,8 @@ function ClaimCarte() {
         // Compteur global de connexions pour informer les joueurs en direct.
         const fetchOnlineUsers = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/online-users`)
+                const headers = token ? { Authorization: `Bearer ${token}` } : {}
+                const response = await fetch(`${API_BASE_URL}/api/online-users`, { headers })
                 if (!response.ok) {
                     return
                 }
@@ -84,6 +87,7 @@ function ClaimCarte() {
         }
 
         let cancelled = false
+        let socket = null
 
         // Synchronise l'etat global du round: cooldown, progression, cartes deja prises.
         async function fetchClaimStatus() {
@@ -107,11 +111,22 @@ function ClaimCarte() {
 
                 const remaining = statusData.cooldownRemainingSeconds ?? 0
                 setCooldownRemainingSeconds(remaining)
+                if (Number.isFinite(statusData.connectedUsers)) {
+                    setConnectedUsers(statusData.connectedUsers)
+                }
+                const alreadyClaimed = Boolean(statusData.hasClaimedCurrentRound)
+                setHasClaimedCurrentRound(alreadyClaimed)
                 setClaimedCardIds(Array.isArray(statusData.claimedCardIds) ? statusData.claimedCardIds : [])
                 setClaimedCount(Number.isFinite(statusData.claimedCount) ? statusData.claimedCount : 0)
                 setExpectedClaimCount(Number.isFinite(statusData.expectedClaimCount) ? statusData.expectedClaimCount : 0)
 
-                if (!statusData.canClaim) {
+                // Si le round est terminé (cooldown) ou si ce joueur a déjà réclamé, retour direct au dashboard
+                if (alreadyClaimed || remaining > 0) {
+                    navigate('/', { replace: true })
+                    return
+                }
+
+                if (remaining > 0) {
                     setSelectedCards([])
                 }
             } catch (fetchError) {
@@ -127,13 +142,33 @@ function ClaimCarte() {
         }
 
         fetchClaimStatus()
-        const intervalId = window.setInterval(fetchClaimStatus, 5000)
+
+        // Écouter les mises à jour en temps réel via Socket.IO
+        // Quand un autre joueur claim la dernière carte et déclenche le cooldown,
+        // on reçoit drop:updated immédiatement sans attendre le poll.
+        try {
+            socket = io(API_BASE_URL)
+            socket.on('drop:updated', () => {
+                if (!cancelled) fetchClaimStatus()
+            })
+        } catch {
+            // Si socket.io échoue, on se rabat sur le poll
+        }
+
+        const intervalId = window.setInterval(fetchClaimStatus, 1500)
 
         return () => {
             cancelled = true
             window.clearInterval(intervalId)
+            if (socket) socket.disconnect()
         }
-    }, [token])
+    }, [token, navigate])
+
+    useEffect(() => {
+        if (hasClaimedCurrentRound || cooldownRemainingSeconds > 0) {
+            navigate('/', { replace: true })
+        }
+    }, [hasClaimedCurrentRound, cooldownRemainingSeconds, navigate])
 
     useEffect(() => {
         if (!token || cooldownRemainingSeconds <= 0) {
@@ -150,7 +185,7 @@ function ClaimCarte() {
     }, [token, cooldownRemainingSeconds])
 
     useEffect(() => {
-        if (!canClaimNow || selectedCards.length > 0) {
+        if (!token || cooldownRemainingSeconds > 0 || selectedCards.length > 0) {
             return
         }
 
@@ -196,7 +231,7 @@ function ClaimCarte() {
         return () => {
             cancelled = true
         }
-    }, [token, canClaimNow, selectedCards.length])
+    }, [token, cooldownRemainingSeconds, selectedCards.length])
 
     const handleClaimCard = async (idCarte) => {
         if (!token || isClaiming || !canClaimNow) {
@@ -232,6 +267,9 @@ function ClaimCarte() {
                 if (data?.expectedClaimCount !== undefined) {
                     setExpectedClaimCount(data.expectedClaimCount)
                 }
+                if (data?.hasClaimedCurrentRound !== undefined) {
+                    setHasClaimedCurrentRound(data.hasClaimedCurrentRound)
+                }
                 setFeedback({
                     type: 'error',
                     message: data?.error || 'Impossible de réclamer cette carte',
@@ -240,10 +278,14 @@ function ClaimCarte() {
             }
 
             setSelectedCards([])
+            setHasClaimedCurrentRound(true)
             setCooldownRemainingSeconds(data?.cooldownRemainingSeconds ?? 0)
             setClaimedCardIds(Array.isArray(data?.claimedCardIds) ? data.claimedCardIds : claimedCardIds)
             setClaimedCount(data?.claimedCount ?? claimedCount)
             setExpectedClaimCount(data?.expectedClaimCount ?? expectedClaimCount)
+            if (Number.isFinite(data?.connectedUsers)) {
+                setConnectedUsers(data.connectedUsers)
+            }
             // Retour dashboard juste apres le claim reussi.
             navigate('/', { replace: true })
         } catch {
@@ -293,6 +335,11 @@ function ClaimCarte() {
                 <p>Aucune carte disponible pour le moment.</p>
             ) : (
                 <>
+                    {hasClaimedCurrentRound && !isCooldownActive && (
+                        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: 'rgba(39, 174, 96, 0.1)', border: '1px solid #27ae60', borderRadius: '6px', color: '#27ae60', fontWeight: 600 }}>
+                            Vous avez déjà réclamé votre carte pour ce round ! En attente des autres joueurs ({claimedCount}/{expectedClaimCount || 0})...
+                        </div>
+                    )}
                     <div className="inventory-cards-grid">
                         {selectedCards.map((carte, index) => (
                             (() => {
@@ -300,29 +347,35 @@ function ClaimCarte() {
                                 const isCardAlreadyClaimed = claimedCardIds.includes(carte.id_carte)
 
                                 return (
-                            <div
-                                key={carte.id_carte}
-                                style={{ animation: `claim-card-enter 420ms ease ${index * 120}ms both` }}
-                            >
-                                <div style={{ marginBottom: '0.75rem', fontWeight: 700 }}>
-                                    {rarityMeta[carte.rarete]?.label ?? 'Carte'} - {rarityMeta[carte.rarete]?.chance ?? '0%'}
-                                </div>
-                                <Card carte={carte} onClick={() => {}} />
-                                {isCardAlreadyClaimed && (
-                                    <p style={{ marginTop: '0.5rem', marginBottom: '0.25rem', fontWeight: 700, color: '#c0382b' }}>
-                                        Cette carte est deja claim
-                                    </p>
-                                )}
-                                <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'center' }}>
-                                    <button
-                                        type="button"
-                                        disabled={isClaiming || !canClaimNow || isCardAlreadyClaimed}
-                                        onClick={() => handleClaimCard(carte.id_carte)}
+                                    <div
+                                        key={carte.id_carte}
+                                        style={{ animation: `claim-card-enter 420ms ease ${index * 120}ms both` }}
                                     >
-                                        {isClaiming ? 'Claim en cours...' : isCardAlreadyClaimed ? 'Deja claim' : 'Claim'}
-                                    </button>
-                                </div>
-                            </div>
+                                        <div style={{ marginBottom: '0.75rem', fontWeight: 700 }}>
+                                            {rarityMeta[carte.rarete]?.label ?? 'Carte'} - {rarityMeta[carte.rarete]?.chance ?? '0%'}
+                                        </div>
+                                        <Card carte={carte} onClick={() => { }} />
+                                        {isCardAlreadyClaimed && (
+                                            <p style={{ marginTop: '0.5rem', marginBottom: '0.25rem', fontWeight: 700, color: '#c0382b' }}>
+                                                Cette carte est deja claim
+                                            </p>
+                                        )}
+                                        <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'center' }}>
+                                            <button
+                                                type="button"
+                                                disabled={isClaiming || !canClaimNow || isCardAlreadyClaimed || hasClaimedCurrentRound}
+                                                onClick={() => handleClaimCard(carte.id_carte)}
+                                            >
+                                                {isClaiming
+                                                    ? 'Claim en cours...'
+                                                    : isCardAlreadyClaimed
+                                                    ? 'Déjà claim'
+                                                    : hasClaimedCurrentRound
+                                                    ? 'Déjà réclamé'
+                                                    : 'Claim'}
+                                            </button>
+                                        </div>
+                                    </div>
                                 )
                             })()
                         ))}

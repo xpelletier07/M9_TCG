@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { io } from 'socket.io-client'
 import { API_BASE_URL } from '../../config'
 import { useAuth } from '../../auth/AuthContext'
 
@@ -25,7 +26,9 @@ export default function DropSection(){
 
   useEffect(() => {
     let intervalId
+    let pollId
     let cancelled = false
+    let socket = null
 
     async function loadDropState() {
       try {
@@ -40,23 +43,29 @@ export default function DropSection(){
           return
         }
 
-        setRemainingSeconds(data.remainingSeconds)
+        const remaining = Math.max(0, data.remainingSeconds ?? 0)
+        const canUserClaim = data.canClaim !== undefined ? Boolean(data.canClaim) : (data.isClaimReady !== undefined ? Boolean(data.isClaimReady) : remaining <= 0)
+        const claimReady = canUserClaim && remaining <= 0
+
+        setRemainingSeconds(remaining)
         setDropImage(data.pack?.image_pack || FALLBACK_DROP_IMAGE)
-        setIsClaimReady(data.remainingSeconds <= 0)
-        const resetAt = new Date(data.resetAt).getTime()
+        setIsClaimReady(claimReady)
 
         window.clearInterval(intervalId)
-        intervalId = window.setInterval(() => {
-          const nextRemaining = Math.max(0, Math.ceil((resetAt - Date.now()) / 1000))
 
-          setRemainingSeconds(nextRemaining)
+        if (!claimReady && remaining > 0 && data.resetAt) {
+          const resetAt = new Date(data.resetAt).getTime()
+          intervalId = window.setInterval(() => {
+            const nextRemaining = Math.max(0, Math.ceil((resetAt - Date.now()) / 1000))
+            setRemainingSeconds(nextRemaining)
 
-          if (nextRemaining <= 0) {
-            setIsClaimReady(true)
-            window.clearInterval(intervalId)
-            return
-          }
-        }, 1000)
+            if (nextRemaining <= 0) {
+              setIsClaimReady(true)
+              window.clearInterval(intervalId)
+              loadDropState()
+            }
+          }, 1000)
+        }
       } catch (error) {
         if (!cancelled) {
           // Fallback calculé en local sur un cycle de 5 minutes
@@ -76,6 +85,7 @@ export default function DropSection(){
             if (nextRemaining <= 0) {
               setIsClaimReady(true)
               window.clearInterval(intervalId)
+              loadDropState()
             }
           }, 1000)
         }
@@ -84,9 +94,24 @@ export default function DropSection(){
 
     loadDropState()
 
+    try {
+      socket = io(API_BASE_URL)
+      socket.on('drop:updated', () => {
+        loadDropState()
+      })
+    } catch {
+      // fallback to poll
+    }
+
+    pollId = window.setInterval(loadDropState, 1500)
+
     return () => {
       cancelled = true
       window.clearInterval(intervalId)
+      window.clearInterval(pollId)
+      if (socket) {
+        socket.disconnect()
+      }
     }
   }, [token])
 

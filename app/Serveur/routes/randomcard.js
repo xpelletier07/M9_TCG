@@ -1,116 +1,15 @@
 import express from 'express'
 import { pool } from './../db/pool.js'
 import { checkAuth } from '../middlewares/checkAuth.js'
+import {
+	pickRandomCards,
+	getOrCreateRoundCards,
+	getDropCommunState,
+	registerClaimedCard,
+	globalClaimState,
+} from '../services/dropCommunService.js'
 
 const router = express.Router()
-const CLAIM_COOLDOWN_SECONDS = 5 * 60
-// Etat en memoire pour synchroniser un round global de claim entre tous les joueurs connectes.
-const globalClaimState = {
-	cooldownEndsAtMs: 0,
-	roundClaimedCardIds: new Set(),
-	roundCards: [],
-}
-
-const rarityWeights = [
-	{ rarete: 4, weight: 1 },
-	{ rarete: 3, weight: 9 },
-	{ rarete: 2, weight: 20 },
-	{ rarete: 1, weight: 70 },
-]
-
-// Fonction pour sélectionner une rareté en fonction des poids
-function pickRarity(availableCards) {
-	const availableWeights = rarityWeights.filter(({ rarete }) => availableCards.some((carte) => carte.rarete === rarete))
-
-	if (availableWeights.length === 0) {
-		return null
-	}
-
-	const totalWeight = availableWeights.reduce((sum, entry) => sum + entry.weight, 0)
-	let roll = Math.random() * totalWeight
-
-	for (const entry of availableWeights) {
-		roll -= entry.weight
-		if (roll <= 0) {
-			return entry.rarete
-		}
-	}
-
-	return availableWeights[availableWeights.length - 1].rarete
-}
-
-// fuction de sélection aléatoire de cartes en fonction de la rareté
-function pickRandomCards(cards, count) {
-	const remainingCards = [...cards]
-	const selectedCards = []
-
-	while (selectedCards.length < count && remainingCards.length > 0) {
-		const rarete = pickRarity(remainingCards)
-
-		let cardIndex = remainingCards.findIndex((carte) => carte.rarete === rarete)
-		if (cardIndex === -1) {
-			cardIndex = 0
-		}
-
-		const [selectedCard] = remainingCards.splice(cardIndex, 1)
-		selectedCards.push(selectedCard)
-	}
-
-	return selectedCards
-}
-
-function refreshGlobalState() {
-	// A la fin du cooldown global, on reinitialise completement le round suivant.
-	if (globalClaimState.cooldownEndsAtMs <= 0) {
-		return
-	}
-
-	if (Date.now() >= globalClaimState.cooldownEndsAtMs) {
-		globalClaimState.cooldownEndsAtMs = 0
-		globalClaimState.roundClaimedCardIds.clear()
-		globalClaimState.roundCards = []
-	}
-}
-
-function getGlobalCooldownPayload() {
-	refreshGlobalState()
-
-	if (globalClaimState.cooldownEndsAtMs <= 0) {
-		return {
-			cooldownRemainingSeconds: 0,
-			cooldownResetAt: null,
-		}
-	}
-
-	const cooldownRemainingSeconds = Math.max(
-		0,
-		Math.ceil((globalClaimState.cooldownEndsAtMs - Date.now()) / 1000)
-	)
-
-	return {
-		cooldownRemainingSeconds,
-		cooldownResetAt: new Date(globalClaimState.cooldownEndsAtMs).toISOString(),
-	}
-}
-
-async function getOrCreateRoundCards(count = 3) {
-	// Toutes les personnes du round voient les memes cartes tant que le round n'est pas termine.
-	if (globalClaimState.roundCards.length > 0) {
-		return globalClaimState.roundCards
-	}
-
-	const result = await pool.query('select * from carte order by id_carte asc')
-	const cards = result.rows
-
-	if (cards.length === 0) {
-		return []
-	}
-
-	const selectedCards = pickRandomCards(cards, count)
-	globalClaimState.roundCards = selectedCards
-	return globalClaimState.roundCards
-}
-
 
 // Route pour obtenir des cartes aléatoires
 router.get('/random', checkAuth, async (req, res) => {
@@ -119,7 +18,7 @@ router.get('/random', checkAuth, async (req, res) => {
 
 	try {
 		const result = await pool.query('select * from carte order by id_carte asc')
-		const cards = result.rows
+		const cards = result.rows || []
 
 		if (cards.length === 0) {
 			return res.status(404).json({ error: 'Aucune carte disponible' })
@@ -135,16 +34,17 @@ router.get('/random', checkAuth, async (req, res) => {
 
 router.get('/claim/status', checkAuth, async (req, res) => {
 	try {
-		const cooldownPayload = getGlobalCooldownPayload()
-		const isCooldownActive = cooldownPayload.cooldownRemainingSeconds > 0
+		const dropState = await getDropCommunState(req.user?.id)
 
 		return res.status(200).json({
-			canClaim: !isCooldownActive,
-			hasClaimedCurrentRound: false,
-			claimedCardIds: Array.from(globalClaimState.roundClaimedCardIds),
-			claimedCount: 0,
-			expectedClaimCount: 0,
-			...cooldownPayload,
+			canClaim: dropState.canClaim,
+			hasClaimedCurrentRound: dropState.hasClaimedCurrentRound,
+			connectedUsers: dropState.connectedUsers,
+			claimedCardIds: dropState.claimedCardIds,
+			claimedCount: dropState.claimedCount,
+			expectedClaimCount: dropState.expectedClaimCount,
+			cooldownRemainingSeconds: dropState.cooldownRemainingSeconds,
+			cooldownResetAt: dropState.cooldownResetAt,
 		})
 	} catch (error) {
 		console.error('Erreur dans GET /cards/claim/status', error)
@@ -152,12 +52,13 @@ router.get('/claim/status', checkAuth, async (req, res) => {
 	}
 })
 
-router.get('/claim/options', checkAuth, async (_req, res) => {
+router.get('/claim/options', checkAuth, async (req, res) => {
 	try {
-		const cooldownPayload = getGlobalCooldownPayload()
-		// Pendant le cooldown global on masque les choix de cartes.
-		if (cooldownPayload.cooldownRemainingSeconds > 0) {
-			return res.status(200).json({ cards: [], claimedCardIds: [] })
+		const dropState = await getDropCommunState(req.user?.id)
+
+		// Pendant le cooldown global, on masque les choix de cartes.
+		if (dropState.isCooldownActive) {
+			return res.status(200).json({ cards: [], claimedCardIds: dropState.claimedCardIds })
 		}
 
 		const cards = await getOrCreateRoundCards(3)
@@ -167,7 +68,7 @@ router.get('/claim/options', checkAuth, async (_req, res) => {
 
 		return res.status(200).json({
 			cards,
-			claimedCardIds: Array.from(globalClaimState.roundClaimedCardIds),
+			claimedCardIds: dropState.claimedCardIds,
 		})
 	} catch (error) {
 		console.error('Erreur dans GET /cards/claim/options', error)
@@ -178,43 +79,61 @@ router.get('/claim/options', checkAuth, async (_req, res) => {
 router.post('/claim', checkAuth, async (req, res) => {
 	const rawCardId = req.body?.id_carte
 	const idCarte = Number.parseInt(rawCardId, 10)
+	const userId = req.user?.id
 
 	if (!Number.isInteger(idCarte) || idCarte <= 0) {
 		return res.status(400).json({ error: 'id_carte invalide' })
 	}
 
 	try {
-		const cooldownPayload = getGlobalCooldownPayload()
-		const isCooldownActive = cooldownPayload.cooldownRemainingSeconds > 0
+		const dropState = await getDropCommunState(userId)
 
-		if (isCooldownActive) {
+		if (dropState.isCooldownActive) {
 			return res.status(429).json({
 				error: 'Cooldown global actif pour le claim de carte',
 				canClaim: false,
-				hasClaimedCurrentRound: false,
-				claimedCardIds: Array.from(globalClaimState.roundClaimedCardIds),
-				claimedCount: 0,
-				expectedClaimCount: 0,
-				...cooldownPayload,
+				hasClaimedCurrentRound: dropState.hasClaimedCurrentRound,
+				connectedUsers: dropState.connectedUsers,
+				claimedCardIds: dropState.claimedCardIds,
+				claimedCount: dropState.claimedCount,
+				expectedClaimCount: dropState.expectedClaimCount,
+				cooldownRemainingSeconds: dropState.cooldownRemainingSeconds,
+				cooldownResetAt: dropState.cooldownResetAt,
+			})
+		}
+
+		// Vérifier si le joueur a déjà claim une carte dans ce round
+		if (dropState.hasClaimedCurrentRound) {
+			return res.status(400).json({
+				error: 'Vous avez déjà réclamé une carte pour ce round',
+				canClaim: false,
+				hasClaimedCurrentRound: true,
+				connectedUsers: dropState.connectedUsers,
+				claimedCardIds: dropState.claimedCardIds,
+				claimedCount: dropState.claimedCount,
+				expectedClaimCount: dropState.expectedClaimCount,
+				cooldownRemainingSeconds: dropState.cooldownRemainingSeconds,
+				cooldownResetAt: dropState.cooldownResetAt,
 			})
 		}
 
 		const cardResult = await pool.query('select id_carte from carte where id_carte = $1', [idCarte])
-		if (cardResult.rows.length === 0) {
+		if (!cardResult.rows || cardResult.rows.length === 0) {
 			return res.status(404).json({ error: 'Carte introuvable' })
 		}
 
-		// Une carte choisie par un joueur devient indisponible pour les autres du meme round.
-		if (globalClaimState.roundClaimedCardIds.has(idCarte)) {
+		// Une carte choisie par un joueur devient indisponible pour les autres.
+		if (dropState.claimedCardIds.includes(idCarte)) {
 			return res.status(409).json({
 				error: 'Cette carte a deja ete claim par un autre joueur',
-				canClaim: true,
-				hasClaimedCurrentRound: false,
-				claimedCardIds: Array.from(globalClaimState.roundClaimedCardIds),
-				claimedCount: 0,
-				expectedClaimCount: 0,
-				cooldownRemainingSeconds: 0,
-				cooldownResetAt: null,
+				canClaim: !dropState.hasClaimedCurrentRound,
+				hasClaimedCurrentRound: dropState.hasClaimedCurrentRound,
+				connectedUsers: dropState.connectedUsers,
+				claimedCardIds: dropState.claimedCardIds,
+				claimedCount: dropState.claimedCount,
+				expectedClaimCount: dropState.expectedClaimCount,
+				cooldownRemainingSeconds: dropState.cooldownRemainingSeconds,
+				cooldownResetAt: dropState.cooldownResetAt,
 			})
 		}
 
@@ -223,24 +142,23 @@ router.post('/claim', checkAuth, async (req, res) => {
 			 values ($1, $2, 1)
 			 on conflict (id_utilisateur, id_carte)
 			 do update set quantite = inventaire_carte.quantite + 1`,
-			[req.user.id, idCarte]
+			[userId, idCarte]
 		)
 
-		// Le premier claim valide du cycle demarre immediatement le cooldown global.
-		globalClaimState.roundClaimedCardIds.add(idCarte)
-		globalClaimState.cooldownEndsAtMs = Date.now() + CLAIM_COOLDOWN_SECONDS * 1000
-		globalClaimState.roundCards = []
-		const nextCooldownPayload = getGlobalCooldownPayload()
+		// On enregistre le claim pour cette carte et ce joueur
+		const updatedState = registerClaimedCard(idCarte, userId)
 
 		return res.status(201).json({
 			message: 'Carte réclamée avec succès',
 			id_carte: idCarte,
 			canClaim: false,
-			hasClaimedCurrentRound: false,
-			claimedCardIds: Array.from(globalClaimState.roundClaimedCardIds),
-			claimedCount: 0,
-			expectedClaimCount: 0,
-			...nextCooldownPayload,
+			hasClaimedCurrentRound: true,
+			connectedUsers: updatedState.connectedUsers,
+			claimedCardIds: updatedState.claimedCardIds,
+			claimedCount: updatedState.claimedCount,
+			expectedClaimCount: updatedState.expectedClaimCount,
+			cooldownRemainingSeconds: updatedState.cooldownRemainingSeconds,
+			cooldownResetAt: updatedState.cooldownResetAt,
 		})
 	} catch (error) {
 		console.error('Erreur dans POST /cards/claim', error)
