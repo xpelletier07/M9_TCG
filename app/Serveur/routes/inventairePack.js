@@ -228,58 +228,30 @@ router.post("/claim", checkAuth, handleOpenPack)
 
 
 //
-//          À MODIFIER, DONNE L'INVENTAIRE DE TOUT LE MONDE??
-//
-
-router.get("/", async (req, res) => {
-    try {
-        const result = await pool.query(
-            `select ip.id_utilisateur, ip.id_pack, ip.quantite, p.nom_pack, p.image_pack
-             from inventaire_packs ip
-             join Packs p on p.id_pack = ip.id_pack
-             order by ip.id_utilisateur desc`
-        )
-        res.json(result.rows)
-    } catch (error) {
-        console.error("Erreur lors de la récupération de l'inventaire des packs :", error)
-        res.status(500).json({ error: "Erreur serveur" })
-    }
-})
-
-//
 //          À MODIFIER FAIT AUCUN SENS??
 //
-router.post(
-    "/",
-    [
-        body("id_utilisateur").isInt().withMessage("L'id_utilisateur doit être un entier"),
-        body("id_pack").isInt().withMessage("L'id_pack doit être un entier"),
-        body("quantite").isInt({ min: 1 }).withMessage("La quantité doit être un entier positif"),
-    ],
-    async (req, res) => {
-        const errors = validationResult(req)
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() })
-        }
-
-        const { id_utilisateur, id_pack, quantite } = req.body
-
-        try {
-            const result = await pool.query(
-                `insert into inventaire_packs (id_utilisateur, id_pack, quantite)
-                 values ($1, $2, $3)
-                 on conflict (id_utilisateur, id_pack)
-                 do update set quantite = inventaire_packs.quantite + excluded.quantite
-                 returning *`,
-                [id_utilisateur, id_pack, quantite]
-            )
-
-            res.status(201).json(result.rows[0])
-        } catch (error) {
-            console.error("Erreur lors de l'ajout d'un pack à l'inventaire :", error)
-            res.status(500).json({ error: "Erreur serveur" })
-        }
+router.post("/:idPack", checkAuth, async (req, res) => {
+    // Prends l'id donné en params, le mets en int
+    const idPack = Number(req.params.idPack);
+    // si pas un int, donne une erreur
+    if (!Number.isSafeInteger(idPack)) {
+        return res.status(400).json({ erreur: "L'id du pack doit être un entier" });
     }
+    try {
+        const result = await pool.query(
+            // crée une entrée dans la table, si déjà une entrée, update l'entrée et ajoute un à la quantité
+            `INSERT INTO inventaire_packs (id_utilisateur, id_pack, quantite)                                                                                  
+                VALUES ($1, $2, 1)                                                                                                                                
+                ON CONFLICT (id_utilisateur, id_pack)                                                                                                             
+                DO UPDATE SET quantite = inventaire_packs.quantite + 1;`,
+            [req.user.id, idPack]
+        )
+        res.status(200)
+    } catch (error) {
+        console.error("Erreur lors de l'ajout d'un pack à l'inventaire :", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    }
+}
 )
 
 // GET pour obtenir les packs du joueur connecté
