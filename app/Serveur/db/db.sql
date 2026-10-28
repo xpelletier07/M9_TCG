@@ -89,8 +89,7 @@ CREATE TABLE IF NOT EXISTS Packs (
     image_pack VARCHAR(255) NOT NULL,
     description_pack TEXT NOT NULL,
     liste_carte VARCHAR(255)[] NOT NULL,
-    valeur_pack DECIMAL(10, 2) NOT NULL,
-    actif BOOLEAN NOT NULL DEFAULT TRUE
+    valeur int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS inventaire_packs (
