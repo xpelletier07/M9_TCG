@@ -95,7 +95,7 @@
 - **Décisions :** Finir nos tâches pour la remise du jeudi 
 
 ## Semaine 6-2 | Jeudi 01 octobre 2026
-- **Absence :** 
+- **Absence :** Aucune
 - **Avancées :**
     - *Xavier :* C'est focus sur les debugs/fix/continue.
     - *Alek :* Réussi a fix son docker, a fait les modals et l'ajouts de cartes dans collection.
@@ -108,11 +108,11 @@
 # SPRINT 2
 
 ## Semaine 7-1 | Jeudi 08 octobre 2026
-- **Absence :** Marco
+- **Absence :** Aucune
 - **Avancées :** Distribututions des tâches pour le sprint 2
     - *Xavier :* Début du système de combat.
     - *Alek :* Ventes & historique sur le Bazaar
-    - *Marco :* OF2 avec GitHub, Achats sur le Bazaar
+    - *Marco :* OAuth avec GitHub, Achats sur le Bazaar
     - *Lotfi :* Finition du système de drop sur le dashboard (cartes & boosters)
     - *William :* Design des cartes, Page de Compte dans la sidebar, Personaliser la sidebar et le thème
 - **Blocages :** aucuns
@@ -123,7 +123,7 @@
 - **Avancées :**
     - *Xavier :* Installation & config de socket.io
     - *Alek :* Finition de la documentation/planification pour le combat & le Bazaar
-    - *Marco :* OF2
+    - *Marco :* OAuth
     - *Lotfi :* Page de claims
     - *William :* Nouveau désign des cartes
 - **Blocages :**
@@ -134,7 +134,7 @@
 - **Avancées :** 
     - *Xavier :* Avancées sur la page de combat & chat de combat
     - *Alek :* Fix de bugs dans la page de collection que le prof nous avait surlevé à la revue du sprint 1
-    - *Marco :* 
+    - *Marco :* Débuter le système de monnaies.
     - *Lotfi :* Rien
     - *William :* Menu/page utilisateur
 - **Blocages :** Plusieurs examens donc le travail a été mis de côté un peu pour la plupart des membres de l'équipe
