@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Collection from './pages/Collection.jsx'
 import Bazaar from './pages/Bazaar.jsx'
 import Inventaire from './pages/Inventaire.jsx'
+import OuverturePack from './pages/OuverturePack.jsx'
 import Combat from './pages/Combat.jsx'
 import Decks from './pages/Decks.jsx'
 import Settings from './pages/Settings.jsx'
@@ -27,6 +28,7 @@ function Routeur() {
                         <Route path="collection" element={<Collection />} />
                         <Route path="bazaar" element={<Bazaar />} />
                         <Route path="inventaire" element={<Inventaire />} />
+                        <Route path="ouverture-pack" element={<OuverturePack />} />
                         <Route path="combat" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
                     </Route>

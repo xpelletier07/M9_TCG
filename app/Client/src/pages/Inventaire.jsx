@@ -17,10 +17,35 @@ function Inventaire() {
     const [erreur, setErreur] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [collectionCartes, setCollectionCartes] = useState([])
-    const [boosters, setBoosters] = useState([])
     const [filtreNom, setFiltreNom] = useState('')
     const [isCollectionLoading, setIsCollectionLoading] = useState(false)
     const [carteSelectionnee, setCarteSelectionnee] = useState(null)
+    const [packs, setPacks] = useState([])
+    const [packsDeplies, setPacksDeplies] = useState(false)
+    const [packEnOuverture, setPackEnOuverture] = useState(null)
+    // récupérer le token du local storage
+    const token = localStorage.getItem("token")
+
+    // fonction pour obtenir les packs de l'utilisateur
+    async function fetchPacks() {
+        if (!user) return
+        try {
+            setLoading(true)
+            setErreur(null)
+            const reponse = await fetch (`${API_BASE_URL}/inventaire-pack/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            if (reponse.ok) {
+                const data = await reponse.json()
+                setPacks(data)
+            }
+        }catch (err) {
+            console.error("Erreur fetchPacks: ", err)
+            setErreur(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     // Fonction qui appelle les routes de inventaire.js pour récupérer les cartes de l'utilisateur
     async function fetchCartes() {
@@ -97,9 +122,34 @@ function Inventaire() {
         }
     }
 
+    async function handleOpenPack(pack) {
+        if (packEnOuverture !== null) return
+
+        setPackEnOuverture(pack.id_pack)
+        setErreur(null)
+
+        try {
+            const reponse = await fetch(`${API_BASE_URL}/inventaire-pack/${pack.id_pack}/open`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            const data = await reponse.json()
+
+            if (!reponse.ok) {
+                throw new Error(data.error || "Erreur lors de l'ouverture du pack")
+            }
+
+            navigate('/ouverture-pack', { state: { pack: data.pack } })
+        } catch (err) {
+            setErreur(err.message)
+            setPackEnOuverture(null)
+        }
+    }
+
     // Fetch les cartes une fois que le composant est monté
     useEffect(() => {
         fetchCartes()
+        fetchPacks()
     }, [user])
 
     return (
@@ -116,6 +166,18 @@ function Inventaire() {
                         </span>
                         <span>Ajouter une carte</span>
                     </button>
+                    <button
+                        className="button is-info"
+                        type="button"
+                        aria-expanded={packsDeplies}
+                        aria-controls="inventory-packs"
+                        onClick={() => setPacksDeplies((deplies) => !deplies)}
+                    >
+                        <span className="icon">
+                            <i className={`fas fa-chevron-${packsDeplies ? 'up' : 'down'}`}></i>
+                        </span>
+                        <span>Packs</span>
+                    </button>
                     <button className="button is-warning decks-button" onClick={() => navigate('/decks')}>
                         <span className="icon">
                             <i className="fas fa-layer-group"></i>
@@ -128,9 +190,51 @@ function Inventaire() {
             <hr className="inventory-divider" />
 
             {/* boosters packs du joueur */}
-            <div className="">
-
-            </div>
+            {packsDeplies && (
+                <section id="inventory-packs" className="box mb-5">
+                    <h2 className="title is-4">Mes packs</h2>
+                    {packs.length === 0 ? (
+                        <p>Aucun pack dans votre inventaire.</p>
+                    ) : (
+                        <div className="columns is-multiline">
+                            {packs.map((pack) => (
+                                <div className="column is-6-tablet is-4-desktop is-3-widescreen" key={pack.id_pack}>
+                                    <div className="card">
+                                        {pack.image_pack && (
+                                            <div className="card-image">
+                                                <figure className="image is-square">
+                                                    <img
+                                                        src={pack.image_pack}
+                                                        alt={pack.nom_pack}
+                                                        style={{ objectFit: 'contain' }}
+                                                    />
+                                                </figure>
+                                            </div>
+                                        )}
+                                        <div className="card-content">
+                                            <p className="title is-5">{pack.nom_pack}</p>
+                                            {pack.description_pack && (
+                                                <p className="content">{pack.description_pack}</p>
+                                            )}
+                                            <span className="tag is-info is-medium">
+                                                Quantité : {pack.quantite}
+                                            </span>
+                                            <button
+                                                className={`button is-link is-fullwidth mt-4${packEnOuverture === pack.id_pack ? ' is-loading' : ''}`}
+                                                type="button"
+                                                disabled={packEnOuverture !== null}
+                                                onClick={() => handleOpenPack(pack)}
+                                            >
+                                                Ouvrir le pack
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            )}
 
 
 
