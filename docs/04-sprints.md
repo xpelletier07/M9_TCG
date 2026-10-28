@@ -33,7 +33,7 @@ Puisque nous n'avons jamais tous travaillé ensemble, il est difficile de déter
 
 
 
-## Objectif du sprint
+## Objectif du sprint 1
 Version alpha contenant les fonctionalitées primaires: login/signup, dashboard, drop de cartes simplifié (la matière du protocole WebSocket n'as pas été vue encore), catalogue de toutes les cartes, inventaire du joueur, sidebar pour naviguer entre les pages.
 
 ## Récits engagés
