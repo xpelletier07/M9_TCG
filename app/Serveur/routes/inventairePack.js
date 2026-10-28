@@ -131,6 +131,8 @@ router.get("/status", checkAuth, async (req, res) => {
     }
 })
 
+/* 
+ À VOIR, PEUT SUREMENT DELETE
 // Réclamer / Ouvrir un pack (1 fois toutes les 24h)
 async function handleOpenPack(req, res) {
     try {
@@ -221,22 +223,75 @@ async function handleOpenPack(req, res) {
 
 router.post("/open", checkAuth, handleOpenPack)
 router.post("/claim", checkAuth, handleOpenPack)
-
+ */
 // -------------------------------------------------------------
 // ROUTES D'INVENTAIRE EXISTANTES
 // -------------------------------------------------------------
 
+// Ouvrir un pack possédé et en retirer un exemplaire de l'inventaire
+router.post("/:idPack/open", checkAuth, async (req, res) => {
+    const idPack = Number(req.params.idPack)
 
-//
-//          À MODIFIER FAIT AUCUN SENS??
-//
+    if (!Number.isInteger(idPack) || idPack < 1) {
+        return res.status(400).json({ error: "Identifiant de pack invalide" })
+    }
+
+    const client = await pool.connect()
+    try {
+        await client.query("begin")
+
+        const result = await client.query(
+            `update inventaire_packs ip
+             set quantite = ip.quantite - 1
+             from Packs p
+             where ip.id_utilisateur = $1
+               and ip.id_pack = $2
+               and ip.quantite > 0
+               and p.id_pack = ip.id_pack
+             returning p.id_pack, p.nom_pack, p.image_pack, p.description_pack,
+                       p.liste_carte, ip.quantite`,
+            [req.user.id, idPack]
+        )
+
+        if (result.rows.length === 0) {
+            await client.query("rollback")
+            return res.status(404).json({ error: "Ce pack n'est pas dans votre inventaire" })
+        }
+
+        const packOuvert = result.rows[0]
+
+        if (packOuvert.quantite === 0) {
+            await client.query(
+                `delete from inventaire_packs
+                 where id_utilisateur = $1 and id_pack = $2 and quantite = 0`,
+                [req.user.id, idPack]
+            )
+        }
+
+        await client.query("commit")
+        res.status(200).json({
+            pack: {
+                id_pack: packOuvert.id_pack,
+                nom_pack: packOuvert.nom_pack,
+                image_pack: packOuvert.image_pack,
+                description_pack: packOuvert.description_pack,
+                liste_carte: packOuvert.liste_carte,
+            },
+            quantite: packOuvert.quantite,
+        })
+    } catch (error) {
+        await client.query("rollback")
+        console.error("Erreur lors de l'ouverture du pack :", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    } finally {
+        client.release()
+    }
+})
+
+// ajouter un pack a son propre compte
 router.post("/:idPack", checkAuth, async (req, res) => {
     // Prends l'id donné en params, le mets en int
     const idPack = Number(req.params.idPack);
-    // si pas un int, donne une erreur
-    if (!Number.isSafeInteger(idPack)) {
-        return res.status(400).json({ erreur: "L'id du pack doit être un entier" });
-    }
     try {
         const result = await pool.query(
             // crée une entrée dans la table, si déjà une entrée, update l'entrée et ajoute un à la quantité
@@ -246,7 +301,7 @@ router.post("/:idPack", checkAuth, async (req, res) => {
                 DO UPDATE SET quantite = inventaire_packs.quantite + 1;`,
             [req.user.id, idPack]
         )
-        res.status(200)
+        res.status(200).json(result)
     } catch (error) {
         console.error("Erreur lors de l'ajout d'un pack à l'inventaire :", error)
         res.status(500).json({ error: "Erreur serveur" })
