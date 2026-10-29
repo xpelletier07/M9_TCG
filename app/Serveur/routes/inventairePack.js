@@ -131,99 +131,6 @@ router.get("/status", checkAuth, async (req, res) => {
     }
 })
 
-/* 
- À VOIR, PEUT SUREMENT DELETE
-// Réclamer / Ouvrir un pack (1 fois toutes les 24h)
-async function handleOpenPack(req, res) {
-    try {
-        const userId = req.user.id
-        let { id_pack } = req.body || {}
-
-        // Si id_pack n'est pas spécifié, on sélectionne le premier pack actif
-        if (!id_pack) {
-            const packResult = await pool.query(
-                "select id_pack from Packs where actif = true order by id_pack asc limit 1"
-            )
-            if (packResult.rows.length === 0) {
-                return res.status(404).json({ error: "Aucun pack actif disponible" })
-            }
-            id_pack = packResult.rows[0].id_pack
-        }
-
-        const packQuery = await pool.query(
-            "select id_pack, nom_pack, image_pack, description_pack, liste_carte from Packs where id_pack = $1 and actif = true",
-            [id_pack]
-        )
-        if (packQuery.rows.length === 0) {
-            return res.status(404).json({ error: "Pack introuvable ou inactif" })
-        }
-        const pack = packQuery.rows[0]
-
-        // Mise à jour conditionnelle avec verrouillage du cooldown de 24 heures
-        const updateResult = await pool.query(
-            `update utilisateurs
-             set dernier_drop_pack_at = now()
-             where id = $1
-               and (
-                   dernier_drop_pack_at is null
-                   or dernier_drop_pack_at <= now() - interval '${PACK_COOLDOWN_HOURS} hours'
-               )
-             returning dernier_drop_pack_at`,
-            [userId]
-        )
-
-        if (updateResult.rows.length === 0) {
-            const userResult = await pool.query(
-                "select dernier_drop_pack_at from utilisateurs where id = $1",
-                [userId]
-            )
-            const lastDropAt = userResult.rows[0]?.dernier_drop_pack_at
-            const nowMs = Date.now()
-            const cooldownResetMs = lastDropAt
-                ? new Date(lastDropAt).getTime() + PACK_COOLDOWN_HOURS * 60 * 60 * 1000
-                : nowMs + PACK_COOLDOWN_HOURS * 60 * 60 * 1000
-            const cooldownRemainingSeconds = Math.max(
-                0,
-                Math.ceil((cooldownResetMs - nowMs) / 1000)
-            )
-
-            return res.status(429).json({
-                error: "Vous devez attendre 24h entre chaque pack.",
-                cooldownRemainingSeconds,
-                cooldownResetAt: new Date(cooldownResetMs).toISOString(),
-            })
-        }
-
-        // Ajout du pack à l'inventaire de l'utilisateur
-        const invResult = await pool.query(
-            `insert into inventaire_packs (id_utilisateur, id_pack, quantite)
-             values ($1, $2, 1)
-             on conflict (id_utilisateur, id_pack)
-             do update set quantite = inventaire_packs.quantite + 1
-             returning id_pack, quantite`,
-            [userId, id_pack]
-        )
-
-        const nowMs = Date.now()
-        const cooldownRemainingSeconds = PACK_COOLDOWN_HOURS * 60 * 60
-        const cooldownResetAt = new Date(nowMs + cooldownRemainingSeconds * 1000).toISOString()
-
-        res.status(200).json({
-            message: "Pack réclamé avec succès !",
-            pack,
-            quantite: invResult.rows[0]?.quantite ?? 1,
-            cooldownRemainingSeconds,
-            cooldownResetAt,
-        })
-    } catch (error) {
-        console.error("Erreur dans l'ouverture du pack :", error)
-        res.status(500).json({ error: "Erreur serveur" })
-    }
-}
-
-router.post("/open", checkAuth, handleOpenPack)
-router.post("/claim", checkAuth, handleOpenPack)
- */
 // -------------------------------------------------------------
 // ROUTES D'INVENTAIRE EXISTANTES
 // -------------------------------------------------------------
@@ -298,7 +205,7 @@ router.post("/:idPack", checkAuth, async (req, res) => {
             `INSERT INTO inventaire_packs (id_utilisateur, id_pack, quantite)                                                                                  
                 VALUES ($1, $2, 1)                                                                                                                                
                 ON CONFLICT (id_utilisateur, id_pack)                                                                                                             
-                DO UPDATE SET quantite = inventaire_packs.quantite + 1;`,
+                DO UPDATE SET quantite = inventaire_packs.quantite + 1; returning *`,
             [req.user.id, idPack]
         )
         res.status(200).json(result)
