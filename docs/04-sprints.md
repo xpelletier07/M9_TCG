@@ -53,3 +53,26 @@ Version alpha contenant les fonctionalitées primaires: login/signup, dashboard,
 Grand total des points: 3 + 3 + 3 + 3 + 2 + 3 + 5 + 3 + 2 = 27
 
 Notre estimé de base était de 45 points pour le sprint 1. Nous pouvons voir que l'estimé était extrêment optimiste et nous avons conclus que c'était en majeur partie dû à l'estimé de temps par point. Nous avions premièrement pensé à 1,5 hrs par point mais si nous recalculons avec 3hrs par point, on arrive à 23 points pour un sprint, ce qui est beaucoup plus proche de notre vélocité réelle. Nous estimons donc qu'en 3 semaines, en tant qu'équipe, nous pouvons completer l'équivalent de 25 points par sprint.
+
+
+
+
+
+## Objectif du sprint 2
+Version béta améliorant les fonctionnalités du sprint 1 et posant les bases du temps réel: nouveau design des cartes, connexion avec GitHub (OAuth), drops de cartes et de boosters finalisés sur le dashboard, page de claims, installation de Socket.IO avec une première version de la page de combat et de son chat, ainsi que la documentation de planification du combat et du Bazaar. L'achat sur le Bazaar est complété, mais la vente a été déplacée au sprint 3 (voir ci-dessous).
+
+## Récits engagés
+| Numéro Récit | Titre du Récit | Points | Commentaires |
+|-----|-----|-----|-----|
+| [#34](https://github.com/xpelletier07/M9_TCG/issues/34) | Formulaire de connexion (OAuth GitHub) | 5 | Il reste seulement A2F à implémenter|
+| [#127](https://github.com/xpelletier07/M9_TCG/issues/127) | Nouveau design des cartes | 3 | Composant réutilisable `Card.jsx`, utilisé dans l'inventaire et la collection.|
+| [#138](https://github.com/xpelletier07/M9_TCG/issues/138) | Installation de Socket.IO | 3 | Salles de combat (2 joueurs max), chat et état « prêt ». La logique de combat elle-même est encore en cours. |
+| [#139](https://github.com/xpelletier07/M9_TCG/issues/139) | Planification/documentation Combat et Bazaar | 1 | `Combat.md` et `Bazaar.md` dans `docs/planification`. |
+| [#57](https://github.com/xpelletier07/M9_TCG/issues/57) | Page de Catalogue - User (correction de bogues) | 5 | Bogues relevés par le professeur à la revue du sprint 1. |
+| [#54](https://github.com/xpelletier07/M9_TCG/issues/54) | Système de booster périodiques (finition) | 3 | Finition du drop de cartes et de boosters sur le dashboard, page de claims. |
+| [#45](https://github.com/xpelletier07/M9_TCG/issues/45) | Acheter des cartes dans le Bazaar | 3 | Achats sur le Bazaar, complétés à la fin du sprint. |
+| [#46](https://github.com/xpelletier07/M9_TCG/issues/46) | Vendre sur le Bazaar | 5 | **Déplacé au sprint 3.** Commencé (ventes, historique), mais non livré. |
+
+Grand total des points: 5 + 3 + 3 + 1 + 5 + 3 + 3 = 23 (les 5 points de #46 sont déplacés au sprint 3 et ne sont pas comptés)
+
+Notre estimé initial était de 38 points pour le sprint 2, contre seulement ~20 pour le sprint 3. Nous avons donc déplacé la vente sur le Bazaar (#46) au sprint 3 pour équilibrer la charge. Avec les 23 points livrés, notre vélocité réelle est de 23 points, un peu sous les 25 points par sprint estimés après le sprint 1 (27 points livrés au sprint 1). Plusieurs examens durant la semaine du 26 octobre ont aussi ralenti le travail de la plupart des membres de l'équipe.
