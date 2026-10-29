@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { API_BASE_URL } from '../config'
 import '../css/OuverturePack.css'
@@ -12,9 +12,8 @@ const rareteLabels = {
 }
 
 function OuverturePack() {
-    const location = useLocation()
+    const params = useParams()
     const navigate = useNavigate()
-    const pack = location.state?.pack
     const [cartes, setCartes] = useState([])
     const [cartesRetournees, setCartesRetournees] = useState(() => new Set())
     const [chargement, setChargement] = useState(true)
@@ -26,21 +25,23 @@ function OuverturePack() {
             setErreur(null)
             setCartesRetournees(new Set())
             try {
-                const listeCartes = Array.isArray(pack?.liste_carte) ? pack.liste_carte : []
-                if (listeCartes.length === 0) {
-                    throw new Error("Ce pack ne contient aucune carte.")
+                const reponse = await fetch(`${API_BASE_URL}/cards/openPack/${params.idPack}`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                })
+                const cartesSelectionnees = await reponse.json()
+
+                if (!reponse.ok) {
+                    throw new Error(cartesSelectionnees.error || "Impossible de charger les cartes du pack.")
                 }
+
                 const detailsCartes = await Promise.all(
-                    listeCartes.map(async (idCarte) => {
-                        const reponse = await fetch(`${API_BASE_URL}/api/card/${idCarte}`)
-                        if (!reponse.ok) {
-                            throw new Error("Impossible de charger les cartes du pack.")
-                        }
-                        const detailCarte = await reponse.json()
-                        if (!detailCarte) {
+                    cartesSelectionnees.map(async ({ id_carte: idCarte }) => {
+                        const reponseCarte = await fetch(`${API_BASE_URL}/api/card/${idCarte}`)
+                        if (!reponseCarte.ok) {
                             throw new Error("Une carte du pack est introuvable.")
                         }
-                        return detailCarte
+                        return reponseCarte.json()
                     })
                 )
                 setCartes(detailsCartes)
@@ -52,7 +53,7 @@ function OuverturePack() {
             }
         }
         chargerCartes()
-    }, [pack])
+    }, [])
 
     function retournerCarte(index) {
         setCartesRetournees((cartesActuelles) => {
@@ -69,7 +70,7 @@ function OuverturePack() {
         <main className="content-left-spacing pack-opening-page">
             <header className="pack-opening-header">
                 <p className="pack-opening-kicker">Ouverture du pack</p>
-                <h1>{pack?.nom_pack || 'Votre nouveau pack'}</h1>
+                <h1>Votre nouveau pack</h1>
                 <p>Cliquez sur chaque carte pour la révéler.</p>
             </header>
 

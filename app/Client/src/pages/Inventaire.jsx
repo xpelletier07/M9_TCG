@@ -139,7 +139,7 @@ function Inventaire() {
                 throw new Error(data.error || "Erreur lors de l'ouverture du pack")
             }
 
-            navigate('/ouverture-pack', { state: { pack: data.pack } })
+            navigate(`/ouverture-pack/${pack.id_pack}`, { state: { pack: data.pack } })
         } catch (err) {
             setErreur(err.message)
             setPackEnOuverture(null)
@@ -186,7 +186,7 @@ function Inventaire() {
                     </button>
                 </div>
             </div>
-            <p className="inventory-subtitle">C&apos;est trop bien les cartes ngl</p>
+            <p className="inventory-subtitle">C'est trop bien les cartes ngl</p>
             <hr className="inventory-divider" />
 
             {/* boosters packs du joueur */}

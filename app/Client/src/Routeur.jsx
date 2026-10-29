@@ -28,7 +28,7 @@ function Routeur() {
                         <Route path="collection" element={<Collection />} />
                         <Route path="bazaar" element={<Bazaar />} />
                         <Route path="inventaire" element={<Inventaire />} />
-                        <Route path="ouverture-pack" element={<OuverturePack />} />
+                        <Route path="ouverture-pack/:idPack" element={<OuverturePack />} />
                         <Route path="combat" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
                     </Route>
