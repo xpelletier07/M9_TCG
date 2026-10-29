@@ -5,10 +5,13 @@ import cors from "cors";
 import { pool } from "./db/pool.js"
 import apiRouter from "./Router/Router_Global.js"
 import attachRealtime from "./realtime.js"
+import jwt from "jsonwebtoken"
+import { getConnectedUsersCount, recordUserActivity, setDropCommunIo } from "./services/dropCommunService.js"
 
 const app = express();
 const server = createServer(app);
-attachRealtime(server);
+const io = attachRealtime(server);
+setDropCommunIo(io);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -34,10 +37,29 @@ app.get("/api/db-check", async (req, res) => {
     const result = await pool.query("SELECT NOW() AS current_time");
     res.json({ db: "connected", time: result.rows[0].current_time });
   } catch (err) {
-    console.error("Erreur de connexion à la base de données :", err);
+    console.error("Erreur de connexion à la  base de données :", err);
     res.status(500).json({ db: "error", message: err.message });
   }
 });
+
+app.get('/api/online-users', (req, res) => {
+  const authHeader = req.headers.authorization
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.split(' ')[1]
+      const decoded = jwt.decode(token)
+      if (decoded?.id) {
+        recordUserActivity(decoded.id)
+      }
+    } catch {
+      // ignore token decode errors
+    }
+  }
+
+  const activeCount = getConnectedUsersCount()
+  const socketCount = io.engine?.clientsCount || 0
+  res.json({ connectedUsers: Math.max(activeCount, socketCount) })
+})
 
 app.get("/api/drop-timer", (req, res) => {
   const cycleSeconds = 5 * 60
@@ -54,12 +76,6 @@ app.get("/api/drop-timer", (req, res) => {
 
 
 async function startServer() {
-  // Migration pour les bases existantes (db.sql ne s'exécute qu'à la création du volume) : support de la connexion GitHub
-  await pool.query(`
-    ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS github_id VARCHAR(50) UNIQUE;
-    ALTER TABLE utilisateurs ALTER COLUMN mot_de_passe_hash DROP NOT NULL;
-  `)
-
   // Insert des comptes de démonstration si ils n'existent pas déjà
   await pool.query(`
     INSERT INTO utilisateurs

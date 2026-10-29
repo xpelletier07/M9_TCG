@@ -10,8 +10,10 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     github_id VARCHAR(50) UNIQUE,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW(),
     statut VARCHAR(50) default 'actif',
-    credits FLOAT,
-    dernier_drop_pack_at TIMESTAMPTZ
+    credits FLOAT NOT NULL DEFAULT 1000 CHECK (credits >= 0),
+    avatar_url TEXT,
+    dernier_drop_pack_at TIMESTAMPTZ,
+    dernier_claim_carte_at TIMESTAMPTZ
 );
 -- Ce bloc DO $$ ... $$ permet d'afficher un message dans les logs de PostgreSQL pour indiquer que la table a été créée avec succès.
 DO $$
