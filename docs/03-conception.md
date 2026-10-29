@@ -98,7 +98,88 @@ Configuration requise (variables d'environnement): `GITHUB_CLIENT_ID`, `GITHUB_C
 - checkAuth — Vérifie qu'un token JWT valide est fourni dans l'en-tête `Authorization`. Si valide, attache l'utilisateur à `req.user` et laisse passer la requête.
 - checkAdmin — Vérifie qu'un token JWT valide est fourni et que l'utilisateur a le statut "admin". Si il est admin, laisse passer la requête. Sinon, retourne une erreur 403.
 
+## Configuration et détails d'authentification
 
+### Gestion des sessions JWT
+- **Durée d'expiration**: 2 heures après la génération
+- **Stockage côté client**: Dans `localStorage` ou `sessionStorage` (à définir)
+- **Transmission**: En-tête `Authorization: Bearer <token>` pour les requêtes protégées
+- **Refresh**: Pas de mécanisme de refresh automatique actuellement (token unique de 2h)
+- **Secret**: Stocké dans `process.env.JWT_SECRET`
+
+### Authentification OAuth GitHub
+- **Scopes demandés**: `user:email` (pour lire l'email et le profil public)
+- **Données stockées en base**: 
+  - `github_id` (identifiant unique GitHub)
+  - `github_username` (nom d'utilisateur GitHub)
+  - `email` (email principal du compte GitHub)
+- **Rôle par défaut**: `user` attribué à la création
+- **Prévention CSRF**: Le paramètre `state` est généré aléatoirement et stocké dans un cookie HTTP-only, puis vérifié au callback
+
+### Authentification WebSocket (Socket.io)
+- **Stratégie**: Le token JWT est transmis lors de la connexion initiale (dans les query parameters ou l'objet `auth`)
+- **Vérification**: Middleware Socket.io qui décrypte et valide le token avant d'accepter la connexion
+- **Déconnexion**: Si le token expire pendant une session, la socket est fermée
+- **Scope**: Les événements Socket.io utilisent `req.user` injecté par le middleware pour identifier l'utilisateur
+
+## Gestion des rôles et permissions
+
+### Rôles disponibles
+- **`user`**: Rôle par défaut pour tout compte créé (signup ou OAuth)
+- **`admin`**: Accès aux routes protégées pour gérer les cartes, les packs, consulter les logs de transactions
+
+### Attribution des rôles
+- **Création par signup**: Rôle `user` attribué automatiquement
+- **Création par OAuth GitHub**: Rôle `user` attribué automatiquement
+- **Promotion en admin**: Via la route `PUT /auth/makeMeAdmin` (temporaire, à remplacer par un système d'administration)
+
+### Vérification des permissions
+- `checkAuth`: Middleware qui vérifie la présence et la validité du JWT
+- `checkAdmin`: Middleware qui vérifie que l'utilisateur est `admin` (retourne 403 sinon)
+
+## Validation des données
+
+### Outils utilisés
+- **express-validator**: Valide les champs des requêtes POST/PATCH/PUT
+- **Schéma de validation**: Défini dans les routes respectives
+
+### Validation par endpoint (exemples)
+- **POST /auth/signup**: Email valide (format email), mot de passe (min 8 caractères), nom d'utilisateur (min 3, max 20, alphanumériques + underscore)
+- **POST /auth/login**: Email valide, mot de passe requis
+- **POST /collection/card**: Nom carte, description, image URL, rareté, coût, HP, etc. (voir `express-validator` dans `routes/collection.js`)
+- **POST /inventory/decks**: Nom deck (max 30 caractères, non vide)
+- **POST /inventaire-pack**: ID utilisateur, ID pack, quantité (tous numériques positifs)
+
+### Erreurs de validation
+- Retourne **400 Bad Request** avec message d'erreur détaillé si validation échoue
+- Format: `{ errors: [ { field: "...", message: "..." } ] }`
+
+## Gestion des erreurs
+
+### Codes HTTP utilisés
+- **200 OK**: Succès de la requête
+- **201 Created**: Ressource créée avec succès
+- **400 Bad Request**: Validation échouée ou paramètres invalides
+- **401 Unauthorized**: Token JWT manquant ou invalide
+- **403 Forbidden**: Utilisateur authentifié mais sans permission (ex: non-admin)
+- **404 Not Found**: Ressource introuvable
+- **429 Too Many Requests**: Cooldown non écoulé (ex: drop pack 24h, tentative de spam)
+- **500 Internal Server Error**: Erreur serveur
+
+### Structure des réponses d'erreur
+```json
+{
+  "error": "Description courte",
+  "details": "Détails supplémentaires si applicable",
+  "code": "ERROR_CODE" // Code interne pour debug
+}
+```
+
+### Cas d'erreur courants
+- **JWT expiré**: Message "Token expired", redirection front-end vers login
+- **Ressource inexistante**: Message "Not found", retour 404
+- **Cooldown actif**: Message "You must wait X seconds before claiming again", retour 429 avec temps restant
+- **Validation échouée**: Message avec liste des champs invalides, retour 400
 
 ## Registre des décisions:
 
@@ -145,8 +226,5 @@ Configuration requise (variables d'environnement): `GITHUB_CLIENT_ID`, `GITHUB_C
 
 ### Note | Nom de la branche du journal
 - La branche distante s'appelle `Journal` (majuscule) alors que la branche locale s'appelle `journal`. Git est sensible à la casse côté serveur, donc `git pull origin journal` échouait avec « couldn't find remote ref journal ». Correction: `git branch --set-upstream-to=origin/Journal journal`, puis `git pull origin Journal`.
-
-
-
 
 
