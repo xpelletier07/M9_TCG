@@ -55,15 +55,14 @@ Configuration requise (variables d'environnement): `GITHUB_CLIENT_ID`, `GITHUB_C
 - POST /pack — Crée un pack (nom, image, description, liste de cartes, valeur, actif).
 - PUT /pack/:id — Modifie un pack.
 - DELETE /pack/:id — Supprime un pack.
-- Note: ces routes n'ont pas de `checkAuth` / `checkAdmin` pour l'instant.
 
 ### Packs de l'utilisateur et drop (`/inventaire-pack`, `routes/inventairePack.js`):
 - GET /inventaire-pack/drop-state — Retourne l'état du drop global (cycle de 5 minutes): secondes restantes, date de réinitialisation et pack du cycle courant.
 - POST /inventaire-pack/heartbeat — (protégée, `checkAuth`) Signale que l'utilisateur est actif pour le drop.
 - GET /inventaire-pack/status — (protégée, `checkAuth`) Retourne l'état du cooldown de 24 h pour réclamer un pack (`canClaim`, temps restant) et les packs de l'utilisateur.
-- POST /inventaire-pack/open et POST /inventaire-pack/claim — (protégées, `checkAuth`, même traitement) Réclame un pack (1 fois par 24 h) et l'ajoute à l'inventaire. Retourne 429 si le cooldown n'est pas terminé.
-- GET /inventaire-pack — Retourne les packs possédés.
-- POST /inventaire-pack — Ajoute des packs à un utilisateur (`id_utilisateur`, `id_pack`, `quantite` validés avec express-validator).
+- POST /inventaire-pack/:idPack — Ajoute un packs à l'utilisateur connecté.
+- POST /inventaire-pack/:idPack/open — Ouvre le pack, check avec l'inventaire de l'utilisataire connecté pour voir s'il possède au moins un pack spécifié.
+- GET /inventaire-pack/me — Retourne les packs qui sont dans l'inventaire de l'utilisateur connecté
 
 ### Routes de diagnostic (`app.js`):
 - GET / — Vérifie que l'API est en ligne.
