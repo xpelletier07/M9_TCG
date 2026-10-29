@@ -12,7 +12,6 @@ import Inventaire from './pages/Inventaire.jsx'
 import Combat from './pages/Combat.jsx'
 import Decks from './pages/Decks.jsx'
 import Settings from './pages/Settings.jsx'
-import ClaimCarte from './pages/ClaimCarte.jsx'
 
 function Routeur() {
     return (
@@ -29,6 +28,7 @@ function Routeur() {
                         <Route path="inventaire" element={<Inventaire />} />
                         <Route path="combat" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
+                        <Route path="settings" element={<Settings />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

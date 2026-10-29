@@ -919,7 +919,7 @@
    ========================================================================== */
 html.tcg-dark .settings-page,
 [data-theme="dark"] .settings-page {
-  background: #121314;
+  background: transparent;
   color: #e4e6eb;
 }
 
