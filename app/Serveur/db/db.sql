@@ -42,6 +42,8 @@ BEGIN
 END
 $$;
 
+
+--Inventaire de cartes pour chaque utilisateur
 create table if not exists inventaire_carte (
     id_utilisateur int not null references utilisateurs(id) on delete cascade,
     id_carte int not null references carte(id_carte) on delete cascade,
@@ -55,6 +57,8 @@ BEGIN
 END
 $$;
 
+
+--Table pour les decks de cartes des utilisateurs
 create table if not exists deck (
     id_deck serial primary key,
     id_utilisateur int not null references utilisateurs(id) on delete cascade,
@@ -68,6 +72,8 @@ BEGIN
 END
 $$;
 
+
+--Table pour les cartes dans les decks des utilisateurs
 create table if not exists deck_carte (
     id_deck int not null references deck(id_deck) on delete cascade,
     id_carte int not null references carte(id_carte) on delete cascade,
@@ -82,7 +88,7 @@ END
 $$;
 
 
-
+--Table pour les packs de cartes
 CREATE TABLE IF NOT EXISTS Packs (
     id_pack SERIAL PRIMARY KEY,
     nom_pack VARCHAR(100) UNIQUE NOT NULL,
@@ -93,6 +99,14 @@ CREATE TABLE IF NOT EXISTS Packs (
     actif BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+DO $$
+BEGIN
+    RAISE NOTICE 'Table Packs successfully created';
+END
+$$;
+
+
+--Table pour l'inventaire des packs de cartes des utilisateurs
 CREATE TABLE IF NOT EXISTS inventaire_packs (
     id_utilisateur int references utilisateurs(id) on delete cascade,
     id_pack int references Packs(id_pack) on delete cascade,
@@ -105,3 +119,26 @@ BEGIN
     RAISE NOTICE 'Table inventaire_packs successfully created';
 END
 $$;
+
+
+--Table pour les combats entre utilisateurs
+CREATE TABLE IF NOT EXISTS combats (
+    id_combat SERIAL PRIMARY KEY,
+    id_utilisateur1 INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    id_utilisateur2 INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    date_combat TIMESTAMP NOT NULL DEFAULT NOW(),
+    resultat VARCHAR(50) NOT NULL
+);
+
+DO $$
+BEGIN
+    RAISE NOTICE 'Table combats successfully created';
+END
+$$;
+
+CREATE TABLE IF NOT EXISTS combat_joueurs (
+    id_combat INT NOT NULL REFERENCES combats(id_combat) ON DELETE CASCADE,
+    id_utilisateur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    whoami VARCHAR(50) NOT NULL,
+    PRIMARY KEY (id_combat, id_utilisateur)
+);
