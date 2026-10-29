@@ -1,23 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
+import { useAuth } from '../auth/AuthContext.jsx'
 import { API_BASE_URL } from '../config'
 
 function Arena() {
+  const { user, token } = useAuth()
   const { matchId } = useParams()
   const navigate = useNavigate()
   const socketRef = useRef(null)
   const isChatOpenRef = useRef(false)
   const combatResultRef = useRef(null)
+  const isLeavingRef = useRef(false)
   const previewTimerRef = useRef(null)
   const [connectionStatus, setConnectionStatus] = useState('Connexion...')
   const [socketId, setSocketId] = useState(null)
+  const [currentProfile, setCurrentProfile] = useState(user)
   const [players, setPlayers] = useState([])
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
   const [messagePreview, setMessagePreview] = useState(null)
   const [unreadMessageCount, setUnreadMessageCount] = useState(0)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false)
   const [combatResult, setCombatResult] = useState(null)
 
   useEffect(() => {
@@ -26,7 +31,10 @@ function Arena() {
       return undefined
     }
 
-    const socket = io(`${API_BASE_URL}/combat`, { autoConnect: false })
+    const socket = io(`${API_BASE_URL}/combat`, {
+      autoConnect: false,
+      auth: { token },
+    })
     socketRef.current = socket
 
     socket.on('connect', () => {
@@ -38,20 +46,25 @@ function Arena() {
       setConnectionStatus('Serveur indisponible')
       socket.disconnect()
     })
-    socket.on('combat:connected', ({ socketId: connectedSocketId }) => setSocketId(connectedSocketId))
+    socket.on('combat:connected', ({ socketId: connectedSocketId, profile: connectedProfile }) => {
+      setSocketId(connectedSocketId)
+      setCurrentProfile(connectedProfile)
+    })
     socket.on('combat:room-state', ({ players: roomPlayers }) => setPlayers(roomPlayers))
-    socket.on('combat:ended', ({ winnerId, loserId, reason }) => {
+    socket.on('combat:ended', ({ winnerId, loserId, winnerName, loserName, reason }) => {
       const result = {
         result: winnerId === socket.id ? 'victory' : 'defeat',
         reason,
         winnerId,
         loserId,
+        winnerName,
+        loserName,
       }
       combatResultRef.current = result
       setCombatResult(result)
     })
-    socket.on('combat:message', ({ playerId, message: receivedMessage, system }) => {
-      const newMessage = { playerId, message: receivedMessage, system }
+    socket.on('combat:message', ({ playerId, playerName, message: receivedMessage, system }) => {
+      const newMessage = { playerId, playerName, message: receivedMessage, system }
       setMessages((currentMessages) => [newMessage, ...currentMessages].slice(0, 30))
       if (!isChatOpenRef.current) setUnreadMessageCount((count) => count + 1)
       setMessagePreview(newMessage)
@@ -59,6 +72,10 @@ function Arena() {
       previewTimerRef.current = setTimeout(() => setMessagePreview(null), 4000)
     })
     socket.on('combat:left', () => {
+      if (isLeavingRef.current) {
+        isLeavingRef.current = false
+        return
+      }
       if (!combatResultRef.current) navigate('/combat')
     })
     socket.on('combat:error', ({ message: errorMessage }) => setConnectionStatus(errorMessage))
@@ -70,7 +87,7 @@ function Arena() {
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
       socketRef.current = null
     }
-  }, [matchId, navigate])
+  }, [matchId, navigate, token])
 
   function sendMessage(event) {
     event.preventDefault()
@@ -89,11 +106,17 @@ function Arena() {
     })
   }
 
-  function leaveArena() {
-    if (!window.confirm('Veux-tu vraiment abandonner ce combat ? Cette action donnera la victoire à ton adversaire.')) {
-      return
-    }
+  function requestLeaveArena() {
+    setShowLeaveConfirmation(true)
+  }
 
+  function cancelLeaveArena() {
+    setShowLeaveConfirmation(false)
+  }
+
+  function confirmLeaveArena() {
+    setShowLeaveConfirmation(false)
+    isLeavingRef.current = true
     socketRef.current?.emit('combat:leave')
   }
 
@@ -111,18 +134,37 @@ function Arena() {
         </div>
       </header>
 
+      {showLeaveConfirmation && !combatResult && (
+        <div className="combat-result-backdrop">
+          <section
+            className="combat-result combat-result-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-confirmation-title"
+          >
+            <span className="combat-kicker">Abandon du combat</span>
+            <h2 id="leave-confirmation-title">Veux-tu vraiment abandonner ?</h2>
+            <p>Cette action donnera la victoire à ton adversaire.</p>
+            <div className="combat-result-actions">
+              <button type="button" onClick={cancelLeaveArena}>Annuler</button>
+              <button type="button" onClick={confirmLeaveArena}>Oui, abandonner</button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {combatResult && (
         <div className="combat-result-backdrop">
           <section className={`combat-result combat-result-${combatResult.result}`} aria-live="assertive" role="dialog" aria-modal="true" aria-labelledby="combat-result-title">
             <span className="combat-kicker">Combat terminé</span>
             <h2 id="combat-result-title">{combatResult.result === 'victory' ? 'Victoire !' : 'Défaite'}</h2>
             <p>
-              Gagnant : <strong>{combatResult.winnerId ?? 'Joueur restant'}</strong>
+              Gagnant : <strong>{combatResult.winnerName ?? 'Joueur restant'}</strong>
             </p>
             <p>
-              Perdant : <strong>{combatResult.loserId ?? 'Joueur parti'}</strong>
+              Perdant : <strong>{combatResult.loserName ?? 'Joueur parti'}</strong>
             </p>
-            <button type="button" onClick={() => navigate('/combat')}>Retour aux combats</button>
+            <button type="button" onClick={() => navigate('/')}>Retour au dashboard</button>
           </section>
         </div>
       )}
@@ -130,12 +172,12 @@ function Arena() {
       {!combatResult && <section className="combat-arena-board" aria-label="Plateau de combat">
         <div className="combat-arena-player combat-arena-player-opponent">
           <span className="combat-arena-player-label">Adversaire</span>
-          <strong>{players.find((player) => player.playerId !== socketId)?.playerId ?? 'En attente'}</strong>
+          <strong>{players.find((player) => player.playerId !== socketId)?.profile?.nom_utilisateur ?? 'En attente'}</strong>
         </div>
         <div className="combat-arena-divider" aria-hidden="true">VS</div>
         <div className="combat-arena-player combat-arena-player-you">
           <span className="combat-arena-player-label">Toi</span>
-          <strong>{socketId ?? 'Connexion...'}</strong>
+          <strong>{currentProfile?.nom_utilisateur ?? 'Connexion...'}</strong>
         </div>
         <div className="combat-arena-play-zone">
           <span>Zone de jeu</span>
@@ -143,12 +185,12 @@ function Arena() {
         </div>
       </section>}
 
-      {!combatResult && <button className="combat-arena-leave" type="button" onClick={leaveArena}>Abandonner le combat</button>}
+      {!combatResult && <button className="combat-arena-leave" type="button" onClick={requestLeaveArena}>Abandonner le combat</button>}
 
       <div className={`combat-chat-widget ${isChatOpen ? 'is-open' : ''}`}>
         {!isChatOpen && messagePreview && (
           <div className="combat-chat-preview" role="status">
-            <strong>{messagePreview.system ? 'Arène' : messagePreview.playerId}</strong>
+            <strong>{messagePreview.system ? 'Arène' : (messagePreview.playerName ?? messagePreview.playerId)}</strong>
             <span>{messagePreview.message}</span>
           </div>
         )}
@@ -160,9 +202,9 @@ function Arena() {
             </div>
             <ul className="combat-messages" aria-live="polite">
               {messages.length === 0 && <li className="combat-empty-message">Aucun message pour le moment.</li>}
-              {messages.map(({ playerId, message: receivedMessage, system }, index) => (
+              {messages.map(({ playerId, playerName, message: receivedMessage, system }, index) => (
                 <li key={`${playerId ?? 'system'}-${index}`} className={system ? 'combat-system-message' : ''}>
-                  {system ? receivedMessage : <><strong>{playerId}</strong> : {receivedMessage}</>}
+                  {system ? receivedMessage : <><strong>{playerName ?? playerId}</strong> : {receivedMessage}</>}
                 </li>
               ))}
             </ul>

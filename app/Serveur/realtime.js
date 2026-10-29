@@ -1,3 +1,5 @@
+import jwt from "jsonwebtoken";
+import { pool } from "./db/pool.js";
 import { Server } from "socket.io";
 
 
@@ -26,13 +28,14 @@ function registerCombat(io) {
 		io.to(room).emit("combat:room-state", {
 			players: members.map((member) => ({
 				playerId: member.id,
+				profile: member.data.profile,
 				ready: Boolean(member.data.combatReady),
 			})),
 			started: state.started,
 		});
 	}
 
-	async function endCombat(room, loserId, reason) {
+	async function endCombat(room, loserId, reason, loserName) {
 		const state = roomStates.get(room);
 		if (!state?.started || state.ended) return;
 
@@ -43,15 +46,38 @@ function registerCombat(io) {
 		io.to(room).emit("combat:ended", {
 			winnerId: winner?.id || null,
 			loserId,
+			winnerName: winner?.data.profile.nom_utilisateur || null,
+			loserName,
 			reason,
 		});
 	}
 
+	io.use(async (socket, next) => {
+		const token = socket.handshake.auth?.token;
+		if (!token) return next(new Error("Authentification requise."));
+
+		try {
+			const payload = jwt.verify(token, process.env.JWT_SECRET);
+			const result = await pool.query(
+				"SELECT id, nom_utilisateur, email FROM utilisateurs WHERE id = $1",
+				[payload.id],
+			);
+			if (!result.rows[0]) return next(new Error("Utilisateur introuvable."));
+			socket.data.profile = result.rows[0];
+			next();
+		} catch {
+			next(new Error("Authentification invalide."));
+		}
+	});
+
 	io.on("connection", (socket) => {
 		socket.data.combatReady = false;
-		socket.emit("combat:connected", { socketId: socket.id });
+		socket.emit("combat:connected", {
+			socketId: socket.id,
+			profile: socket.data.profile,
+		});
 
-		console.log(`Socket connecté : ${socket.id}`);
+		console.log(`Socket connecté : ${socket.data.profile.nom_utilisateur}`);
 
 		socket.on("combat:join", async ({ matchId = "lobby" } = {}) => {
 			const normalizedMatchId = typeof matchId === "string" ? matchId.trim() : "";
@@ -77,9 +103,9 @@ function registerCombat(io) {
 			socket.data.combatRoom = room;
 			socket.data.combatReady = false;
 			socket.emit("combat:joined", { matchId: normalizedMatchId });
-			socket.to(room).emit("combat:player-joined", { playerId: socket.id });
+			socket.to(room).emit("combat:player-joined", { playerId: socket.id, playerName: socket.data.profile.nom_utilisateur });
 			io.to(room).emit("combat:message", {
-				message: `Le joueur ${socket.id} a rejoint la salle.`,
+				message: `Le joueur ${socket.data.profile.nom_utilisateur} a rejoint la salle.`,
 				system: true,
 			});
 			await broadcastRoomState(room);
@@ -89,9 +115,9 @@ function registerCombat(io) {
 			if (!socket.data.combatRoom) return;
 
 			const room = socket.data.combatRoom;
-			await endCombat(room, socket.id, "leave");
+			await endCombat(room, socket.id, "leave", socket.data.profile.nom_utilisateur);
 			io.to(room).emit("combat:message", {
-				message: `Le joueur ${socket.id} a quitté la salle.`,
+				message: `Le joueur ${socket.data.profile.nom_utilisateur} a quitté la salle.`,
 				system: true,
 			});
 			socket.leave(room);
@@ -128,7 +154,7 @@ function registerCombat(io) {
 				socket.emit("combat:error", { message: "Action de combat invalide." });
 				return;
 			}
-			socket.to(room).emit("combat:action", { playerId: socket.id, action, data });
+			socket.to(room).emit("combat:action", { playerId: socket.id, playerName: socket.data.profile.nom_utilisateur, action, data });
 		});
 
 		socket.on("combat:message", ({ message } = {}) => {
@@ -140,6 +166,7 @@ function registerCombat(io) {
 
 			io.to(room).emit("combat:message", {
 				playerId: socket.id,
+				playerName: socket.data.profile.nom_utilisateur,
 				message: message.trim(),
 			});
 		});
@@ -148,10 +175,10 @@ function registerCombat(io) {
 			if (socket.data.combatRoom) {
 				const room = socket.data.combatRoom;
 				console.log(`Socket déconnecté : ${socket.id} de ${room}`);
-				endCombat(room, socket.id, "disconnect");
+				endCombat(room, socket.id, "disconnect", socket.data.profile.nom_utilisateur);
 				socket.to(room).emit("combat:player-left", { playerId: socket.id, reason: "disconnect" });
 				io.to(room).emit("combat:message", {
-					message: `Le joueur ${socket.id} s'est déconnecté.`,
+					message: `Le joueur ${socket.data.profile.nom_utilisateur} s'est déconnecté.`,
 					system: true,
 				});
 				broadcastRoomState(room);

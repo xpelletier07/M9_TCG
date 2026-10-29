@@ -12,7 +12,7 @@ import Inventaire from './pages/Inventaire.jsx'
 import Combat from './pages/Combat.jsx'
 import Arena from './pages/Arena.jsx'
 import Decks from './pages/Decks.jsx'
-import Settings from './pages/Settings.jsx'
+import { Settings } from './pages/Settings.jsx'
 
 function Routeur() {
     return (

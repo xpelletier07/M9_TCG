@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext.jsx'
 import { API_BASE_URL } from '../config'
 
 
 
 
 function Combat() {
+  const { user, token } = useAuth()
   const socketRef = useRef(null)
   const previewTimerRef = useRef(null)
   const isChatOpenRef = useRef(false)
@@ -16,6 +18,7 @@ function Combat() {
   const [matchStatus, setMatchStatus] = useState('Aucun combat rejoint')
   const [joinedMatchId, setJoinedMatchId] = useState(null)
   const [socketId, setSocketId] = useState(null)
+  const [currentProfile, setCurrentProfile] = useState(user)
   const [players, setPlayers] = useState([])
   const [combatStarted, setCombatStarted] = useState(false)
   const [matchCode, setMatchCode] = useState('')
@@ -38,7 +41,10 @@ function Combat() {
   }
 
   function connectToCombat(matchId) {
-    const socket = io(`${API_BASE_URL}/combat`, { autoConnect: false })
+    const socket = io(`${API_BASE_URL}/combat`, {
+      autoConnect: false,
+      auth: { token },
+    })
     socketRef.current = socket
 
     socket.on('connect', () => {
@@ -54,8 +60,9 @@ function Combat() {
       setConnectionStatus('Serveur indisponible')
       socket.disconnect()
     })
-    socket.on('combat:connected', ({ socketId: connectedSocketId }) => {
+    socket.on('combat:connected', ({ socketId: connectedSocketId, profile: connectedProfile }) => {
       setSocketId(connectedSocketId)
+      if (connectedProfile) setCurrentProfile(connectedProfile)
     })
     socket.on('combat:joined', ({ matchId }) => {
       joinedMatchRef.current = true
@@ -77,8 +84,8 @@ function Combat() {
       setCombatStarted(true)
       navigate(`/combat/${matchId}/arena`)
     })
-    socket.on('combat:message', ({ playerId, message: receivedMessage, system }) => {
-      const newMessage = { playerId, message: receivedMessage, system }
+    socket.on('combat:message', ({ playerId, playerName, message: receivedMessage, system }) => {
+      const newMessage = { playerId, playerName, message: receivedMessage, system }
       setMessages((currentMessages) => [
         newMessage,
         ...currentMessages,
@@ -206,7 +213,7 @@ function Combat() {
         {joinedMatchId && <div className={`combat-chat-widget ${isChatOpen ? 'is-open' : ''}`}>
           {!isChatOpen && messagePreview && (
             <div className="combat-chat-preview" role="status">
-              <strong>{messagePreview.system ? 'Arène' : messagePreview.playerId}</strong>
+              <strong>{messagePreview.system ? 'Arène' : (messagePreview.playerName ?? messagePreview.playerId)}</strong>
               <span>{messagePreview.message}</span>
             </div>
           )}
@@ -221,9 +228,9 @@ function Combat() {
               </div>
               <ul className="combat-messages" aria-live="polite">
                 {messages.length === 0 && <li className="combat-empty-message">Aucun message pour le moment.</li>}
-                {messages.map(({ playerId, message: receivedMessage, system }, index) => (
+                {messages.map(({ playerId, playerName, message: receivedMessage, system }, index) => (
                   <li key={`${playerId ?? 'system'}-${index}`} className={system ? 'combat-system-message' : ''}>
-                    {system ? receivedMessage : <><strong>{playerId}</strong> : {receivedMessage}</>}
+                    {system ? receivedMessage : <><strong>{playerName ?? playerId}</strong> : {receivedMessage}</>}
                   </li>
                 ))}
               </ul>
@@ -273,8 +280,8 @@ function Combat() {
           <ul className="combat-player-list">
             {players.map((player) => (
               <li key={player.playerId}>
-                <span className="combat-player-avatar" aria-hidden="true">{player.playerId.slice(-2)}</span>
-                <span className="combat-player-name">{player.playerId === socketId ? 'Vous' : player.playerId}</span>
+                <span className="combat-player-avatar" aria-hidden="true">{(player.profile?.nom_utilisateur ?? player.playerId).slice(-2)}</span>
+                <span className="combat-player-name">{player.playerId === socketId ? 'Vous' : (player.profile?.nom_utilisateur ?? player.playerId)}</span>
                 <span className={`combat-ready-state ${player.ready ? 'is-ready' : ''}`}>
                   {player.ready ? 'READY' : 'En attente'}
                 </span>

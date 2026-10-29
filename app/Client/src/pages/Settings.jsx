@@ -1021,4 +1021,5 @@ function Settings() {
   );
 }
 
+export { Settings };
 export default Settings;
