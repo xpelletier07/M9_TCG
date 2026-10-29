@@ -32,6 +32,21 @@ function registerCombat(io) {
 		});
 	}
 
+	async function endCombat(room, loserId, reason) {
+		const state = roomStates.get(room);
+		if (!state?.started || state.ended) return;
+
+		const members = await io.in(room).fetchSockets();
+		const winner = members.find((member) => member.id !== loserId);
+		state.ended = true;
+		roomStates.set(room, state);
+		io.to(room).emit("combat:ended", {
+			winnerId: winner?.id || null,
+			loserId,
+			reason,
+		});
+	}
+
 	io.on("connection", (socket) => {
 		socket.data.combatReady = false;
 		socket.emit("combat:connected", { socketId: socket.id });
@@ -74,6 +89,7 @@ function registerCombat(io) {
 			if (!socket.data.combatRoom) return;
 
 			const room = socket.data.combatRoom;
+			await endCombat(room, socket.id, "leave");
 			io.to(room).emit("combat:message", {
 				message: `Le joueur ${socket.id} a quitté la salle.`,
 				system: true,
@@ -132,6 +148,7 @@ function registerCombat(io) {
 			if (socket.data.combatRoom) {
 				const room = socket.data.combatRoom;
 				console.log(`Socket déconnecté : ${socket.id} de ${room}`);
+				endCombat(room, socket.id, "disconnect");
 				socket.to(room).emit("combat:player-left", { playerId: socket.id, reason: "disconnect" });
 				io.to(room).emit("combat:message", {
 					message: `Le joueur ${socket.id} s'est déconnecté.`,
@@ -144,5 +161,4 @@ function registerCombat(io) {
 }
 
 export default attachRealtime;
-
 

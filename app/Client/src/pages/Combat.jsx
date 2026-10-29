@@ -75,7 +75,7 @@ function Combat() {
     })
     socket.on('combat:started', () => {
       setCombatStarted(true)
-      navigate(`/combat/${matchId}`)
+      navigate(`/combat/${matchId}/arena`)
     })
     socket.on('combat:message', ({ playerId, message: receivedMessage, system }) => {
       const newMessage = { playerId, message: receivedMessage, system }
@@ -189,7 +189,7 @@ function Combat() {
                 onChange={(event) => setMatchCode(event.target.value)}
                 placeholder="MATCH-42"
                 maxLength={80}
-                pattern="[A-Za-z0-9_-]+"
+                pattern="[A-Za-z0-9_\-]+"
                 disabled={Boolean(joinedMatchId)}
               />
               <button className={joinedMatchId ? 'combat-leave-button' : ''} type="button" onClick={toggleCombat} disabled={connectionStatus === 'Connexion...'}>

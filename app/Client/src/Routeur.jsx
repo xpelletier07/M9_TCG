@@ -10,6 +10,7 @@ import Collection from './pages/Collection.jsx'
 import Bazaar from './pages/Bazaar.jsx'
 import Inventaire from './pages/Inventaire.jsx'
 import Combat from './pages/Combat.jsx'
+import Arena from './pages/Arena.jsx'
 import Decks from './pages/Decks.jsx'
 
 function Routeur() {
@@ -26,6 +27,7 @@ function Routeur() {
                         <Route path="bazaar" element={<Bazaar />} />
                         <Route path="inventaire" element={<Inventaire />} />
                         <Route path="combat" element={<Combat />} />
+                        <Route path="combat/:matchId/arena" element={<Arena />} />
                         <Route path="combat/:matchId" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
                     </Route>
