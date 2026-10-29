@@ -39,9 +39,10 @@ Nous considérons qu'un récit est terminé lorsque:
 | Xavier | Conception des issues et setup du projet GitHub. Setup du Docker. Setup du CI/CD | [#3](https://github.com/xpelletier07/M9_TCG/issues/3), [#5](https://github.com/xpelletier07/M9_TCG/issues/5), [#10](https://github.com/xpelletier07/M9_TCG/issues/10) |
 | William | Création du diagramme entité-relation. Rédaction du document 03-conception. | [#11](https://github.com/xpelletier07/M9_TCG/issues/11) |
 
+
 ## Contribution individuelle sprint 1
 | Membre | Contributions à la soumission | Issues |
-|-----|------|------|------|
+|--------|-------------------------------|--------|
 | Alek | Frontend & backend pour la collection | [#5](https://github.com/xpelletier07/M9_TCG/issues/5), [#57](https://github.com/xpelletier07/M9_TCG/issues/57), [#58](https://github.com/xpelletier07/M9_TCG/issues/58) |
 | Lotfi | Frontend & backend pour le dashboard (inclus les drops de cartes) | [#54](https://github.com/xpelletier07/M9_TCG/issues/54), [#71](https://github.com/xpelletier07/M9_TCG/issues/71)|
 | Marco | Thème/CSS général, frontend & backend pour la connection et l'inscription, sidebar | [#32](https://github.com/xpelletier07/M9_TCG/issues/32), [#34](https://github.com/xpelletier07/M9_TCG/issues/34), [#40](https://github.com/xpelletier07/M9_TCG/issues/40), [#44](https://github.com/xpelletier07/M9_TCG/issues/44) |
@@ -49,3 +50,13 @@ Nous considérons qu'un récit est terminé lorsque:
 | William | Frontend & backend pour l'inventaire | [#48](https://github.com/xpelletier07/M9_TCG/issues/48), [#49](https://github.com/xpelletier07/M9_TCG/issues/49) |
 
 Notre définition de "terminé" n'a pas changé mais 2 récits mis dans le tableau n'ont pas étés à 100% complétés. Pour la connexion, la connexion OF2 était un could, et sera peut être implémentée dans un sprint futur. Pour le système de drops périodique de cartes, nous avons mis un placeholder pour la démonstration et la remise du sprint 1 mais la matière pour cette fonctionalité (WebSocket) n'as pas encore étée vue et sera aussi donc complété dans un sprint futur.
+
+
+## Contribution individuelle sprint 2
+| Membre | Contributions à la soumission | Issues |
+|--------|-------------------------------|--------|
+| Alek | Frontend & backend pour la collection |  |
+| Lotfi | |
+| Marco | Connexion avec Github (OAuth) et base pour la monnaie virtuel du jeu | |
+| Xavier | Aide générale partout, 
+| William | Frontend & backend pour l'inventaire | 

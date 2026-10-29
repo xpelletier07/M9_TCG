@@ -21,7 +21,7 @@ Puisque nous n'avons jamais tous travaillé ensemble, il est difficile de déter
 
 ## Ordre d'abandon
 | Priorité d'abandon | Issue | Raison | 
-|---------|-------|--------|
+|--------------------|-------|--------|
 | 1 | [#63](https://github.com/xpelletier07/M9_TCG/issues/63) | Cette fonctionnalité serait peut-être utile lors du déploiement global de l'application, mais elle est complêtement inutile pour notre objectifs actuelle (on ne demandra pas de vrai argent, pour le moment en tout cas). |
 | 2 | [#62](https://github.com/xpelletier07/M9_TCG/issues/62) | Faire un système d'échange entre joueurs serait peu important contre le nombre de temps de développement qu'il va prendre à l'équipe |
 | 3 | [#50](https://github.com/xpelletier07/M9_TCG/issues/50) | Ajouter des effets uniques au cartes serait une fonctionnalité incroyable mais coûteuse à produire. Malgré que cette fonctionnalité soit importante, elle n'est pas indispensable. |
@@ -38,7 +38,7 @@ Version alpha contenant les fonctionalitées primaires: login/signup, dashboard,
 
 ## Récits engagés
 | Numéro Récit | Titre du Récit | Points | Commentaires |
-|-----|-----|-----|-----|
+|--------------|----------------|--------|--------------|
 | [#32](https://github.com/xpelletier07/M9_TCG/issues/32) | Formulaire d'inscription | 3 |  |
 | [#34](https://github.com/xpelletier07/M9_TCG/issues/34) | Formulaire de connexion | 3-5 | Ce qui à été fait, est un 3, il manque juste le OF2, ce qui sera fait dans les prochains sprints |
 | [#44](https://github.com/xpelletier07/M9_TCG/issues/44) | Navigation entre les pages | 3 | Inclus aussi le thème principal du site |
