@@ -48,7 +48,7 @@ export default function DropSection(){
         const claimReady = canUserClaim && remaining <= 0
 
         setRemainingSeconds(remaining)
-        setDropImage(data.pack?.image_pack || FALLBACK_DROP_IMAGE)
+        setDropImage(FALLBACK_DROP_IMAGE)
         setIsClaimReady(claimReady)
 
         window.clearInterval(intervalId)
