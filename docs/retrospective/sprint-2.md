@@ -1,7 +1,7 @@
 ## 1. Qu'est-ce qui a bien fonctionné et qu'on garde ?
 - Se mettre debout durant les daily scrums.
 - Bonne quantité et qualité de communication.
-- Bonne entraide sur tous les récits.
+- Bonne entraide sur la plupart des récits.
 
 ## 2. Qu'est-ce qui nous a ralentis ?
 - La semaine de relâche (semaine de soutien à la réussite) où que personne à travailler sur le projet sauf William.
