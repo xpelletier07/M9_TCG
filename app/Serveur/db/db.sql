@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     statut VARCHAR(50) default 'actif',
     credits FLOAT NOT NULL DEFAULT 1000 CHECK (credits >= 0),
     avatar_url TEXT,
-    dernier_drop_pack_at TIMESTAMPTZ
+    dernier_drop_pack_at TIMESTAMPTZ,
+    dernier_claim_carte_at TIMESTAMPTZ
 );
 -- Ce bloc DO $$ ... $$ permet d'afficher un message dans les logs de PostgreSQL pour indiquer que la table a été créée avec succès.
 DO $$
