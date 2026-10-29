@@ -86,7 +86,7 @@ $$;
 CREATE TABLE IF NOT EXISTS Packs (
     id_pack SERIAL PRIMARY KEY,
     nom_pack VARCHAR(100) UNIQUE NOT NULL,
-    image_pack VARCHAR(255) NOT NULL,
+    image_pack TEXT NOT NULL,
     description_pack TEXT NOT NULL,
     liste_carte VARCHAR(255)[] NOT NULL,
     valeur int NOT NULL
