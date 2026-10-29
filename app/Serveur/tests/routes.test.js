@@ -428,28 +428,41 @@ test("POST /inventaire-pack/open refuse si le cooldown de 24h est actif", async 
     assert.ok(body.cooldownRemainingSeconds > 0)
 })
 
-test("POST /inventaire-pack/open réclame le pack si éligible", async () => {
+test("POST /inventaire-pack/:idPack/open ouvre et retire le pack de l'inventaire", async () => {
     setQueryResult((sql) => {
-        if (sql.includes("where id_pack = $1")) {
-            return { rows: [{ id_pack: 1, nom_pack: "Pack Alpha", actif: true }], rowCount: 1, ok: true }
+        if (sql.includes("select quantite from inventaire_packs")) {
+            return { rows: [{ quantite: 2 }], rowCount: 1, ok: true, }
         }
-        if (sql.includes("update utilisateurs")) {
-            return { rows: [{ dernier_drop_pack_at: new Date().toISOString() }], rowCount: 1, ok: true }
+
+        if (sql.includes("update inventaire_packs ip")) {
+            return {
+                rows: [{
+                    id_pack: 1,
+                    nom_pack: "Pack Alpha",
+                    image_pack: "alpha.png",
+                    description_pack: "Description",
+                    liste_carte: [],
+                    quantite: 1,
+                }],
+                rowCount: 1,
+                ok: true,
+            }
         }
-        if (sql.includes("insert into inventaire_packs")) {
-            return { rows: [{ id_pack: 1, quantite: 3 }], rowCount: 1, ok: true }
-        }
-        return { rows: [], rowCount: 0, ok: true }
     })
 
-    const { response, body } = await request("/inventaire-pack/open", {
+    const { response, body } = await request("/inventaire-pack/1/open", {
         method: "POST",
-        headers: { ...authenticatedHeaders(), "content-type": "application/json" },
-        body: JSON.stringify({ id_pack: 1 }),
+        headers: { ...authenticatedHeaders(), "content-type": "application/json" }
     })
 
     assert.equal(response.status, 200)
-    assert.equal(body.message, "Pack réclamé avec succès !")
-    assert.equal(body.quantite, 3)
-    assert.equal(body.cooldownRemainingSeconds, 24 * 3600)
+    assert.equal(body.pack.id_pack, 1)
+    assert.equal(body.pack.nom_pack, "Pack Alpha")
+    assert.equal(body.pack.image_pack, "alpha.png")
+    assert.equal(body.pack.description_pack, "Description")
+    // deep equal check le contenu du tableau, si juste equal donne une erreur
+    assert.deepEqual(body.pack.liste_carte, [])
+    assert.equal(body.quantite, 1)
+
+
 })

@@ -153,15 +153,18 @@ router.get("/status", checkAuth, async (req, res) => {
 router.post("/:idPack/open", checkAuth, async (req, res) => {
     const idPack = Number(req.params.idPack)
 
-    if (!Number.isInteger(idPack) || idPack < 1) {
-        return res.status(400).json({ error: "Identifiant de pack invalide" })
-    }
-
-    const client = await pool.connect()
     try {
-        await client.query("begin")
+        if (!Number.isInteger(idPack) || idPack < 1) {
+            return res.status(400).json({ error: "Identifiant de pack invalide" })
+        }
 
-        const result = await client.query(
+        const checkIfInInventory = await pool.query(`select quantite from inventaire_packs 
+        where id_utilisateur = $1 and id_pack = $2`, [req.user.id, idPack])
+        if (checkIfInInventory.rows.length === 0) {
+            return res.status(404).json({ error: "Ce pack n'est pas dans votre inventaire" })
+        }
+
+        const result = await pool.query(
             `update inventaire_packs ip
              set quantite = ip.quantite - 1
              from Packs p
@@ -173,23 +176,16 @@ router.post("/:idPack/open", checkAuth, async (req, res) => {
                        p.liste_carte, ip.quantite`,
             [req.user.id, idPack]
         )
-
-        if (result.rows.length === 0) {
-            await client.query("rollback")
-            return res.status(404).json({ error: "Ce pack n'est pas dans votre inventaire" })
-        }
-
         const packOuvert = result.rows[0]
-
+        // si c'était le dernier pack, on suprime l'entrée pour pas laisser des entrées vides dans la bd
         if (packOuvert.quantite === 0) {
-            await client.query(
+            await pool.query(
                 `delete from inventaire_packs
                  where id_utilisateur = $1 and id_pack = $2 and quantite = 0`,
                 [req.user.id, idPack]
             )
         }
 
-        await client.query("commit")
         res.status(200).json({
             pack: {
                 id_pack: packOuvert.id_pack,
@@ -201,11 +197,8 @@ router.post("/:idPack/open", checkAuth, async (req, res) => {
             quantite: packOuvert.quantite,
         })
     } catch (error) {
-        await client.query("rollback")
         console.error("Erreur lors de l'ouverture du pack :", error)
         res.status(500).json({ error: "Erreur serveur" })
-    } finally {
-        client.release()
     }
 })
 
