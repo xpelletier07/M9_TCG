@@ -45,7 +45,7 @@ function Inventaire() {
         } finally {
             setLoading(false)
         }
-    }
+    } 
 
     // Fonction qui appelle les routes de inventaire.js pour récupérer les cartes de l'utilisateur
     async function fetchCartes() {
@@ -139,7 +139,7 @@ function Inventaire() {
                 throw new Error(data.error || "Erreur lors de l'ouverture du pack")
             }
 
-            navigate(`/ouverture-pack/${pack.id_pack}`, { state: { pack: data.pack } })
+            navigate('/ouverture-pack', { state: { pack: data.pack } })
         } catch (err) {
             setErreur(err.message)
             setPackEnOuverture(null)

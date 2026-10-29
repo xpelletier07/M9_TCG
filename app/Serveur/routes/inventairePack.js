@@ -242,7 +242,7 @@ router.get("/me", checkAuth, async (req, res) => {
         )
         res.status(200).json(resultat.rows)
     } catch (error) {
-        console.error("Erreur dans ", error)
+        console.error("Erreur dans /inventaire-pack/me", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })

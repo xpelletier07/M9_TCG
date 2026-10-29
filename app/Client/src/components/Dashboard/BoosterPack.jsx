@@ -44,7 +44,6 @@ export default function BoosterPack() {
   // id du pack à dropper, peut etre changé ici a place de checker dans le code
   const idPack = 1
 
-
   // Chargement des packs actifs
   useEffect(() => {
     let cancelled = false
