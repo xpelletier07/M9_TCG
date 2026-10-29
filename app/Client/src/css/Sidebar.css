@@ -119,25 +119,154 @@
   color: #ffffff; /* texte blanc pour rester lisible sur le fond bleu marine */
 }
 
-/* Bas de la sidebar : contient le bouton de déconnexion (affiché seulement si loggedIn) */
+/* Bas de la sidebar : carte profil utilisateur et bouton des paramètres */
 .tcg-sidebar-footer {
   padding: 0.75rem;
+  border-top: 1px solid #e5e7eb; /* ligne séparatrice discrète entre la liste de navigation et le profil */
+  margin-top: auto; /* repousse le footer tout en bas si la nav ne remplit pas toute la hauteur */
 }
-.tcg-logout-btn {
-  width: 100%; /* occupe toute la largeur du footer pour une grande zone cliquable */
+
+/* Carte utilisateur style produit final : avatar, nom, crédits et bouton engrenage */
+.tcg-user-card {
+  display: flex;
+  align-items: center; /* aligne verticalement au centre avatar, textes et bouton */
+  gap: 0.65rem; /* espacement horizontal uniforme entre les éléments */
+  padding: 0.5rem 0.65rem;
+  background-color: #f8fafc; /* fond gris très clair pour faire ressortir la carte du blanc de la sidebar */
+  border: 1px solid #e2e8f0;
+  border-radius: 12px; /* coins arrondis modernes conformément au croquis */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+.tcg-user-card:hover {
+  background-color: #f1f5f9; /* légère mise en valeur au survol */
+  border-color: #cbd5e1;
+}
+
+/* Avatar circulaire : photo de profil ou icône de repli */
+.tcg-user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%; /* cercle parfait */
+  background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); /* dégradé subtil bleu pastel */
+  border: 1.5px solid #bfdbfe;
+  color: #0d2a6e;
   display: flex;
   align-items: center;
-  justify-content: center; /* centre icône + texte */
+  justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0; /* empêche le rétrécissement sur les petits écrans */
+  overflow: hidden;
+}
+.tcg-user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* garantit que l'image remplit le cercle sans déformation */
+}
+
+/* Informations utilisateur au centre (Nom + Solde) */
+.tcg-user-info {
+  flex: 1; /* occupe tout l'espace disponible entre l'avatar et l'engrenage */
+  min-width: 0; /* INDISPENSABLE pour que 'text-overflow: ellipsis' fonctionne dans un flex container */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.tcg-user-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis; /* coupe le nom avec "..." s'il dépasse */
+  white-space: nowrap; /* empêche le retour à la ligne */
+}
+.tcg-user-credits {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b; /* couleur plus discrète pour hiérarchiser visuellement l'information */
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tcg-credits-icon {
+  color: #f59e0b; /* teinte dorée/ambrée pour l'icône des crédits */
+  font-size: 0.75rem;
+}
+
+/* Bouton engrenage menant vers /settings */
+.tcg-settings-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px; /* bouton carré à coins arrondis comme sur le dessin */
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tcg-settings-btn i {
+  font-size: 0.95rem;
+  transition: transform 0.3s ease; /* anime la rotation au survol */
+}
+.tcg-settings-btn:hover {
+  background-color: #0d2a6e; /* fond bleu marine au survol */
+  border-color: #0d2a6e;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(13, 42, 110, 0.25);
+}
+.tcg-settings-btn:hover i {
+  transform: rotate(45deg); /* légère rotation mécanique de l'engrenage au survol */
+}
+.tcg-settings-btn.is-active {
+  background-color: #0d2a6e; /* indique visuellement que l'utilisateur est sur la page /settings */
+  border-color: #0d2a6e;
+  color: #ffffff;
+}
+
+/* Bouton profil réduit (quand la sidebar est repliée) */
+.tcg-sidebar-collapsed-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+.tcg-sidebar-collapsed-profile:hover {
+  transform: scale(1.08);
+}
+.tcg-user-avatar.compact {
+  width: 34px;
+  height: 34px;
+}
+
+/* Bouton de déconnexion (conservé pour rétrocompatibilité) */
+.tcg-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background-color: #cc0f35; /* rouge pour signaler une action destructive/de sortie */
+  background-color: #cc0f35;
   border: none;
   border-radius: 6px;
   color: #ffffff;
   cursor: pointer;
 }
 .tcg-logout-btn:hover {
-  background-color: #b30d2e; /* rouge légèrement plus foncé pour le retour visuel au survol */
+  background-color: #b30d2e;
 }
 
 /* ── Thème sombre (appliqué sur <html>) ───────────────────────────────── */
@@ -176,4 +305,48 @@ html.tcg-dark .tcg-menu-list a:hover {
 html.tcg-dark .tcg-menu-list a.is-active {
   background-color: #3a3b3c; /* le bleu marine du thème clair serait trop sombre/peu contrasté ici */
   color: #ffffff; /* texte blanc pour bien ressortir sur le fond gris */
+}
+
+/* Profil utilisateur et paramètres en thème sombre */
+html.tcg-dark .tcg-sidebar-footer {
+  border-top-color: #3a3b3c;
+}
+html.tcg-dark .tcg-user-card {
+  background-color: #1e1f20;
+  border-color: #3a3b3c;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+html.tcg-dark .tcg-user-card:hover {
+  background-color: #28292a;
+  border-color: #4a4b4c;
+}
+html.tcg-dark .tcg-user-avatar {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-color: #334155;
+  color: #93c5fd;
+}
+html.tcg-dark .tcg-user-name {
+  color: #f1f5f9;
+}
+html.tcg-dark .tcg-user-credits {
+  color: #94a3b8;
+}
+html.tcg-dark .tcg-credits-icon {
+  color: #fbbf24;
+}
+html.tcg-dark .tcg-settings-btn {
+  background-color: #28292a;
+  border-color: #3a3b3c;
+  color: #cbd5e1;
+}
+html.tcg-dark .tcg-settings-btn:hover {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+}
+html.tcg-dark .tcg-settings-btn.is-active {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
 }

@@ -23,23 +23,23 @@ const reglesCartes = [
     body("rarete")
         .trim()
         .notEmpty().withMessage('La rareté de la carte est obligatoire')
-        .isInt().withMessage('La rareté de la carte devrait être un int'),
+        .isInt({min: 1, max: 4}).withMessage('La rareté de la carte devrait être un int entre 1 & 4'),
     body("valeur")
         .trim()
         .notEmpty().withMessage('La valeur par défaut de la carte est obligatoire')
-        .isInt().withMessage('La valeur de la carte devrait être un int'),
+        .isInt({min: 1, max: 1000}).withMessage('La valeur de la carte devrait être un int entre 1 & 1000'),
     body("mana")
         .trim()
         .notEmpty().withMessage('Le mana de la carte est obligatoire')
-        .isInt().withMessage('Le mana de la carte devrait être un int'),
+        .isInt({ min: 0, max: 10 }).withMessage('Le mana de la carte devrait être un int entre 0 & 10'),
     body("health")
         .trim()
         .notEmpty().withMessage('La vie de la carte est obligatoire')
-        .isInt().withMessage('La vie de la carte devrait être un int'),
+        .isInt({min: 1, max: 1000}).withMessage('La vie de la carte devrait être un int entre 1 & 1000'),
     body("damage")
         .trim()
         .notEmpty().withMessage('Le dégât de la carte est obligatoire')
-        .isInt().withMessage('Le dégât de la carte devrait être un int'),
+        .isInt({min: 0, max: 1000}).withMessage('Le dégât de la carte devrait être un int entre 0 & 1000'),
 ]
 
 // GET pour obtenir toutes les cartes
@@ -129,12 +129,12 @@ router.patch("/:id", checkAdmin, async (req, res) => {
 })
 
 // DELETE pour supprimer une carte de la collection
-router.delete("/:id", checkAdmin, async (req, res)=>{
+router.delete("/:id", checkAdmin, async (req, res) => {
     try {
         const id = req.params.id
         const resultat = await pool.query("delete from carte where id_carte = $1", [id])
         // si resultat n'a rien de deleté, pas trouvé dans la bd
-        if (resultat.rowCount === 0){
+        if (resultat.rowCount === 0) {
             return res.status(404).json({ message: "Carte non trouvée" })
         }
         // si tout est ok, renvoye pas de body avec 204
