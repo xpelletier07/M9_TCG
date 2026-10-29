@@ -82,7 +82,7 @@ async function startServer() {
       (nom_utilisateur, email, mot_de_passe_hash, statut, credits)
     VALUES
       ('demo-joueur', 'joueur.demo@m9tcg.local', '$2b$10$uWXDSzG.Ij2gErVSwwgQl.Q23..Jyoc48IAbbeVMEVGlVHMj.TdWC', 'actif', 1000),
-      ('demo-admin', 'admin.demo@m9tcg.local', '$2b$10$8HEhcGOoGh.LR6EAev7.y.sLy7AQ5TpAI/d/fTz2W896Y8FkwRopG', 'admin', 1000)
+      ('demo-admin', 'admin.demo@m9tcg.local', '$2b$10$8HEhcGOoGh.LR6EAev7.y.sLy7AQ5TpAI/d/fTz2W896Y8FkwRopG' , 'admin', 1000)
     ON CONFLICT DO NOTHING
   `)
 
@@ -91,9 +91,11 @@ async function startServer() {
     INSERT INTO carte
       (nom_carte, image, description, rarete, valeur, mana, health, damage)
     VALUES
-      ('Carte Démo 1', 'https://picsum.photos/400/280?random=89', 'Description de la carte démo 1', 1, 10, 1, 5, 2),
-      ('Carte Démo 2', 'https://picsum.photos/400/280?random=90', 'Description de la carte démo 2', 2, 20, 2, 10, 4),
-      ('Carte Démo 3', 'https://picsum.photos/400/280?random=91', 'Description de la carte démo 3', 3, 30, 3, 15, 6)
+      ('Peak', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWKCFnan-Xyw5qJBLOFr-r5ZSFjv6a3pSNCOkjPlN7aw&s=10', 'Trop bien', 4, 10, 10, 100, 30),
+      ('Cold', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUoTXPh-uMj39OaszhWUMJRwYkL09XQtTEP_d6jh0vwQ&s=10', 'Cat that comes from hell', 3, 20, 2, 60, 20),
+      ('Random guy', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-3bPUxf-ZXRskRiuyV1jjr8EsYRc-MCFbJRzpv8ITAg&s=10', 'he is a random guy', 1, 10, 1, 25, 13),
+      ('Random guy 2', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-3bPUxf-ZXRskRiuyV1jjr8EsYRc-MCFbJRzpv8ITAg&s=10', 'he is a random guy2', 2, 10, 1, 25, 14),
+      ('Belle Province hot-dog PEAK', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA97YcZ3a_MmZJPxdMwTVVOiJTtlg09alpavTO69vqaA&s=10', '4 steamés all dressed pour 9.15$ le lundi', 4, 100, 10, 250, 150)
     ON CONFLICT DO NOTHING
   `)
 

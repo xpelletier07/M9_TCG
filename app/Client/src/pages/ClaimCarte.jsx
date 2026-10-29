@@ -303,10 +303,17 @@ function ClaimCarte() {
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ marginBottom: '1.5rem' }}>
-                <h1 style={{ marginBottom: '0.5rem' }}>Claim Your Cards</h1>
+                <p style={{ textAlign: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>
+                    Obtenez votre carte gratuite !
+                </p>
                 <p style={{ margin: 0 }}>
                     Veillez sélectionner les cartes que vous souhaitez réclamer. Vous pouvez choisir une carte parmi
                     3 cartes proposées.
+                </p>
+                <p style={{ margin: 0 }}>
+                    Chaque joueur ne peut réclamer qu'une seule carte par round. Le round se termine lorsque tous les joueurs ont réclamé leur carte et que les 3 carte sont claimées.
+                </p>
+                <p style={{ margin: 0 }}>
                 </p>
                 <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>
                     Joueurs connectés: {connectedUsers}
@@ -369,10 +376,10 @@ function ClaimCarte() {
                                                 {isClaiming
                                                     ? 'Claim en cours...'
                                                     : isCardAlreadyClaimed
-                                                    ? 'Déjà claim'
-                                                    : hasClaimedCurrentRound
-                                                    ? 'Déjà réclamé'
-                                                    : 'Claim'}
+                                                        ? 'Déjà claim'
+                                                        : hasClaimedCurrentRound
+                                                            ? 'Déjà réclamé'
+                                                            : 'Claim'}
                                             </button>
                                         </div>
                                     </div>
