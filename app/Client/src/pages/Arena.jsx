@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import { useAuth } from '../auth/AuthContext.jsx'
+import CombatResult from '../components/CombatResult.jsx'
+import LeaveConfirmation from '../components/LeaveConfirmation.jsx'
 import { API_BASE_URL } from '../config'
 
 function Arena() {
@@ -11,7 +13,7 @@ function Arena() {
   const socketRef = useRef(null)
   const isChatOpenRef = useRef(false)
   const combatResultRef = useRef(null)
-  const isLeavingRef = useRef(false)
+  const resultTimerRef = useRef(null)
   const previewTimerRef = useRef(null)
   const [connectionStatus, setConnectionStatus] = useState('Connexion...')
   const [socketId, setSocketId] = useState(null)
@@ -39,18 +41,20 @@ function Arena() {
 
     socket.on('connect', () => {
       setConnectionStatus('Connecté')
-      socket.emit('combat:join', { matchId })
+      socket.emit('combat:join', { matchId, phase: 'arena' })
     })
     socket.on('disconnect', () => setConnectionStatus('Déconnecté'))
     socket.on('connect_error', () => {
       setConnectionStatus('Serveur indisponible')
-      socket.disconnect()
+      navigate('/combat', { replace: true })
     })
     socket.on('combat:connected', ({ socketId: connectedSocketId, profile: connectedProfile }) => {
       setSocketId(connectedSocketId)
       setCurrentProfile(connectedProfile)
     })
-    socket.on('combat:room-state', ({ players: roomPlayers }) => setPlayers(roomPlayers))
+    socket.on('combat:room-state', ({ players: roomPlayers }) => {
+      setPlayers(roomPlayers)
+    })
     socket.on('combat:ended', ({ winnerId, loserId, winnerName, loserName, reason }) => {
       const result = {
         result: winnerId === socket.id ? 'victory' : 'defeat',
@@ -61,7 +65,10 @@ function Arena() {
         loserName,
       }
       combatResultRef.current = result
+      setShowLeaveConfirmation(false)
       setCombatResult(result)
+      if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
+      resultTimerRef.current = setTimeout(() => navigate('/combat', { replace: true }), 3000)
     })
     socket.on('combat:message', ({ playerId, playerName, message: receivedMessage, system }) => {
       const newMessage = { playerId, playerName, message: receivedMessage, system }
@@ -71,20 +78,18 @@ function Arena() {
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
       previewTimerRef.current = setTimeout(() => setMessagePreview(null), 4000)
     })
-    socket.on('combat:left', () => {
-      if (isLeavingRef.current) {
-        isLeavingRef.current = false
-        return
-      }
-      if (!combatResultRef.current) navigate('/combat')
+    socket.on('combat:left', () => navigate('/combat', { replace: true }))
+    socket.on('combat:error', ({ message: errorMessage }) => {
+      setConnectionStatus(errorMessage)
+      navigate('/combat', { replace: true })
     })
-    socket.on('combat:error', ({ message: errorMessage }) => setConnectionStatus(errorMessage))
 
     socket.connect()
 
     return () => {
       socket.disconnect()
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
+      if (resultTimerRef.current) clearTimeout(resultTimerRef.current)
       socketRef.current = null
     }
   }, [matchId, navigate, token])
@@ -116,7 +121,6 @@ function Arena() {
 
   function confirmLeaveArena() {
     setShowLeaveConfirmation(false)
-    isLeavingRef.current = true
     socketRef.current?.emit('combat:leave')
   }
 
@@ -135,39 +139,9 @@ function Arena() {
       </header>
 
       {showLeaveConfirmation && !combatResult && (
-        <div className="combat-result-backdrop">
-          <section
-            className="combat-result combat-result-confirm"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-confirmation-title"
-          >
-            <span className="combat-kicker">Abandon du combat</span>
-            <h2 id="leave-confirmation-title">Veux-tu vraiment abandonner ?</h2>
-            <p>Cette action donnera la victoire à ton adversaire.</p>
-            <div className="combat-result-actions">
-              <button type="button" onClick={cancelLeaveArena}>Annuler</button>
-              <button type="button" onClick={confirmLeaveArena}>Oui, abandonner</button>
-            </div>
-          </section>
-        </div>
+        <LeaveConfirmation onCancel={cancelLeaveArena} onConfirm={confirmLeaveArena} />
       )}
-
-      {combatResult && (
-        <div className="combat-result-backdrop">
-          <section className={`combat-result combat-result-${combatResult.result}`} aria-live="assertive" role="dialog" aria-modal="true" aria-labelledby="combat-result-title">
-            <span className="combat-kicker">Combat terminé</span>
-            <h2 id="combat-result-title">{combatResult.result === 'victory' ? 'Victoire !' : 'Défaite'}</h2>
-            <p>
-              Gagnant : <strong>{combatResult.winnerName ?? 'Joueur restant'}</strong>
-            </p>
-            <p>
-              Perdant : <strong>{combatResult.loserName ?? 'Joueur parti'}</strong>
-            </p>
-            <button type="button" onClick={() => navigate('/')}>Retour au dashboard</button>
-          </section>
-        </div>
-      )}
+      {combatResult && <CombatResult result={combatResult} onDashboard={() => navigate('/')} />}
 
       {!combatResult && <section className="combat-arena-board" aria-label="Plateau de combat">
         <div className="combat-arena-player combat-arena-player-opponent">

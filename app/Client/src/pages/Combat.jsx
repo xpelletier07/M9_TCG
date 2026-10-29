@@ -49,7 +49,7 @@ function Combat() {
 
     socket.on('connect', () => {
       setConnectionStatus('Connecté')
-      socket.emit('combat:join', { matchId })
+      socket.emit('combat:join', { matchId, phase: 'lobby' })
     })
     socket.on('disconnect', () => {
       setConnectionStatus('Déconnecté')
