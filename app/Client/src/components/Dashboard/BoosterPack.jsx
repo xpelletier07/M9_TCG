@@ -41,6 +41,8 @@ export default function BoosterPack() {
   const [cooldownRemainingSeconds, setCooldownRemainingSeconds] = useState(null)
   const [inventoryCount, setInventoryCount] = useState(0)
   const [feedback, setFeedback] = useState(null)
+  // id du pack à dropper, peut etre changé ici a place de checker dans le code
+  const idPack = 1
 
   // Chargement des packs actifs
   useEffect(() => {
@@ -167,7 +169,7 @@ export default function BoosterPack() {
     setFeedback(null)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/inventaire-pack/open`, {
+      const response = await fetch(`${API_BASE_URL}/inventaire-pack/${idPack}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
