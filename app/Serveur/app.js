@@ -58,11 +58,7 @@ async function startServer() {
   await pool.query(`
     ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS github_id VARCHAR(50) UNIQUE;
     ALTER TABLE utilisateurs ALTER COLUMN mot_de_passe_hash DROP NOT NULL;
-    UPDATE utilisateurs SET credits = 1000 WHERE credits IS NULL;
-    ALTER TABLE utilisateurs ALTER COLUMN credits SET DEFAULT 1000;
-    ALTER TABLE utilisateurs ALTER COLUMN credits SET NOT NULL;
-    ALTER TABLE utilisateurs DROP CONSTRAINT IF EXISTS utilisateurs_credits_check;
-    ALTER TABLE utilisateurs ADD CONSTRAINT utilisateurs_credits_check CHECK (credits >= 0);
+    ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS avatar_url TEXT;
   `)
 
   // Insert des comptes de démonstration si ils n'existent pas déjà

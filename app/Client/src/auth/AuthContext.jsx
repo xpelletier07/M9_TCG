@@ -27,9 +27,18 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Met à jour les informations du user dans le state React et dans le localStorage
+  function updateUser(updatedData) {
+    setUser((prev) => {
+      const merged = { ...(prev || {}), ...updatedData }
+      localStorage.setItem('user', JSON.stringify(merged))
+      return merged
+    })
+  }
+
   return (
-    // Fournit { user, token, login, logout } à tous les descendants via useAuth()
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    // Fournit { user, token, login, logout, updateUser } à tous les descendants via useAuth()
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )
