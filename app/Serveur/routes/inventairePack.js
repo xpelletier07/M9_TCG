@@ -1,7 +1,9 @@
 import { pool } from "./../db/pool.js"
 import express from "express"
 import { body, validationResult } from "express-validator"
+import jwt from "jsonwebtoken"
 import { checkAuth } from "../middlewares/checkAuth.js"
+import { getDropCommunState } from "../services/dropCommunService.js"
 
 const router = express.Router()
 
@@ -56,10 +58,18 @@ async function processCycle() {
 router.get("/drop-state", async (req, res) => {
     try {
         await processCycle()
-
-        const nowMs = Date.now()
-        const remainingSeconds = getRemainingSeconds(nowMs)
-        const resetAt = new Date(nowMs + remainingSeconds * 1000).toISOString()
+        let userId = null
+        const authHeader = req.headers.authorization
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1]
+                const decoded = jwt.decode(token)
+                if (decoded?.id) userId = decoded.id
+            } catch {
+                // ignore invalid token in public route
+            }
+        }
+        const dropState = await getDropCommunState(userId)
 
         if (!currentCyclePack) {
             currentCyclePack = await loadRandomActivePack()
@@ -67,8 +77,12 @@ router.get("/drop-state", async (req, res) => {
 
         res.json({
             cycleSeconds: CYCLE_SECONDS,
-            remainingSeconds,
-            resetAt,
+            remainingSeconds: dropState.remainingSeconds,
+            resetAt: dropState.resetAt || new Date().toISOString(),
+            isClaimReady: dropState.isClaimReady,
+            canClaim: dropState.canClaim,
+            claimedCount: dropState.claimedCount,
+            expectedClaimCount: dropState.expectedClaimCount,
             pack: currentCyclePack,
         })
     } catch (error) {

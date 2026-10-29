@@ -9,6 +9,7 @@ import packsRouter from "../routes/packs.js"
 import inventairePackRouter from "../routes/inventairePack.js"
 import creditsRouter from "../routes/credits.js"
 import settingsRouter from "../routes/settings.js"
+import randomCardRouter from "../routes/randomcard.js"
 
 const apiRouter = express.Router()
 
@@ -20,6 +21,7 @@ apiRouter.use("/pack", packsRouter)
 apiRouter.use("/inventaire-pack", inventairePackRouter)
 apiRouter.use("/credits", creditsRouter)
 apiRouter.use("/settings", settingsRouter)
+apiRouter.use("/cards", randomCardRouter)
 apiRouter.use(carteRouter)
 apiRouter.use(inventaireRouter)
 
