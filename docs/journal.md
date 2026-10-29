@@ -139,3 +139,14 @@
     - *William :* Menu/page utilisateur
 - **Blocages :** Plusieurs examens donc le travail a été mis de côté un peu pour la plupart des membres de l'équipe
 - **Décisions :** Aucunes décisions importantes
+
+## Semaine 9-2 | Lundi 29 octobre 2026
+- **Absence :** Aucune
+- **Avancées :** 
+    - *Xavier :* Finaliser l'arenes de combat, link les settings utilisateur dans combats et c'est occuper des pulls requests.
+    - *Alek :* Fixx de code et claim les packs.
+    - *Marco :* Finalisation de la stucture de monnaies.
+    - *Lotfi :* Fait fonctionner la page claim.
+    - *William :* Page profil et les settings.
+- **Blocages :** Aucun
+- **Décisions :** Finaliser avant la remises les choses qui nous à été donné pour le sprint 2.
