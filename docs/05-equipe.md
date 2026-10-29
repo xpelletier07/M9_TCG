@@ -54,7 +54,7 @@ Notre définition de "terminé" n'a pas changé mais 2 récits mis dans le table
 ## Contribution individuelle sprint 2
 | Membre | Contributions à la soumission | Issues |
 |--------|-------------------------------|--------|
-| Alek | les drops periodiques et les pull request | [#130](https://github.com/xpelletier07/M9_TCG/issues/130),[#131](https://github.com/xpelletier07/M9_TCG/issues/131),  |
+| Alek | Le système de booster packs (paquets de cartes) et les pull request | [#130](https://github.com/xpelletier07/M9_TCG/issues/130),[#131](https://github.com/xpelletier07/M9_TCG/issues/131),  |
 | Lotfi | Le système de drop communs | [#35](https://github.com/xpelletier07/M9_TCG/issues/35), [#55](https://github.com/xpelletier07/M9_TCG/issues/55) |
 | Marco | Connexion avec Github (OAuth) et base pour la monnaie virtuel du jeu | [#45](https://github.com/xpelletier07/M9_TCG/issues/45), [#128](https://github.com/xpelletier07/M9_TCG/issues/128) |
 | Xavier | Pull request et import socket.io | [#138](https://github.com/xpelletier07/M9_TCG/issues/138) |
