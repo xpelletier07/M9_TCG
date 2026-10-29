@@ -8,6 +8,8 @@ const pagePaths = {
   bazaar: '/bazaar',
   inventaire: '/inventaire',
   combat: '/combat',
+  decks: '/decks',
+  settings: '/settings',
 }
 
 // Layout commun aux pages protégées : Sidebar fixe + zone de contenu (Outlet = route enfant active)

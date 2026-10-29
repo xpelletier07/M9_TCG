@@ -76,13 +76,6 @@ app.get("/api/drop-timer", (req, res) => {
 
 
 async function startServer() {
-  // Migration pour les bases existantes (db.sql ne s'exécute qu'à la création du volume) : support de la connexion GitHub
-  await pool.query(`
-    ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS github_id VARCHAR(50) UNIQUE;
-    ALTER TABLE utilisateurs ALTER COLUMN mot_de_passe_hash DROP NOT NULL;
-    ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS dernier_claim_carte_at TIMESTAMPTZ;
-  `)
-
   // Insert des comptes de démonstration si ils n'existent pas déjà
   await pool.query(`
     INSERT INTO utilisateurs
