@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS Packs (
     nom_pack VARCHAR(100) UNIQUE NOT NULL,
     image_pack TEXT NOT NULL,
     description_pack TEXT NOT NULL,
-    liste_carte VARCHAR(255)[] NOT NULL,
+    liste_carte INTEGER[] NOT NULL,
     valeur int NOT NULL
 );
 

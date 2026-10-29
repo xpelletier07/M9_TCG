@@ -27,7 +27,7 @@ function getRemainingSeconds(nowMs = Date.now()) {
 
 async function loadRandomActivePack() {
     const result = await pool.query(
-        "select id_pack, nom_pack, image_pack, description_pack, liste_carte from Packs where actif = true order by random() limit 1"
+        "select id_pack, nom_pack, image_pack, description_pack, liste_carte from Packs order by random() limit 1"
     )
 
     return result.rows[0] || null
@@ -216,13 +216,13 @@ router.post("/:idPack", checkAuth, async (req, res) => {
     try {
         const result = await pool.query(
             // crée une entrée dans la table, si déjà une entrée, update l'entrée et ajoute un à la quantité
-            `INSERT INTO inventaire_packs (id_utilisateur, id_pack, quantite)                                                                                  
+            `INSERT INTO inventaire_packs (id_utilisateur, id_pack, quantite)
                 VALUES ($1, $2, 1)                                                                                                                                
                 ON CONFLICT (id_utilisateur, id_pack)                                                                                                             
-                DO UPDATE SET quantite = inventaire_packs.quantite + 1; returning *`,
+                DO UPDATE SET quantite = inventaire_packs.quantite + 1 returning *`,
             [req.user.id, idPack]
         )
-        res.status(200).json(result)
+        res.status(200).json(result.rows)
     } catch (error) {
         console.error("Erreur lors de l'ajout d'un pack à l'inventaire :", error)
         res.status(500).json({ error: "Erreur serveur" })

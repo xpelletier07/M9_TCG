@@ -97,6 +97,16 @@ async function startServer() {
     ON CONFLICT DO NOTHING
   `)
 
+  //insertion d'un premier pack de démo (le meilleur)
+  await pool.query(`
+    insert into Packs
+      (nom_pack, image_pack, description_pack, liste_carte, valeur)
+    values
+      ('Belle pro moment', 'https://imgs.search.brave.com/AplNxDUoDF5PCln6JDPv-aEbINciPiMK9IOYTuqg4VA/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMud2l4c3RhdGlj/LmNvbS9tZWRpYS82/ZmU5ODNfN2FkMDNk/M2U1ZTM5NDg2ZTg4/N2Y5NDQwNWMxYjZj/ODB-bXYyLnBuZy92/MS9maWxsL3dfOTgw/LGhfNjUzLGFsX2Ms/cV85MCx1c21fMC42/Nl8xLjAwXzAuMDEs/ZW5jX2F2aWYscXVh/bGl0eV9hdXRvL2xv/Z28lMjBMYSUyMGJl/bGxlJTIwUHJvdmlu/Y2UlMjBBdXRoZXRp/cXVlLnBuZw',
+      'You found me in a belle pro moment of my life', ARRAY[1, 2, 3], 10)
+    on conflict do nothing
+  `)
+
   server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
   })
