@@ -139,7 +139,7 @@ function Inventaire() {
                 throw new Error(data.error || "Erreur lors de l'ouverture du pack")
             }
 
-            navigate('/ouverture-pack', { state: { pack: data.pack } })
+            navigate(`/ouverture-pack/${data.pack.id_pack}`)
         } catch (err) {
             setErreur(err.message)
             setPackEnOuverture(null)
