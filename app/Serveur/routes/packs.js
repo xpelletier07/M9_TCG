@@ -10,7 +10,7 @@ router.get("/", checkAuth, async (req, res) => {
         const result = await pool.query("select * from Packs order by id_pack desc")
         res.status(200).json(result.rows)
     } catch (error) {
-        console.error("Erreur dans /pack/all", error)
+        console.error("Erreur dans /pack", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
