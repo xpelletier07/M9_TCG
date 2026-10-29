@@ -13,7 +13,6 @@ import OuverturePack from './pages/OuverturePack.jsx'
 import Combat from './pages/Combat.jsx'
 import Decks from './pages/Decks.jsx'
 import Settings from './pages/Settings.jsx'
-import ClaimCarte from './pages/ClaimCarte.jsx'
 
 function Routeur() {
     return (
@@ -31,6 +30,7 @@ function Routeur() {
                         <Route path="ouverture-pack/:idPack" element={<OuverturePack />} />
                         <Route path="combat" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
+                        <Route path="settings" element={<Settings />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

@@ -3,7 +3,7 @@
   min-width: 0;
   min-height: 100vh;
   padding: 2rem clamp(1rem, 3vw, 3rem);
-  background: #f0f6ff;
+  background: transparent;
   color: #023047;
 }
 
@@ -20,10 +20,12 @@
 
 .dashboard-panel {
   min-width: 0;
-  background: #ffffff;
-  border: 1px solid #dce7f5;
-  border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(2, 48, 71, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(13, 42, 110, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(13, 42, 110, 0.08);
 }
 
 .dashboard-drop,
@@ -205,8 +207,8 @@
   .dashboard-timer { align-self: flex-start; }
 }
 
-html.tcg-dark .dashboard-page { background: #111b2b; color: #e8f1ff; }
-html.tcg-dark .dashboard-panel { border-color: #29415f; background: #17263b; box-shadow: none; }
+html.tcg-dark .dashboard-page { background: transparent; color: #e8f1ff; }
+html.tcg-dark .dashboard-panel { border-color: rgba(59, 130, 246, 0.22); background: rgba(17, 27, 43, 0.92); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); }
 html.tcg-dark .dashboard-title,
 html.tcg-dark .dashboard-combat-title,
 html.tcg-dark .dashboard-booster-title { color: #f4f8ff; }
@@ -215,4 +217,4 @@ html.tcg-dark .dashboard-meta,
 html.tcg-dark .dashboard-inventory,
 html.tcg-dark .dashboard-booster-description,
 html.tcg-dark .dashboard-empty { color: #a9bdd6; }
-html.tcg-dark .dashboard-combat-header { border-bottom-color: #29415f; }
+html.tcg-dark .dashboard-combat-header { border-bottom-color: rgba(59, 130, 246, 0.18); }

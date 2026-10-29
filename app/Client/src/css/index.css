@@ -125,9 +125,10 @@ code {
 
 .combat-page {
   background:
-    radial-gradient(circle at 92% 4%, rgba(56, 189, 165, 0.14), transparent 24rem),
-    linear-gradient(135deg, #f7fbfc 0%, #edf3f4 100%);
-  color: #16343c;
+    radial-gradient(circle at 90% 8%, rgba(37, 99, 235, 0.15), transparent 26rem),
+    radial-gradient(circle at 10% 90%, rgba(14, 165, 233, 0.12), transparent 26rem),
+    linear-gradient(135deg, #eff5fc 0%, #e2edfa 100%);
+  color: #0d2a6e;
 }
 
 .combat-page-header,
@@ -602,9 +603,10 @@ code {
 
 html.tcg-dark .combat-page {
   background:
-    radial-gradient(circle at 92% 4%, rgba(41, 184, 157, 0.12), transparent 24rem),
-    linear-gradient(135deg, #18191a 0%, #202729 100%);
-  color: #e4e6eb;
+    radial-gradient(circle at 90% 8%, rgba(37, 99, 235, 0.22), transparent 28rem),
+    radial-gradient(circle at 10% 90%, rgba(14, 165, 233, 0.16), transparent 28rem),
+    linear-gradient(145deg, #090e1a 0%, #0d1629 100%);
+  color: #e2e8f0;
 }
 
 html.tcg-dark .combat-page-header h1 {
