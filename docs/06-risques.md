@@ -43,13 +43,19 @@ Les estimés de points par sprints ne sont pas atteints (estimé de 45 pts/sprin
 
 **Probabilité :** Moyenne
 **Impact :** Moyen — Si beaucoup de joueurs mettent une même offre dans un délai très court, des problèmes peuvent survenir dans la logistique d'offrir la carte la moins chère.
-**Le signal qui se matérialise :** Fluctuaction abusive des prix dans un court délai
+**Le signal qui se matérialise :** Fluctuation abusive des prix dans un court délai
 **Résolution et mesure :**
-- Ajouter un cap lorsque nécéssaire au nombre de transaction que notre stack peut gérer
-- Accepter qu'un certain taut de fluctuations est normale
+- Ajouter un cap lorsque nécessaire au nombre de transaction que notre stack peut gérer
+- Accepter qu'un certain taux de fluctuations est normale
 
 ## Rétrospective sprint 1
-- Le manque de communication n'as pas été vu du tout! Même si quelques fois des tâches mineures avaient étées faites en double, nous en avons profité pour prendre des parties des deux membres et faire un meilleur tout.
+- Le manque de communication n'a pas été vu du tout! Même si quelques fois des tâches mineures avaient été faites en double, nous en avons profité pour prendre des parties des deux membres et faire un meilleur tout.
 - Les absences ne se sont pas faites voir à un niveau démesuré, quelques personnes ont étés absentes une ou deux fois mais rien de ahurissant.
-- Pour l'instant la taille du projet n'est pas un enjeu. Même si nous avions dit que nous alions nous inquiéter si seulement 30 points ont été complétés durant le sprint, nous réalisons que c'était simplement par mauvaise hestimation et non par trop grande envergure du projet.
+- Pour l'instant la taille du projet n'est pas un enjeu. Même si nous avions dit que nous alions nous inquiéter si seulement 30 points ont été complétés durant le sprint, nous réalisons que c'était simplement par une mauvaise estimation et non par trop grande envergure du projet.
+- Pas encore applicable, le Bazaar va commencer à être implémenté dans le sprint 2. 
+
+## Rétrospective sprint 2
+- Le manque de communication n'a pas été un problème pour ce sprint encore.
+- Les absences ont beaucoup augmenté du côté de Marco avec deux absences sur quatre qui représente la moitié des rencontres du sprint 2. Les absences se sont manifestées du au stress des examens de mi-session. Certaines absences n'ont pas été mentionnées sur Discord, mais il continuait de travailler sur le projet à la maison et restait en connaissance de l'avancement du projet à travers d'autres cours ou Discord.
+- La taille du sprint a été réduite pour être redistribuée avec le sprint 3, car nous n'avions pas pris en compte la semaine de relâche (soutien à la réussite) et parce que le sprint 3 n'avait pas beaucoup de tâche ce qui nous a permis de le déplacer. 
 - Pas encore applicable, le Bazaar va commencer à être implémenté dans le sprint 2. 
