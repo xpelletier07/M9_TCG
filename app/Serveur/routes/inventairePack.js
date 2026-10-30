@@ -226,7 +226,7 @@ async function claimPackHandler(req, res, idPackParam) {
             [idPack]
         )
         if (packQuery.rows.length === 0) {
-            return res.status(404).json({ error: "Pack introuvable" })
+            return res.status(404).json({ error: "Pack introuvable ou inactif" })
         }
 
         // Mise à jour conditionnelle : ne réussit que si le cooldown de 24h est écoulé
