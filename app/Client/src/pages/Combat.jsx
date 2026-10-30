@@ -1,60 +1,80 @@
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext.jsx'
 import { API_BASE_URL } from '../config'
 
 
 
 
 function Combat() {
+  const { user, token } = useAuth()
   const socketRef = useRef(null)
-  const eventTimersRef = useRef(new Set())
-  const [connectionStatus, setConnectionStatus] = useState('Connexion...')
+  const previewTimerRef = useRef(null)
+  const isChatOpenRef = useRef(false)
+  const joinedMatchRef = useRef(false)
+  const navigate = useNavigate()
+  const [connectionStatus, setConnectionStatus] = useState('Déconnecté')
   const [matchStatus, setMatchStatus] = useState('Aucun combat rejoint')
-  const [events, setEvents] = useState([])
   const [joinedMatchId, setJoinedMatchId] = useState(null)
   const [socketId, setSocketId] = useState(null)
+  const [currentProfile, setCurrentProfile] = useState(user)
   const [players, setPlayers] = useState([])
   const [combatStarted, setCombatStarted] = useState(false)
   const [matchCode, setMatchCode] = useState('')
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0)
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [messagePreview, setMessagePreview] = useState(null)
 
-  useEffect(() => {
-    const socket = io(API_BASE_URL)
+  function resetCombatState() {
+    setJoinedMatchId(null)
+    setMatchStatus('Aucun combat rejoint')
+    setPlayers([])
+    setCombatStarted(false)
+    setMessages([])
+    setUnreadMessageCount(0)
+    setMessage('')
+    setMessagePreview(null)
+    setIsChatOpen(false)
+  }
+
+  function connectToCombat(matchId) {
+    const socket = io(`${API_BASE_URL}/combat`, {
+      autoConnect: false,
+      auth: { token },
+    })
     socketRef.current = socket
 
-    const addEvent = (message) => {
-      const eventId = `${Date.now()}-${Math.random()}`
-      setEvents((currentEvents) => [{ id: eventId, message }, ...currentEvents].slice(0, 8))
-
-      const timer = setTimeout(() => {
-        setEvents((currentEvents) => currentEvents.filter((event) => event.id !== eventId))
-        eventTimersRef.current.delete(timer)
-      }, 5000)
-      eventTimersRef.current.add(timer)
-    }
-
-    socket.on('connect', () => setConnectionStatus('Connecté'))
-    socket.on('disconnect', () => setConnectionStatus('Déconnecté'))
-    socket.on('connect_error', () => setConnectionStatus('Serveur indisponible'))
-    socket.on('combat:connected', ({ socketId: connectedSocketId }) => {
+    socket.on('connect', () => {
+      setConnectionStatus('Connecté')
+      socket.emit('combat:join', { matchId, phase: 'lobby' })
+    })
+    socket.on('disconnect', () => {
+      setConnectionStatus('Déconnecté')
+      setSocketId(null)
+      if (socketRef.current === socket) socketRef.current = null
+    })
+    socket.on('connect_error', () => {
+      setConnectionStatus('Serveur indisponible')
+      socket.disconnect()
+    })
+    socket.on('combat:connected', ({ socketId: connectedSocketId, profile: connectedProfile }) => {
       setSocketId(connectedSocketId)
-      addEvent('Socket de combat prête')
+      if (connectedProfile) setCurrentProfile(connectedProfile)
     })
     socket.on('combat:joined', ({ matchId }) => {
+      joinedMatchRef.current = true
       setJoinedMatchId(matchId)
       setCombatStarted(false)
       setMatchStatus(`Combat rejoint : ${matchId}`)
-      addEvent(`Vous avez rejoint ${matchId}`)
     })
     socket.on('combat:left', () => {
-      setJoinedMatchId(null)
-      setMatchStatus('Aucun combat rejoint')
-      setPlayers([])
-      setCombatStarted(false)
-      setMessages([])
-      setMessage('')
-      addEvent('Vous avez quitté le combat')
+      joinedMatchRef.current = false
+      resetCombatState()
+      socket.disconnect()
+      navigate('/combat')
     })
     socket.on('combat:room-state', ({ players: roomPlayers, started }) => {
       setPlayers(roomPlayers)
@@ -62,26 +82,40 @@ function Combat() {
     })
     socket.on('combat:started', () => {
       setCombatStarted(true)
-      addEvent('Les deux joueurs sont prêts. La partie commence !')
+      navigate(`/combat/${matchId}/arena`)
     })
-    socket.on('combat:player-joined', ({ playerId }) => addEvent(`Joueur connecté : ${playerId}`))
-    socket.on('combat:player-left', ({ playerId, reason }) => {
-      addEvent(`${reason === 'left' ? 'Joueur parti' : 'Joueur déconnecté'} : ${playerId}`)
-    })
-    socket.on('combat:action', ({ action }) => addEvent(`Action reçue : ${action}`))
-    socket.on('combat:message', ({ playerId, message: receivedMessage, system }) => {
+    socket.on('combat:message', ({ playerId, playerName, message: receivedMessage, system }) => {
+      const newMessage = { playerId, playerName, message: receivedMessage, system }
       setMessages((currentMessages) => [
-        { playerId, message: receivedMessage, system },
+        newMessage,
         ...currentMessages,
       ].slice(0, 30))
+      if (!isChatOpenRef.current) {
+        setUnreadMessageCount((count) => count + 1)
+      }
+      setMessagePreview(newMessage)
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
+      previewTimerRef.current = setTimeout(() => {
+        setMessagePreview(null)
+        previewTimerRef.current = null
+      }, 4000)
     })
-    socket.on('combat:error', ({ message }) => addEvent(`Erreur : ${message}`))
+    socket.on('combat:error', ({ message }) => {
+      setMatchStatus(`Erreur : ${message}`)
+      if (!joinedMatchRef.current) socket.disconnect()
+    })
 
-    const eventTimers = eventTimersRef.current
+    socket.connect()
+  }
+
+  useEffect(() => {
+    isChatOpenRef.current = isChatOpen
+  }, [isChatOpen])
+
+  useEffect(() => {
     return () => {
-      socket.disconnect()
-      eventTimers.forEach((timer) => clearTimeout(timer))
-      eventTimers.clear()
+      socketRef.current?.disconnect()
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
       socketRef.current = null
     }
   }, [])
@@ -102,14 +136,12 @@ function Combat() {
 
     const trimmedMatchCode = matchCode.trim()
     if (!trimmedMatchCode) {
-      setEvents((currentEvents) => [
-        { id: `${Date.now()}-${Math.random()}`, message: 'Entrez un code de partie.' },
-        ...currentEvents,
-      ].slice(0, 8))
+      setMatchStatus('Entrez un code de partie.')
       return
     }
 
-    socketRef.current?.emit('combat:join', { matchId: trimmedMatchCode })
+    setConnectionStatus('Connexion...')
+    connectToCombat(trimmedMatchCode)
   }
 
   function sendMessage(event) {
@@ -121,8 +153,17 @@ function Combat() {
     setMessage('')
   }
 
+  function toggleChat() {
+    setIsChatOpen((open) => {
+      const nextOpen = !open
+      isChatOpenRef.current = nextOpen
+      if (nextOpen) setUnreadMessageCount(0)
+      return nextOpen
+    })
+  }
+
   return (
-    <main className="content-left-spacing combat-page">
+    <main className={`content-left-spacing combat-page ${joinedMatchId ? 'is-joined' : ''}`}>
       <header className="combat-page-header">
         <div>
           <span className="combat-kicker">Arène en ligne</span>
@@ -155,10 +196,10 @@ function Combat() {
                 onChange={(event) => setMatchCode(event.target.value)}
                 placeholder="MATCH-42"
                 maxLength={80}
-                pattern="[A-Za-z0-9_-]+"
+                pattern="[A-Za-z0-9_\-]+"
                 disabled={Boolean(joinedMatchId)}
               />
-              <button className={joinedMatchId ? 'combat-leave-button' : ''} type="button" onClick={toggleCombat} disabled={connectionStatus !== 'Connecté'}>
+              <button className={joinedMatchId ? 'combat-leave-button' : ''} type="button" onClick={toggleCombat} disabled={connectionStatus === 'Connexion...'}>
                 {joinedMatchId ? 'Quitter' : 'Rejoindre'}
               </button>
             </div>
@@ -169,37 +210,57 @@ function Combat() {
           </div>
         </div>
 
-        {joinedMatchId && <div className="combat-chat-panel">
-          <div className="combat-panel-heading">
-            <div>
-              <span className="combat-panel-index">02</span>
-              <h2>Chat de la partie</h2>
+        {joinedMatchId && <div className={`combat-chat-widget ${isChatOpen ? 'is-open' : ''}`}>
+          {!isChatOpen && messagePreview && (
+            <div className="combat-chat-preview" role="status">
+              <strong>{messagePreview.system ? 'Arène' : (messagePreview.playerName ?? messagePreview.playerId)}</strong>
+              <span>{messagePreview.message}</span>
             </div>
-            <span className="combat-message-count">{messages.length}/30</span>
-          </div>
-          <ul className="combat-messages" aria-live="polite">
-            {messages.length === 0 && <li className="combat-empty-message">Rejoins une salle pour commencer la conversation.</li>}
-            {messages.map(({ playerId, message: receivedMessage, system }, index) => (
-              <li key={`${playerId ?? 'system'}-${index}`} className={system ? 'combat-system-message' : ''}>
-                {system ? receivedMessage : <><strong>{playerId}</strong> : {receivedMessage}</>}
-              </li>
-            ))}
-          </ul>
-          <form className="combat-chat-form" onSubmit={sendMessage}>
-            <label className="visually-hidden" htmlFor="combat-message">Message à la salle</label>
-            <div>
-              <input
-                id="combat-message"
-                type="text"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder={joinedMatchId ? 'Écrire un message à la salle...' : 'Rejoins une salle pour écrire'}
-                maxLength={500}
-                disabled={!joinedMatchId}
-              />
-              <button type="submit" disabled={!joinedMatchId || !message.trim()} aria-label="Envoyer le message">→</button>
+          )}
+          {isChatOpen && (
+            <div className="combat-chat-popover">
+              <div className="combat-chat-popover-header">
+                <div>
+                  <span className="combat-panel-index">02</span>
+                  <h2>Chat de l’arène</h2>
+                </div>
+                <span className="combat-message-count">{messages.length}/30</span>
+              </div>
+              <ul className="combat-messages" aria-live="polite">
+                {messages.length === 0 && <li className="combat-empty-message">Aucun message pour le moment.</li>}
+                {messages.map(({ playerId, playerName, message: receivedMessage, system }, index) => (
+                  <li key={`${playerId ?? 'system'}-${index}`} className={system ? 'combat-system-message' : ''}>
+                    {system ? receivedMessage : <><strong>{playerName ?? playerId}</strong> : {receivedMessage}</>}
+                  </li>
+                ))}
+              </ul>
+              <form className="combat-chat-form" onSubmit={sendMessage}>
+                <label className="visually-hidden" htmlFor="combat-message">Message à la salle</label>
+                <div>
+                  <input
+                    id="combat-message"
+                    type="text"
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    placeholder="Écrire un message..."
+                    maxLength={500}
+                  />
+                  <button type="submit" disabled={!message.trim()} aria-label="Envoyer le message">→</button>
+                </div>
+              </form>
             </div>
-          </form>
+          )}
+          <button
+            className="combat-chat-toggle"
+            type="button"
+            onClick={toggleChat}
+            aria-expanded={isChatOpen}
+            aria-label={isChatOpen ? 'Fermer le chat' : 'Ouvrir le chat'}
+          >
+            <span aria-hidden="true">☵</span>
+            <span>{isChatOpen ? 'Fermer' : 'Chat'}</span>
+            {!isChatOpen && unreadMessageCount > 0 && <b>{unreadMessageCount}</b>}
+          </button>
         </div>}
 
         {joinedMatchId && <aside className="combat-activity-panel">
@@ -219,8 +280,8 @@ function Combat() {
           <ul className="combat-player-list">
             {players.map((player) => (
               <li key={player.playerId}>
-                <span className="combat-player-avatar" aria-hidden="true">{player.playerId.slice(-2)}</span>
-                <span className="combat-player-name">{player.playerId === socketId ? 'Vous' : player.playerId}</span>
+                <span className="combat-player-avatar" aria-hidden="true">{(player.profile?.nom_utilisateur ?? player.playerId).slice(-2)}</span>
+                <span className="combat-player-name">{player.playerId === socketId ? 'Vous' : (player.profile?.nom_utilisateur ?? player.playerId)}</span>
                 <span className={`combat-ready-state ${player.ready ? 'is-ready' : ''}`}>
                   {player.ready ? 'READY' : 'En attente'}
                 </span>
@@ -234,10 +295,6 @@ function Combat() {
             </button>
           )}
           {combatStarted && <p className="combat-started-message">La partie est lancée. Bon combat !</p>}
-          <ul className="combat-events">
-            {events.length === 0 && <li className="combat-empty-message">En attente d’activité...</li>}
-            {events.map((event) => <li key={event.id}>{event.message}</li>)}
-          </ul>
         </aside>}
       </section>
     </main>
