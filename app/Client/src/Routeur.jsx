@@ -35,6 +35,7 @@ function Routeur() {
                         <Route path="combat/:matchId" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
                         <Route path="settings" element={<Settings />} />
+                        <Route path="claim-carte" element={<ClaimCarte />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
