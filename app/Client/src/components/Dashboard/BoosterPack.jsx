@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { API_BASE_URL } from '../../config'
 import { useAuth } from '../../auth/AuthContext'
 
 const getPackImageUrl = (imagePath) => {
-  if (!imagePath) return null
+  if (!imagePath) return '/images/pack-default.png'
 
   if (/^https?:\/\//i.test(imagePath)) {
     return imagePath
@@ -41,8 +41,7 @@ export default function BoosterPack() {
   const [cooldownRemainingSeconds, setCooldownRemainingSeconds] = useState(null)
   const [inventoryCount, setInventoryCount] = useState(0)
   const [feedback, setFeedback] = useState(null)
-  // id du pack à dropper, peut etre changé ici a place de checker dans le code
-  const idPack = 1
+  const tickRef = useRef(null)
 
   // Chargement des packs actifs
   useEffect(() => {
@@ -50,14 +49,14 @@ export default function BoosterPack() {
 
     const fetchPacks = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/pack`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const response = await fetch(`${API_BASE_URL}/pack`, { headers })
         if (!response.ok) {
           throw new Error('Failed to load packs')
         }
 
-        const activePacks = await response.json()
+        const data = await response.json()
+        const activePacks = (Array.isArray(data) ? data : []).filter((p) => p?.actif !== false)
         if (!cancelled) {
           setPacks(activePacks)
         }
@@ -82,63 +81,61 @@ export default function BoosterPack() {
 
   const pack = packs[0]
 
+  // Démarre le countdown local à partir d'une valeur donnée
+  const startCountdown = (seconds) => {
+    // Nettoyer l'ancien interval s'il existe
+    if (tickRef.current) {
+      window.clearInterval(tickRef.current)
+      tickRef.current = null
+    }
+
+    if (!seconds || seconds <= 0) return
+
+    tickRef.current = window.setInterval(() => {
+      setCooldownRemainingSeconds((prev) => {
+        const next = Math.max(0, prev - 1)
+        if (next <= 0) {
+          window.clearInterval(tickRef.current)
+          tickRef.current = null
+        }
+        return next
+      })
+    }, 1000)
+  }
+
   // Chargement du statut personnel (cooldown 24h & inventaire de pack)
   useEffect(() => {
     let cancelled = false
-    let intervalId = null
 
     if (!token) {
       setCooldownRemainingSeconds(null)
       setInventoryCount(0)
+      if (tickRef.current) {
+        window.clearInterval(tickRef.current)
+        tickRef.current = null
+      }
       return
     }
 
     const fetchPackStatus = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/inventaire-pack/status`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         })
 
-        if (!response.ok) {
-          throw new Error('Impossible de charger le statut du pack')
-        }
+        if (!response.ok) throw new Error('Impossible de charger le statut du pack')
 
         const data = await response.json()
         if (cancelled) return
 
-        const initialCooldown = data.cooldownRemainingSeconds ?? 0
-        setCooldownRemainingSeconds(initialCooldown)
+        const serverCooldown = Math.max(0, data.cooldownRemainingSeconds ?? 0)
+        setCooldownRemainingSeconds(serverCooldown)
+        startCountdown(serverCooldown)
 
-        // Récupérer la quantité possédée pour ce pack
+        // Inventaire pour ce pack spécifique
         if (pack && Array.isArray(data.inventory)) {
           const userItem = data.inventory.find((item) => item.id_pack === pack.id_pack)
           setInventoryCount(userItem ? userItem.quantite : 0)
-        }
-
-        // Démarrer le décompte si cooldown actif
-        const cooldownResetAt = data.cooldownResetAt
-          ? new Date(data.cooldownResetAt).getTime()
-          : null
-
-        if (initialCooldown > 0) {
-          window.clearInterval(intervalId)
-          intervalId = window.setInterval(() => {
-            if (cooldownResetAt) {
-              const remaining = Math.max(0, Math.ceil((cooldownResetAt - Date.now()) / 1000))
-              setCooldownRemainingSeconds(remaining)
-              if (remaining <= 0) {
-                window.clearInterval(intervalId)
-              }
-            } else {
-              setCooldownRemainingSeconds((prev) => {
-                if (!prev || prev <= 1) {
-                  window.clearInterval(intervalId)
-                  return 0
-                }
-                return prev - 1
-              })
-            }
-          }, 1000)
         }
       } catch (error) {
         console.error('Erreur statut pack:', error)
@@ -146,12 +143,23 @@ export default function BoosterPack() {
     }
 
     fetchPackStatus()
+    // Re-poll toutes les 30s pour corriger toute dérive
+    const pollId = window.setInterval(fetchPackStatus, 30000)
 
     return () => {
       cancelled = true
-      window.clearInterval(intervalId)
+      window.clearInterval(pollId)
     }
   }, [token, pack?.id_pack])
+
+  // Nettoyage du tick au démontage
+  useEffect(() => {
+    return () => {
+      if (tickRef.current) {
+        window.clearInterval(tickRef.current)
+      }
+    }
+  }, [])
 
   // Clic sur "Get Pack" pour réclamer le pack (cooldown 24h)
   const handleOpenPack = async () => {
@@ -168,9 +176,12 @@ export default function BoosterPack() {
     setFeedback(null)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/inventaire-pack/${idPack}`, {
+      const response = await fetch(`${API_BASE_URL}/inventaire-pack/${pack.id_pack}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`}
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       })
 
       const data = await response.json()
@@ -178,6 +189,7 @@ export default function BoosterPack() {
       if (!response.ok) {
         if (data.cooldownRemainingSeconds !== undefined) {
           setCooldownRemainingSeconds(data.cooldownRemainingSeconds)
+          startCountdown(data.cooldownRemainingSeconds)
         }
         setFeedback({
           type: 'error',
@@ -187,7 +199,9 @@ export default function BoosterPack() {
       }
 
       setInventoryCount(data.quantite ?? (inventoryCount + 1))
-      setCooldownRemainingSeconds(data.cooldownRemainingSeconds ?? 24 * 3600)
+      const newCooldown = data.cooldownRemainingSeconds ?? 24 * 3600
+      setCooldownRemainingSeconds(newCooldown)
+      startCountdown(newCooldown)
       setFeedback({
         type: 'success',
         message: 'Pack réclamé avec succès ! Prochain pack dans 24h.',

@@ -10,7 +10,7 @@ const router = express.Router()
 // Cycle de drop de cartes global (5 minutes)
 const CYCLE_SECONDS = 5 * 60
 // Cooldown pour réclamer un pack (24 heures)
-const PACK_COOLDOWN_HOURS = 24 //
+const PACK_COOLDOWN_HOURS = 24
 const ACTIVE_WINDOW_MS = 70 * 1000
 const activeUsers = new Map()
 let lastProcessedCycle = null
@@ -158,8 +158,10 @@ router.post("/:idPack/open", checkAuth, async (req, res) => {
             return res.status(400).json({ error: "Identifiant de pack invalide" })
         }
 
-        const checkIfInInventory = await pool.query(`select quantite from inventaire_packs 
-        where id_utilisateur = $1 and id_pack = $2`, [req.user.id, idPack])
+        const checkIfInInventory = await pool.query(
+            `select quantite from inventaire_packs where id_utilisateur = $1 and id_pack = $2`,
+            [req.user.id, idPack]
+        )
         if (checkIfInInventory.rows.length === 0) {
             return res.status(404).json({ error: "Ce pack n'est pas dans votre inventaire" })
         }
@@ -177,7 +179,7 @@ router.post("/:idPack/open", checkAuth, async (req, res) => {
             [req.user.id, idPack]
         )
         const packOuvert = result.rows[0]
-        // si c'était le dernier pack, on suprime l'entrée pour pas laisser des entrées vides dans la bd
+        // si c'était le dernier pack, on supprime l'entrée
         if (packOuvert.quantite === 0) {
             await pool.query(
                 `delete from inventaire_packs
@@ -202,22 +204,29 @@ router.post("/:idPack/open", checkAuth, async (req, res) => {
     }
 })
 
-// Réclamer un pack (ajouté à l'inventaire de l'utilisateur, 1 fois toutes les 24h)
-router.post("/:idPack", checkAuth, async (req, res) => {
-    // Prends l'id donné en params, le mets en int
-    const idPack = Number(req.params.idPack)
+// Fonction commune pour claim un pack (cooldown 24h)
+async function claimPackHandler(req, res, idPackParam) {
+    let idPack = idPackParam
+    if (!idPack) {
+        const bodyId = req.body?.id_pack
+        if (bodyId) idPack = Number(bodyId)
+    }
 
-    if (!Number.isInteger(idPack) || idPack < 1) {
-        return res.status(400).json({ error: "Identifiant de pack invalide" })
+    if (!idPack || !Number.isInteger(idPack) || idPack < 1) {
+        const firstPack = await pool.query("select id_pack from Packs order by id_pack asc limit 1")
+        if (firstPack.rows.length === 0) {
+            return res.status(404).json({ error: "Aucun pack disponible" })
+        }
+        idPack = firstPack.rows[0].id_pack
     }
 
     try {
         const packQuery = await pool.query(
-            "select id_pack, nom_pack, image_pack, description_pack, liste_carte from Packs where id_pack = $1 and actif = true",
+            "select id_pack, nom_pack, image_pack, description_pack, liste_carte from Packs where id_pack = $1",
             [idPack]
         )
         if (packQuery.rows.length === 0) {
-            return res.status(404).json({ error: "Pack introuvable ou inactif" })
+            return res.status(404).json({ error: "Pack introuvable" })
         }
 
         // Mise à jour conditionnelle : ne réussit que si le cooldown de 24h est écoulé
@@ -255,7 +264,7 @@ router.post("/:idPack", checkAuth, async (req, res) => {
             })
         }
 
-        // crée une entrée dans la table, si déjà une entrée, update l'entrée et ajoute un à la quantité
+        // Ajout du pack à l'inventaire
         const invResult = await pool.query(
             `insert into inventaire_packs (id_utilisateur, id_pack, quantite)
              values ($1, $2, 1)
@@ -277,12 +286,24 @@ router.post("/:idPack", checkAuth, async (req, res) => {
         console.error("Erreur lors de l'ajout d'un pack à l'inventaire :", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
+}
+
+// Support des deux routes : /claim et /open
+router.post("/claim", checkAuth, (req, res) => claimPackHandler(req, res))
+router.post("/open", checkAuth, (req, res) => claimPackHandler(req, res))
+
+// Réclamer un pack via /:idPack
+router.post("/:idPack", checkAuth, async (req, res) => {
+    const idPack = Number(req.params.idPack)
+    if (!Number.isInteger(idPack) || idPack < 1) {
+        return res.status(400).json({ error: "Identifiant de pack invalide" })
+    }
+    return claimPackHandler(req, res, idPack)
 })
 
 // GET pour obtenir les packs du joueur connecté
 router.get("/me", checkAuth, async (req, res) => {
     try {
-        // join les deux tables pour obtenir tous les packs de l'utilisateur et la quantité de chaque
         const resultat = await pool.query(`
             select p.*, ip.quantite from inventaire_packs as ip 
             join Packs as p on p.id_pack = ip.id_pack
