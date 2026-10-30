@@ -394,8 +394,8 @@ test("GET /inventaire-pack/status indique si l'utilisateur peut réclamer", asyn
     assert.deepEqual(body.inventory, [{ id_pack: 1, quantite: 2 }])
 })
 
-test("POST /inventaire-pack/open exige une authentification", async () => {
-    const { response, body } = await request("/inventaire-pack/open", {
+test("POST /inventaire-pack/:idPack exige une authentification", async () => {
+    const { response, body } = await request("/inventaire-pack/1", {
         method: "POST",
     })
 
@@ -403,7 +403,7 @@ test("POST /inventaire-pack/open exige une authentification", async () => {
     assert.equal(body.error, "Authentification requise")
 })
 
-test("POST /inventaire-pack/open refuse si le cooldown de 24h est actif", async () => {
+test("POST /inventaire-pack/:idPack refuse si le cooldown de 24h est actif", async () => {
     setQueryResult((sql) => {
         if (sql.includes("where id_pack = $1")) {
             return { rows: [{ id_pack: 1, nom_pack: "Pack Alpha", actif: true }], rowCount: 1, ok: true }
@@ -417,15 +417,49 @@ test("POST /inventaire-pack/open refuse si le cooldown de 24h est actif", async 
         return { rows: [], rowCount: 0, ok: true }
     })
 
-    const { response, body } = await request("/inventaire-pack/open", {
+    const { response, body } = await request("/inventaire-pack/1", {
         method: "POST",
-        headers: { ...authenticatedHeaders(), "content-type": "application/json" },
-        body: JSON.stringify({ id_pack: 1 }),
+        headers: authenticatedHeaders(),
     })
 
     assert.equal(response.status, 429)
     assert.match(body.error, /24h/)
     assert.ok(body.cooldownRemainingSeconds > 0)
+})
+
+test("POST /inventaire-pack/:idPack réclame le pack si éligible", async () => {
+    setQueryResult((sql) => {
+        if (sql.includes("where id_pack = $1")) {
+            return { rows: [{ id_pack: 1, nom_pack: "Pack Alpha" }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("update utilisateurs")) {
+            return { rows: [{ dernier_drop_pack_at: new Date().toISOString() }], rowCount: 1, ok: true }
+        }
+        if (sql.includes("insert into inventaire_packs")) {
+            return { rows: [{ id_pack: 1, quantite: 3 }], rowCount: 1, ok: true }
+        }
+        return { rows: [], rowCount: 0, ok: true }
+    })
+
+    const { response, body } = await request("/inventaire-pack/1", {
+        method: "POST",
+        headers: authenticatedHeaders(),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.message, "Pack réclamé avec succès !")
+    assert.equal(body.quantite, 3)
+    assert.equal(body.cooldownRemainingSeconds, 24 * 3600)
+})
+
+test("POST /inventaire-pack/:idPack refuse un identifiant invalide", async () => {
+    const { response, body } = await request("/inventaire-pack/abc", {
+        method: "POST",
+        headers: authenticatedHeaders(),
+    })
+
+    assert.equal(response.status, 400)
+    assert.equal(body.error, "Identifiant de pack invalide")
 })
 
 test("POST /inventaire-pack/:idPack/open ouvre et retire le pack de l'inventaire", async () => {
