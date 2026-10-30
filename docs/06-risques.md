@@ -53,3 +53,9 @@ Les estimés de points par sprints ne sont pas atteints (estimé de 45 pts/sprin
 - Les absences ne se sont pas faites voir à un niveau démesuré, quelques personnes ont étés absentes une ou deux fois mais rien de ahurissant.
 - Pour l'instant la taille du projet n'est pas un enjeu. Même si nous avions dit que nous alions nous inquiéter si seulement 30 points ont été complétés durant le sprint, nous réalisons que c'était simplement par mauvaise hestimation et non par trop grande envergure du projet.
 - Pas encore applicable, le Bazaar va commencer à être implémenté dans le sprint 2. 
+
+## Rétrospective sprint 2
+- Le manque de communication n'a pas été un problème pour ce sprint encore.
+- Les absences ont beaucoup augmenté du côté de Marco avec deux absences sur quatre qui représente la moitié des rencontres du sprint 2. Les absences se sont manifestées du au stress des examens de mi-session. Certaines absences n'ont pas été mentionnées sur Discord, mais il continuait de travailler sur le projet à la maison et restait en connaissance de l'avancement du projet à travers d'autres cours ou Discord.
+- La taille du sprint a été réduite pour être redistribuée avec le sprint 3, car nous n'avions pas pris en compte la semaine de relâche (soutien à la réussite) et parce que le sprint 3 n'avait pas beaucoup de tâche ce qui nous a permis de le déplacer. 
+- Pas encore applicable, le Bazaar va finalement être implémenté dans le sprint 3.
