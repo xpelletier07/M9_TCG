@@ -1,33 +1,33 @@
 import { pool } from "./../db/pool.js"
 import express from "express"
+import { checkAuth, checkAdmin } from "../middlewares/checkAuth.js"
 
 const router = express.Router()
 
-
-router.get("/", async (req, res) => {
+// GET pour obtenir tous les packs
+router.get("/", checkAuth, async (req, res) => {
     try {
         const result = await pool.query("select * from Packs order by id_pack desc")
         res.status(200).json(result.rows)
     } catch (error) {
-        console.error("Erreur dans /pack/all", error)
+        console.error("Erreur dans /pack", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
 })
 
+// POST pour ajouter un nouveau pack
+router.post("/", checkAdmin, async (req, res) => {
+    const { nom_pack, image_pack, description_pack, liste_carte, valeur_pack } = req.body
 
-
-router.post("/", async (req, res) => {
-    const { nom_pack, image_pack, description_pack, liste_carte, valeur_pack, actif } = req.body
-
-    if (!nom_pack || !image_pack || !description_pack || !Array.isArray(liste_carte) || valeur_pack === undefined || actif === undefined) {
+    if (!nom_pack || !image_pack || !description_pack || !Array.isArray(liste_carte) || valeur_pack === undefined) {
         return res.status(400).json({ error: "Données manquantes ou invalides" })
     }
 
     try {
         const result = await pool.query(
-            `INSERT INTO Packs (nom_pack, image_pack, description_pack, liste_carte, valeur_pack, actif)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [nom_pack, image_pack, description_pack, liste_carte, valeur_pack, actif]
+            `INSERT INTO Packs (nom_pack, image_pack, description_pack, liste_carte, valeur)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [nom_pack, image_pack, description_pack, liste_carte, valeur_pack]
         )
 
         res.status(201).json(result.rows[0])
@@ -42,12 +42,13 @@ router.post("/", async (req, res) => {
     }
 })
 
-router.put("/:id", async (req, res) => {
+// PUT pour modifier un pack existant
+router.put("/:id", checkAdmin, async (req, res) => {
     const { id } = req.params
-    const { nom_pack, image_pack, description_pack, liste_carte, valeur_pack, actif } = req.body
+    const { nom_pack, image_pack, description_pack, liste_carte, valeur_pack } = req.body
 
     try {
-        const result = await pool.query("UPDATE Packs SET nom_pack = $1, image_pack = $2, description_pack = $3, liste_carte = $4, valeur_pack = $5, actif = $6 WHERE id_pack = $7 RETURNING *", [nom_pack, image_pack, description_pack, liste_carte, valeur_pack, actif, id])
+        const result = await pool.query("UPDATE Packs SET nom_pack = $1, image_pack = $2, description_pack = $3, liste_carte = $4, valeur = $5 WHERE id_pack = $6 RETURNING *", [nom_pack, image_pack, description_pack, liste_carte, valeur_pack, id])
         if (result.rows.length === 0) {
             res.status(404).json({ error: "Pack non trouvé" })
         } else {
@@ -64,7 +65,8 @@ router.put("/:id", async (req, res) => {
     }
 })
 
-router.delete("/:id", async (req, res) => {
+// DELETE pour supprimer un pack avec l'id
+router.delete("/:id", checkAdmin, async (req, res) => {
     const { id } = req.params
 
     try {

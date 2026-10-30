@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../../config'
 import { useAuth } from '../../auth/AuthContext'
 
 const getPackImageUrl = (imagePath) => {
-  if (!imagePath) return '/images/pack-default.png'
+  if (!imagePath) return null
 
   if (/^https?:\/\//i.test(imagePath)) {
     return imagePath
@@ -41,6 +41,8 @@ export default function BoosterPack() {
   const [cooldownRemainingSeconds, setCooldownRemainingSeconds] = useState(null)
   const [inventoryCount, setInventoryCount] = useState(0)
   const [feedback, setFeedback] = useState(null)
+  // id du pack à dropper, peut etre changé ici a place de checker dans le code
+  const idPack = 1
 
   // Chargement des packs actifs
   useEffect(() => {
@@ -48,13 +50,14 @@ export default function BoosterPack() {
 
     const fetchPacks = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/pack`)
+        const response = await fetch(`${API_BASE_URL}/pack`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
         if (!response.ok) {
           throw new Error('Failed to load packs')
         }
 
-        const data = await response.json()
-        const activePacks = (Array.isArray(data) ? data : []).filter((p) => p?.actif !== false)
+        const activePacks = await response.json()
         if (!cancelled) {
           setPacks(activePacks)
         }
@@ -75,7 +78,7 @@ export default function BoosterPack() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [token])
 
   const pack = packs[0]
 
@@ -93,9 +96,7 @@ export default function BoosterPack() {
     const fetchPackStatus = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/inventaire-pack/status`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` }
         })
 
         if (!response.ok) {
@@ -167,13 +168,9 @@ export default function BoosterPack() {
     setFeedback(null)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/inventaire-pack/open`, {
+      const response = await fetch(`${API_BASE_URL}/inventaire-pack/${idPack}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id_pack: pack.id_pack }),
+        headers: { Authorization: `Bearer ${token}`}
       })
 
       const data = await response.json()
@@ -213,10 +210,10 @@ export default function BoosterPack() {
           {loading
             ? 'Loading'
             : !token
-            ? '1 Pack / 24h'
-            : isCooldownActive
-            ? 'Veuillez patienter avant de réclamer un nouveau pack'
-            : 'Prêt à ouvrir !'}
+              ? '1 Pack / 24h'
+              : isCooldownActive
+                ? 'Veuillez patienter avant de réclamer un nouveau pack'
+                : 'Prêt à ouvrir !'}
         </span>
       </div>
 

@@ -13,7 +13,7 @@ const router = express.Router()
 
 // Route pour obtenir des cartes aléatoires
 router.get('/random', checkAuth, async (req, res) => {
-	const requestedCount = Number.parseInt(req.query.count, 10)
+	const requestedCount = Number.parseInt(req.query.count)
 	const count = Number.isInteger(requestedCount) && requestedCount > 0 ? Math.min(requestedCount, 10) : 3
 
 	try {
@@ -24,7 +24,7 @@ router.get('/random', checkAuth, async (req, res) => {
 			return res.status(404).json({ error: 'Aucune carte disponible' })
 		}
 
-		const selectedCards = pickRandomCards(cards, count)
+		const selectedCards = pickRandomCards(cards, count, false)
 		return res.status(200).json(selectedCards)
 	} catch (error) {
 		console.error('Erreur dans GET /cards/random', error)
@@ -162,6 +162,29 @@ router.post('/claim', checkAuth, async (req, res) => {
 		})
 	} catch (error) {
 		console.error('Erreur dans POST /cards/claim', error)
+		return res.status(500).json({ error: 'Erreur serveur' })
+	}
+})
+
+// POST pour prendre les cartes randoms du pack pour l'ouverture
+router.post('/openPack/:id', checkAuth, async (req, res) => {
+	// convertis l'input du params en chiffre
+	const countParams = Number(req.query.count)
+	// double check que c'est un int && positif, si oui, cap à max 10, sinon, default à 3
+	const count = Number.isInteger(countParams) && countParams > 0 ? Math.min(countParams, 10) : 3
+	// id du pack donné en params
+	const idPack = Number(req.params.id)
+
+	try {
+		const result = await pool.query(`SELECT UNNEST(liste_carte) AS id_carte FROM Packs WHERE id_pack = $1`, [idPack])
+		const cardsToPull = await result.rows
+		if (cardsToPull.length === 0){
+			return res.status(404).json({error: "Aucune carte disponnible"})
+		}
+		const selectedCards = pickRandomCards(cardsToPull, count, true)
+		return res.status(200).json(selectedCards)
+	} catch (error) {
+		console.error('Erreur dans GET /cards/openPack/:id', error)
 		return res.status(500).json({ error: 'Erreur serveur' })
 	}
 })
