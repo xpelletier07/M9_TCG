@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { API_BASE_URL } from '../config'
 import '../css/OuverturePack.css'
+import { useAuth } from '../auth/AuthContext'
 
 const rareteLabels = {
     1: 'Commun',
@@ -10,8 +11,11 @@ const rareteLabels = {
     3: 'Épique',
     4: 'Légendaire',
 }
+// récupérer le token du local storage
+const token = localStorage.getItem("token")
 
 function OuverturePack() {
+    const { user } = useAuth()
     const params = useParams()
     const navigate = useNavigate()
     const [cartes, setCartes] = useState([])
@@ -27,7 +31,7 @@ function OuverturePack() {
             try {
                 const reponse = await fetch(`${API_BASE_URL}/cards/openPack/${params.idPack}`, {
                     method: 'POST',
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                    headers: { Authorization: `Bearer ${token}` }
                 })
                 const cartesSelectionnees = await reponse.json()
 
@@ -37,6 +41,15 @@ function OuverturePack() {
 
                 const detailsCartes = await Promise.all(
                     cartesSelectionnees.map(async ({ id_carte: idCarte }) => {
+                        // Lorsqu'on a les cartes selectionnées, ajoute les cartes à l'inventaire du joueur
+                        const reponseAjout = await fetch(`${API_BASE_URL}/carteInventaire/${user.id}/${idCarte}`, {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${token}` }
+                        })
+                        if (!reponseAjout.ok) {
+                            throw new Error("Erreur lors de l'ajout à l'inventaire.")
+                        }
+                        // puis récupère l'affichage
                         const reponseCarte = await fetch(`${API_BASE_URL}/api/card/${idCarte}`)
                         if (!reponseCarte.ok) {
                             throw new Error("Une carte du pack est introuvable.")

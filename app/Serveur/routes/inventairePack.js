@@ -153,15 +153,18 @@ router.get("/status", checkAuth, async (req, res) => {
 router.post("/:idPack/open", checkAuth, async (req, res) => {
     const idPack = Number(req.params.idPack)
 
-    if (!Number.isInteger(idPack) || idPack < 1) {
-        return res.status(400).json({ error: "Identifiant de pack invalide" })
-    }
-
-    const client = await pool.connect()
     try {
-        await client.query("begin")
+        if (!Number.isInteger(idPack) || idPack < 1) {
+            return res.status(400).json({ error: "Identifiant de pack invalide" })
+        }
 
-        const result = await client.query(
+        const checkIfInInventory = await pool.query(`select quantite from inventaire_packs 
+        where id_utilisateur = $1 and id_pack = $2`, [req.user.id, idPack])
+        if (checkIfInInventory.rows.length === 0) {
+            return res.status(404).json({ error: "Ce pack n'est pas dans votre inventaire" })
+        }
+
+        const result = await pool.query(
             `update inventaire_packs ip
              set quantite = ip.quantite - 1
              from Packs p
@@ -173,23 +176,16 @@ router.post("/:idPack/open", checkAuth, async (req, res) => {
                        p.liste_carte, ip.quantite`,
             [req.user.id, idPack]
         )
-
-        if (result.rows.length === 0) {
-            await client.query("rollback")
-            return res.status(404).json({ error: "Ce pack n'est pas dans votre inventaire" })
-        }
-
         const packOuvert = result.rows[0]
-
+        // si c'était le dernier pack, on suprime l'entrée pour pas laisser des entrées vides dans la bd
         if (packOuvert.quantite === 0) {
-            await client.query(
+            await pool.query(
                 `delete from inventaire_packs
                  where id_utilisateur = $1 and id_pack = $2 and quantite = 0`,
                 [req.user.id, idPack]
             )
         }
 
-        await client.query("commit")
         res.status(200).json({
             pack: {
                 id_pack: packOuvert.id_pack,
@@ -201,34 +197,87 @@ router.post("/:idPack/open", checkAuth, async (req, res) => {
             quantite: packOuvert.quantite,
         })
     } catch (error) {
-        await client.query("rollback")
         console.error("Erreur lors de l'ouverture du pack :", error)
         res.status(500).json({ error: "Erreur serveur" })
-    } finally {
-        client.release()
     }
 })
 
-// ajouter un pack a son propre compte
+// Réclamer un pack (ajouté à l'inventaire de l'utilisateur, 1 fois toutes les 24h)
 router.post("/:idPack", checkAuth, async (req, res) => {
     // Prends l'id donné en params, le mets en int
-    const idPack = Number(req.params.idPack);
+    const idPack = Number(req.params.idPack)
+
+    if (!Number.isInteger(idPack) || idPack < 1) {
+        return res.status(400).json({ error: "Identifiant de pack invalide" })
+    }
+
     try {
-        const result = await pool.query(
-            // crée une entrée dans la table, si déjà une entrée, update l'entrée et ajoute un à la quantité
-            `INSERT INTO inventaire_packs (id_utilisateur, id_pack, quantite)
-                VALUES ($1, $2, 1)                                                                                                                                
-                ON CONFLICT (id_utilisateur, id_pack)                                                                                                             
-                DO UPDATE SET quantite = inventaire_packs.quantite + 1 returning *`,
+        const packQuery = await pool.query(
+            "select id_pack, nom_pack, image_pack, description_pack, liste_carte from Packs where id_pack = $1 and actif = true",
+            [idPack]
+        )
+        if (packQuery.rows.length === 0) {
+            return res.status(404).json({ error: "Pack introuvable ou inactif" })
+        }
+
+        // Mise à jour conditionnelle : ne réussit que si le cooldown de 24h est écoulé
+        const updateResult = await pool.query(
+            `update utilisateurs
+             set dernier_drop_pack_at = now()
+             where id = $1
+               and (
+                   dernier_drop_pack_at is null
+                   or dernier_drop_pack_at <= now() - interval '${PACK_COOLDOWN_HOURS} hours'
+               )
+             returning dernier_drop_pack_at`,
+            [req.user.id]
+        )
+
+        if (updateResult.rows.length === 0) {
+            const userResult = await pool.query(
+                "select dernier_drop_pack_at from utilisateurs where id = $1",
+                [req.user.id]
+            )
+            const lastDropAt = userResult.rows[0]?.dernier_drop_pack_at
+            const nowMs = Date.now()
+            const cooldownResetMs = lastDropAt
+                ? new Date(lastDropAt).getTime() + PACK_COOLDOWN_HOURS * 60 * 60 * 1000
+                : nowMs + PACK_COOLDOWN_HOURS * 60 * 60 * 1000
+            const cooldownRemainingSeconds = Math.max(
+                0,
+                Math.ceil((cooldownResetMs - nowMs) / 1000)
+            )
+
+            return res.status(429).json({
+                error: "Vous devez attendre 24h entre chaque pack.",
+                cooldownRemainingSeconds,
+                cooldownResetAt: new Date(cooldownResetMs).toISOString(),
+            })
+        }
+
+        // crée une entrée dans la table, si déjà une entrée, update l'entrée et ajoute un à la quantité
+        const invResult = await pool.query(
+            `insert into inventaire_packs (id_utilisateur, id_pack, quantite)
+             values ($1, $2, 1)
+             on conflict (id_utilisateur, id_pack)
+             do update set quantite = inventaire_packs.quantite + 1
+             returning id_pack, quantite`,
             [req.user.id, idPack]
         )
-        res.status(200).json(result.rows)
+
+        const cooldownRemainingSeconds = PACK_COOLDOWN_HOURS * 60 * 60
+        res.status(200).json({
+            message: "Pack réclamé avec succès !",
+            pack: packQuery.rows[0],
+            quantite: invResult.rows[0]?.quantite ?? 1,
+            cooldownRemainingSeconds,
+            cooldownResetAt: new Date(Date.now() + cooldownRemainingSeconds * 1000).toISOString(),
+        })
     } catch (error) {
         console.error("Erreur lors de l'ajout d'un pack à l'inventaire :", error)
         res.status(500).json({ error: "Erreur serveur" })
     }
-}
-)
+})
 
 // GET pour obtenir les packs du joueur connecté
 router.get("/me", checkAuth, async (req, res) => {

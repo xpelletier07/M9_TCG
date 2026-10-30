@@ -87,19 +87,23 @@ function pickRarity(availableCards) {
 	return availableWeights[availableWeights.length - 1].rarete
 }
 
-export function pickRandomCards(cards, count) {
+export function pickRandomCards(cards, count, allowDupes = false) {
 	const remainingCards = [...cards]
 	const selectedCards = []
 
 	while (selectedCards.length < count && remainingCards.length > 0) {
 		const rarete = pickRarity(remainingCards)
 
-		let cardIndex = remainingCards.findIndex((carte) => carte && carte.rarete === rarete)
-		if (cardIndex === -1) {
-			cardIndex = 0
-		}
+		const matchingCardIndexes = remainingCards
+			.map((carte, index) => (carte && carte.rarete === rarete ? index : -1))
+			.filter((index) => index !== -1)
+		const cardIndex = matchingCardIndexes.length > 0
+			? matchingCardIndexes[Math.floor(Math.random() * matchingCardIndexes.length)]
+			: Math.floor(Math.random() * remainingCards.length)
 
-		const [selectedCard] = remainingCards.splice(cardIndex, 1)
+		const selectedCard = allowDupes
+			? remainingCards[cardIndex]
+			: remainingCards.splice(cardIndex, 1)[0]
 		selectedCards.push(selectedCard)
 	}
 
@@ -140,7 +144,7 @@ export async function getOrCreateRoundCards(count = TOTAL_CARDS_PER_ROUND) {
 			return []
 		}
 
-		const selectedCards = pickRandomCards(cards, count)
+		const selectedCards = pickRandomCards(cards, count, false)
 		globalClaimState.roundCards = selectedCards
 		return globalClaimState.roundCards
 	} catch (error) {

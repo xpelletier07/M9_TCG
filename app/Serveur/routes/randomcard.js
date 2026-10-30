@@ -24,7 +24,7 @@ router.get('/random', checkAuth, async (req, res) => {
 			return res.status(404).json({ error: 'Aucune carte disponible' })
 		}
 
-		const selectedCards = pickRandomCards(cards, count)
+		const selectedCards = pickRandomCards(cards, count, false)
 		return res.status(200).json(selectedCards)
 	} catch (error) {
 		console.error('Erreur dans GET /cards/random', error)
@@ -181,7 +181,7 @@ router.post('/openPack/:id', checkAuth, async (req, res) => {
 		if (cardsToPull.length === 0){
 			return res.status(404).json({error: "Aucune carte disponnible"})
 		}
-		const selectedCards = pickRandomCards(cardsToPull, count)
+		const selectedCards = pickRandomCards(cardsToPull, count, true)
 		return res.status(200).json(selectedCards)
 	} catch (error) {
 		console.error('Erreur dans GET /cards/openPack/:id', error)

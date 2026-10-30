@@ -23,10 +23,6 @@ services:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@db:5432/m9tcg
       JWT_SECRET: cle-locale-m9tcg
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
-      GITHUB_CALLBACK_URL: http://localhost:3000/auth/github/callback
-      CLIENT_URL: http://localhost:5173
     volumes:
       - ./app/Serveur:/app
       - /app/node_modules
@@ -46,7 +42,9 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # Exécutés dans l'ordre alphabétique, uniquement à la création de la base : db.sql (tables) puis seed.sql (données)
       - ./app/Serveur/db/db.sql:/docker-entrypoint-initdb.d/db.sql:ro
+      - ./app/Serveur/db/seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d m9tcg"]
       interval: 5s

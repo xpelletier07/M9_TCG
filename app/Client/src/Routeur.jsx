@@ -11,7 +11,9 @@ import Bazaar from './pages/Bazaar.jsx'
 import Inventaire from './pages/Inventaire.jsx'
 import OuverturePack from './pages/OuverturePack.jsx'
 import Combat from './pages/Combat.jsx'
+import Arena from './pages/Arena.jsx'
 import Decks from './pages/Decks.jsx'
+import ClaimCarte from './pages/ClaimCarte.jsx'
 import Settings from './pages/Settings.jsx'
 
 function Routeur() {
@@ -29,6 +31,8 @@ function Routeur() {
                         <Route path="inventaire" element={<Inventaire />} />
                         <Route path="ouverture-pack/:idPack" element={<OuverturePack />} />
                         <Route path="combat" element={<Combat />} />
+                        <Route path="combat/:matchId/arena" element={<Arena />} />
+                        <Route path="combat/:matchId" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
                         <Route path="settings" element={<Settings />} />
                     </Route>
