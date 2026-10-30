@@ -4,12 +4,17 @@ import { AuthProvider } from './auth/AuthContext.jsx'
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import Login from './pages/auth/Login.jsx'
 import Signup from './pages/auth/Signup.jsx'
+import GithubCallback from './pages/auth/GithubCallback.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Collection from './pages/Collection.jsx'
 import Bazaar from './pages/Bazaar.jsx'
 import Inventaire from './pages/Inventaire.jsx'
+import OuverturePack from './pages/OuverturePack.jsx'
 import Combat from './pages/Combat.jsx'
+import Arena from './pages/Arena.jsx'
 import Decks from './pages/Decks.jsx'
+import ClaimCarte from './pages/ClaimCarte.jsx'
+import Settings from './pages/Settings.jsx'
 
 function Routeur() {
     return (
@@ -18,13 +23,19 @@ function Routeur() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
+                    <Route path="/auth/github/callback" element={<GithubCallback />} />
                     <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                         <Route index element={<Dashboard />} />
                         <Route path="collection" element={<Collection />} />
                         <Route path="bazaar" element={<Bazaar />} />
                         <Route path="inventaire" element={<Inventaire />} />
+                        <Route path="ouverture-pack/:idPack" element={<OuverturePack />} />
                         <Route path="combat" element={<Combat />} />
+                        <Route path="combat/:matchId/arena" element={<Arena />} />
+                        <Route path="combat/:matchId" element={<Combat />} />
                         <Route path="decks" element={<Decks />} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="claim-carte" element={<ClaimCarte />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

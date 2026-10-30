@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { API_BASE_URL } from '../../config'
+import GithubButton from './GithubButton'
 import './Auth.css'
 
 export default function Signup() {
@@ -154,6 +155,8 @@ export default function Signup() {
             {loading ? 'Création...' : 'Créer un compte'}
           </button>
         </form>
+
+        <GithubButton />
 
         {/* Lien vers la page de connexion pour les comptes déjà existants */}
         <p className="auth-footer">

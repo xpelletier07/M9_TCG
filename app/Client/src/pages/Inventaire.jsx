@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { API_BASE_URL } from '../config'
 import { CardModal } from '../components/Modals'
+import Card from '../components/Card'
 
 // Import Bulma CSS
 import 'bulma/css/bulma.min.css';
@@ -19,6 +20,32 @@ function Inventaire() {
     const [filtreNom, setFiltreNom] = useState('')
     const [isCollectionLoading, setIsCollectionLoading] = useState(false)
     const [carteSelectionnee, setCarteSelectionnee] = useState(null)
+    const [packs, setPacks] = useState([])
+    const [packsDeplies, setPacksDeplies] = useState(false)
+    const [packEnOuverture, setPackEnOuverture] = useState(null)
+    // récupérer le token du local storage
+    const token = localStorage.getItem("token")
+
+    // fonction pour obtenir les packs de l'utilisateur
+    async function fetchPacks() {
+        if (!user) return
+        try {
+            setLoading(true)
+            setErreur(null)
+            const reponse = await fetch (`${API_BASE_URL}/inventaire-pack/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            if (reponse.ok) {
+                const data = await reponse.json()
+                setPacks(data)
+            }
+        }catch (err) {
+            console.error("Erreur fetchPacks: ", err)
+            setErreur(err.message)
+        } finally {
+            setLoading(false)
+        }
+    } 
 
     // Fonction qui appelle les routes de inventaire.js pour récupérer les cartes de l'utilisateur
     async function fetchCartes() {
@@ -39,7 +66,8 @@ function Inventaire() {
                 entries.map(async (entry) => {
                     const reponseCarte = await fetch(`${API_BASE_URL}/api/card/${entry.id_carte}`)
                     if (!reponseCarte.ok) return null
-                    return await reponseCarte.json()
+                    const carte = await reponseCarte.json()
+                    return { ...carte, quantite: entry.quantite }
                 })
             )
 
@@ -95,9 +123,34 @@ function Inventaire() {
         }
     }
 
+    async function handleOpenPack(pack) {
+        if (packEnOuverture !== null) return
+
+        setPackEnOuverture(pack.id_pack)
+        setErreur(null)
+
+        try {
+            const reponse = await fetch(`${API_BASE_URL}/inventaire-pack/${pack.id_pack}/open`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            const data = await reponse.json()
+
+            if (!reponse.ok) {
+                throw new Error(data.error || "Erreur lors de l'ouverture du pack")
+            }
+
+            navigate(`/ouverture-pack/${data.pack.id_pack}`)
+        } catch (err) {
+            setErreur(err.message)
+            setPackEnOuverture(null)
+        }
+    }
+
     // Fetch les cartes une fois que le composant est monté
     useEffect(() => {
         fetchCartes()
+        fetchPacks()
     }, [user])
 
     return (
@@ -114,6 +167,18 @@ function Inventaire() {
                         </span>
                         <span>Ajouter une carte</span>
                     </button>
+                    <button
+                        className="button is-info"
+                        type="button"
+                        aria-expanded={packsDeplies}
+                        aria-controls="inventory-packs"
+                        onClick={() => setPacksDeplies((deplies) => !deplies)}
+                    >
+                        <span className="icon">
+                            <i className={`fas fa-chevron-${packsDeplies ? 'up' : 'down'}`}></i>
+                        </span>
+                        <span>Packs</span>
+                    </button>
                     <button className="button is-warning decks-button" onClick={() => navigate('/decks')}>
                         <span className="icon">
                             <i className="fas fa-layer-group"></i>
@@ -122,8 +187,57 @@ function Inventaire() {
                     </button>
                 </div>
             </div>
-            <p className="inventory-subtitle">C&apos;est trop bien les cartes ngl</p>
+            <p className="inventory-subtitle">C'est trop bien les cartes ngl</p>
             <hr className="inventory-divider" />
+
+            {/* boosters packs du joueur */}
+            {packsDeplies && (
+                <section id="inventory-packs" className="box mb-5">
+                    <h2 className="title is-4">Mes packs</h2>
+                    {packs.length === 0 ? (
+                        <p>Aucun pack dans votre inventaire.</p>
+                    ) : (
+                        <div className="columns is-multiline">
+                            {packs.map((pack) => (
+                                <div className="column is-6-tablet is-4-desktop is-3-widescreen" key={pack.id_pack}>
+                                    <div className="card">
+                                        {pack.image_pack && (
+                                            <div className="card-image">
+                                                <figure className="image is-square">
+                                                    <img
+                                                        src={pack.image_pack}
+                                                        alt={pack.nom_pack}
+                                                        style={{ objectFit: 'contain' }}
+                                                    />
+                                                </figure>
+                                            </div>
+                                        )}
+                                        <div className="card-content">
+                                            <p className="title is-5">{pack.nom_pack}</p>
+                                            {pack.description_pack && (
+                                                <p className="content">{pack.description_pack}</p>
+                                            )}
+                                            <span className="tag is-info is-medium">
+                                                Quantité : {pack.quantite}
+                                            </span>
+                                            <button
+                                                className={`button is-link is-fullwidth mt-4${packEnOuverture === pack.id_pack ? ' is-loading' : ''}`}
+                                                type="button"
+                                                disabled={packEnOuverture !== null}
+                                                onClick={() => handleOpenPack(pack)}
+                                            >
+                                                Ouvrir le pack
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            )}
+
+
 
             {/* Filtres */}
             <div className="filters">
@@ -160,26 +274,14 @@ function Inventaire() {
                 )}
 
                 {!loading && !erreur && cartes.length > 0 && (
-                    <div className="cards-grid">
+                    <div className="inventory-cards-grid">
                         {cartes.map((carte) => (
-                            <div key={carte.id_carte} className="card-item" onClick={() => setCarteSelectionnee(carte)} style={{ cursor: 'pointer' }}>
-                                <div className="card-image-wrapper">
-                                    <img
-                                        src={carte.image}
-                                        alt={carte.nom_carte}
-                                        className="card-image"
-                                    />
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-name">{carte.nom_carte}</h3>
-                                    <p className="card-description">{carte.description}</p>
-                                    <div className="card-stats">
-                                        <span className="stat stat-mana" title="Mana">💧 {carte.mana}</span>
-                                        <span className="stat stat-health" title="Vie">❤️ {carte.health}</span>
-                                        <span className="stat stat-damage" title="Dégâts">⚔️ {carte.damage}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <Card
+                                key={carte.id_carte}
+                                carte={carte}
+                                quantite={carte.quantite}
+                                onClick={() => setCarteSelectionnee(carte)}
+                            />
                         ))}
                     </div>
                 )}

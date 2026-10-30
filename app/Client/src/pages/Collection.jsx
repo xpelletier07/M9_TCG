@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CardModal } from "../components/Modals";
+import Card from "../components/Card";
 
 import { API_BASE_URL } from "../config"
 
@@ -27,8 +28,6 @@ function Collection() {
     const [ajoutCarteOuvert, setAjoutCarteOuvert] = useState(false)
     // variable pour vérifier si l'utilisateur connecté est administrateur, utilisé seulement pour l'affichage, check aussi coté serveur
     const [isAdmin, setIsAdmin] = useState(false)
-    // mini constante pour avoir une liste de 1-10, utilisée pour faire l'affichage des filtres
-    const listeCompte = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     // récupérer le token du local storage
     const token = localStorage.getItem("token")
 
@@ -151,13 +150,8 @@ function Collection() {
                             <div className="field-body">
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
-                                        <div className="select is-fullwidth">
-                                            <select onChange={(e) => setMana(e.target.value)}>
-                                                <option></option>
-                                                {listeCompte.map((a) => {
-                                                    return <option key={a}>{a}</option>
-                                                })}
-                                            </select>
+                                        <div className="is-fullwidth">
+                                            <input className="input" type="number" min={"0"} max={"10"} onChange={(e) => setMana(e.target.value)} />
                                         </div>
                                     </div>
                                 </div>
@@ -171,16 +165,8 @@ function Collection() {
                             <div className="field-body">
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
-                                        <div className="select is-fullwidth">
-                                            {cartes != null &&
-                                                <select onChange={(e) => setDmg(e.target.value)}>
-                                                    <option></option>
-                                                    {listeCompte.map((a) => {
-                                                        return <option key={a}>{a}</option>
-                                                    })}
-
-                                                </select>
-                                            }
+                                        <div className="is-fullwidth">
+                                            <input className="input" type="number" min={"0"} max={"1000"} onChange={(e) => setDmg(e.target.value)} />
                                         </div>
                                     </div>
                                 </div>
@@ -194,15 +180,8 @@ function Collection() {
                             <div className="field-body">
                                 <div className="field">
                                     <div className="control" style={{ minWidth: "75px" }}>
-                                        <div className="select is-fullwidth">
-                                            {cartes != null &&
-                                                <select onChange={(e) => setVie(e.target.value)}>
-                                                    <option></option>
-                                                    {listeCompte.map((a) => {
-                                                        return <option key={a}>{a}</option>
-                                                    })}
-                                                </select>
-                                            }
+                                        <div className="is-fullwidth">
+                                            <input className="input" type="number" min={"1"} max={"1000"} onChange={(e) => setVie(e.target.value)} />
                                         </div>
                                     </div>
                                 </div>
@@ -235,29 +214,14 @@ function Collection() {
                         />
                     )}
                     {cartesFiltres != null &&
-                        <div className="row columns is-multiline">
-                            {cartesFiltres.map((a) => {
-                                return (
-                                    <>
-                                        <div className="column is-3">
-                                            <div className="card large" onClick={() => { setCarteSelectionnee(a) }}>
-                                                <div className="card-image">
-                                                    <figure className="image is-square">
-                                                        <img src={a.image} alt={`Image de la carte ${a.nom_carte}`} />
-                                                    </figure>
-                                                </div>
-                                                <div className="card-content">
-                                                    <div className="media">
-                                                        <div className="media-content">
-                                                            <p className="title is-4 no-padding">{a.nom_carte}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                )
-                            })}
+                        <div className="inventory-cards-grid">
+                            {cartesFiltres.map((carte) => (
+                                <Card
+                                    key={carte.id_carte}
+                                    carte={carte}
+                                    onClick={() => setCarteSelectionnee(carte)}
+                                />
+                            ))}
                             {/* s'affiche seulement si isAdmin == true, si on modifie ou delete la carte dans le modal
                                 re-fait l'affichage */}
                             <CardModal carte={carteSelectionnee} isNew={false} isAdmin={isAdmin} token={token}

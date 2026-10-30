@@ -8,6 +8,7 @@ services:
       - |
         mkdir -p /initdb
         curl -fsSL https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/app/Serveur/db/db.sql -o /initdb/db.sql
+        curl -fsSL https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/app/Serveur/db/seed.sql -o /initdb/seed.sql
     volumes:
       - dbinit:/initdb
     restart: "no"
