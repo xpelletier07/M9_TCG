@@ -3,10 +3,13 @@ import assert from "node:assert/strict"
 import bcrypt from "bcrypt"
 import {
     authenticatedHeaders,
+    jsonHeaders,
     request,
+    setQueryError,
     setQueryResult,
     startTestServer,
     stopTestServer,
+    withSilentErrors,
 } from "./app.test.js"
 
 before(async () => {
@@ -301,3 +304,275 @@ test("PUT /settings/avatar refuse les images .gif et accepte uniquement png, web
 })
 
 
+
+// =============================================================
+// Authentification : toutes les routes /settings sont protégées
+// =============================================================
+
+for (const [method, chemin] of [
+    ["PUT", "/settings/profile"],
+    ["PUT", "/settings/password"],
+    ["PUT", "/settings/avatar"],
+]) {
+    test(`${method} ${chemin} exige une authentification`, async () => {
+        const { response, body } = await request(chemin, {
+            method,
+            headers: jsonHeaders(),
+            body: JSON.stringify({}),
+        })
+
+        assert.equal(response.status, 401)
+        assert.match(body.error, /Authentification requise/)
+    })
+}
+
+// =============================================================
+// GET /settings/profile
+// =============================================================
+
+test("GET /settings/profile retourne 404 si l'utilisateur n'existe plus", async () => {
+    setQueryResult({ rows: [], rowCount: 0 })
+
+    const { response, body } = await request("/settings/profile", { headers: authenticatedHeaders() })
+
+    assert.equal(response.status, 404)
+    assert.equal(body.error, "Utilisateur introuvable")
+})
+
+test("GET /settings/profile cherche l'utilisateur connecté et ne retourne jamais le hash du mot de passe", async () => {
+    let queryText
+    let queryParams
+    setQueryResult((sql, params) => {
+        queryText = sql
+        queryParams = params
+        return { rows: [{ id: 7, nom_utilisateur: "joueur" }], rowCount: 1 }
+    })
+
+    const { response } = await request("/settings/profile", { headers: authenticatedHeaders() })
+
+    assert.equal(response.status, 200)
+    assert.deepEqual(queryParams, [7])
+    assert.ok(!queryText.includes("mot_de_passe_hash"))
+})
+
+test("GET /settings/profile retourne 500 sur erreur de base de données", async () => {
+    await withSilentErrors(async () => {
+        setQueryError()
+
+        const { response, body } = await request("/settings/profile", { headers: authenticatedHeaders() })
+
+        assert.equal(response.status, 500)
+        assert.equal(body.error, "Erreur serveur")
+    })
+})
+
+// =============================================================
+// PUT /settings/profile
+// =============================================================
+
+test("PUT /settings/profile refuse une photo de profil non sécurisée", async () => {
+    const { response, body } = await request("/settings/profile", {
+        method: "PUT",
+        headers: jsonHeaders(authenticatedHeaders()),
+        body: JSON.stringify({ avatar_url: "https://example.com/animation.gif" }),
+    })
+
+    assert.equal(response.status, 400)
+    assert.equal(body.error, "URL d'avatar non sécurisée ou invalide")
+})
+
+test("PUT /settings/profile ne modifie que les champs envoyés (COALESCE)", async () => {
+    let updateParams
+    setQueryResult((sql, params) => {
+        if (sql.includes("UPDATE utilisateurs")) {
+            updateParams = params
+            return { rows: [{ id: 7, email: "nouveau@example.com" }], rowCount: 1 }
+        }
+        return { rows: [], rowCount: 0 }
+    })
+
+    const { response, body } = await request("/settings/profile", {
+        method: "PUT",
+        headers: jsonHeaders(authenticatedHeaders()),
+        body: JSON.stringify({ email: "nouveau@example.com" }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.message, "Profil mis à jour avec succès")
+    assert.deepEqual(updateParams, [null, "nouveau@example.com", null, 7])
+})
+
+test("PUT /settings/profile retourne 409 si la contrainte UNIQUE est violée (race condition)", async () => {
+    await withSilentErrors(async () => {
+        setQueryResult((sql) => {
+            if (sql.includes("UPDATE utilisateurs")) {
+                throw Object.assign(new Error("duplicate key"), { code: "23505" })
+            }
+            return { rows: [], rowCount: 0 }
+        })
+
+        const { response, body } = await request("/settings/profile", {
+            method: "PUT",
+            headers: jsonHeaders(authenticatedHeaders()),
+            body: JSON.stringify({ nom_utilisateur: "nouveau-nom" }),
+        })
+
+        assert.equal(response.status, 409)
+        assert.equal(body.error, "Ce nom d'utilisateur ou cet email est déjà utilisé")
+    })
+})
+
+test("PUT /settings/profile retourne 500 sur erreur de base de données", async () => {
+    await withSilentErrors(async () => {
+        setQueryError()
+
+        const { response, body } = await request("/settings/profile", {
+            method: "PUT",
+            headers: jsonHeaders(authenticatedHeaders()),
+            body: JSON.stringify({ nom_utilisateur: "nouveau-nom" }),
+        })
+
+        assert.equal(response.status, 500)
+        assert.equal(body.error, "Erreur serveur")
+    })
+})
+
+// =============================================================
+// PUT /settings/password
+// =============================================================
+
+test("PUT /settings/password retourne 404 si l'utilisateur n'existe plus", async () => {
+    setQueryResult({ rows: [], rowCount: 0 })
+
+    const { response, body } = await request("/settings/password", {
+        method: "PUT",
+        headers: jsonHeaders(authenticatedHeaders()),
+        body: JSON.stringify({ currentPassword: "ancien-mdp", newPassword: "nouveau-mdp-123" }),
+    })
+
+    assert.equal(response.status, 404)
+    assert.equal(body.error, "Utilisateur introuvable")
+})
+
+test("PUT /settings/password exige le mot de passe actuel quand le compte en possède un", async () => {
+    const hash = await bcrypt.hash("ancien-mdp", 10)
+    setQueryResult({ rows: [{ id: 7, mot_de_passe_hash: hash, github_id: null }], rowCount: 1 })
+
+    const { response, body } = await request("/settings/password", {
+        method: "PUT",
+        headers: jsonHeaders(authenticatedHeaders()),
+        body: JSON.stringify({ newPassword: "nouveau-mdp-123" }),
+    })
+
+    assert.equal(response.status, 400)
+    assert.equal(body.error, "Le mot de passe actuel est requis")
+})
+
+test("PUT /settings/password permet à un compte GitHub sans mot de passe local d'en définir un", async () => {
+    let nouveauHash
+    setQueryResult((sql, params) => {
+        if (sql.includes("SELECT id, mot_de_passe_hash")) {
+            return { rows: [{ id: 7, mot_de_passe_hash: null, github_id: "4242" }], rowCount: 1 }
+        }
+        if (sql.includes("UPDATE utilisateurs SET mot_de_passe_hash")) {
+            nouveauHash = params[0]
+            return { rows: [], rowCount: 1 }
+        }
+        return { rows: [], rowCount: 0 }
+    })
+
+    const { response, body } = await request("/settings/password", {
+        method: "PUT",
+        headers: jsonHeaders(authenticatedHeaders()),
+        body: JSON.stringify({ newPassword: "nouveau-mdp-123" }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.message, "Mot de passe mis à jour avec succès")
+    assert.notEqual(nouveauHash, "nouveau-mdp-123")
+    assert.ok(await bcrypt.compare("nouveau-mdp-123", nouveauHash))
+})
+
+test("PUT /settings/password accepte un mot de passe de 8 et de 128 caractères", async () => {
+    for (const longueur of [8, 128]) {
+        setQueryResult((sql) => {
+            if (sql.includes("SELECT id, mot_de_passe_hash")) {
+                return { rows: [{ id: 7, mot_de_passe_hash: null, github_id: null }], rowCount: 1 }
+            }
+            return { rows: [], rowCount: 1 }
+        })
+
+        const { response } = await request("/settings/password", {
+            method: "PUT",
+            headers: jsonHeaders(authenticatedHeaders()),
+            body: JSON.stringify({ newPassword: "a".repeat(longueur) }),
+        })
+
+        assert.equal(response.status, 200, `longueur ${longueur}`)
+    }
+})
+
+test("PUT /settings/password retourne 500 sur erreur de base de données", async () => {
+    await withSilentErrors(async () => {
+        setQueryError()
+
+        const { response, body } = await request("/settings/password", {
+            method: "PUT",
+            headers: jsonHeaders(authenticatedHeaders()),
+            body: JSON.stringify({ currentPassword: "ancien-mdp", newPassword: "nouveau-mdp-123" }),
+        })
+
+        assert.equal(response.status, 500)
+        assert.equal(body.error, "Erreur serveur")
+    })
+})
+
+// =============================================================
+// PUT /settings/avatar
+// =============================================================
+
+test("PUT /settings/avatar retire la photo de profil quand l'URL est vide", async () => {
+    let updateParams
+    setQueryResult((sql, params) => {
+        updateParams = params
+        return { rows: [{ id: 7, nom_utilisateur: "joueur", email: "joueur@m9tcg.local", avatar_url: null }], rowCount: 1 }
+    })
+
+    const { response, body } = await request("/settings/avatar", {
+        method: "PUT",
+        headers: jsonHeaders(authenticatedHeaders()),
+        body: JSON.stringify({ avatar_url: "" }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.user.avatar_url, null)
+    assert.deepEqual(updateParams, [null, 7])
+})
+
+test("PUT /settings/avatar retourne 404 si l'utilisateur n'existe plus", async () => {
+    setQueryResult({ rows: [], rowCount: 0 })
+
+    const { response, body } = await request("/settings/avatar", {
+        method: "PUT",
+        headers: jsonHeaders(authenticatedHeaders()),
+        body: JSON.stringify({ avatar_url: "https://example.com/avatar.png" }),
+    })
+
+    assert.equal(response.status, 404)
+    assert.equal(body.error, "Utilisateur introuvable")
+})
+
+test("PUT /settings/avatar retourne 500 sur erreur de base de données", async () => {
+    await withSilentErrors(async () => {
+        setQueryError()
+
+        const { response, body } = await request("/settings/avatar", {
+            method: "PUT",
+            headers: jsonHeaders(authenticatedHeaders()),
+            body: JSON.stringify({ avatar_url: "https://example.com/avatar.png" }),
+        })
+
+        assert.equal(response.status, 500)
+        assert.equal(body.error, "Erreur serveur")
+    })
+})
