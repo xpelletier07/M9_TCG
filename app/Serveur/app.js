@@ -1,17 +1,10 @@
 import "dotenv/config";
-import { createServer } from "node:http";
 import express from "express";
 import cors from "cors";
 import { pool } from "./db/pool.js"
 import apiRouter from "./Router/Router_Global.js"
-import attachRealtime from "./realtime.js"
-import jwt from "jsonwebtoken"
-import { getConnectedUsersCount, recordUserActivity, setDropCommunIo } from "./services/dropCommunService.js"
 
 const app = express();
-const server = createServer(app);
-const io = attachRealtime(server);
-setDropCommunIo(io);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -37,29 +30,10 @@ app.get("/api/db-check", async (req, res) => {
     const result = await pool.query("SELECT NOW() AS current_time");
     res.json({ db: "connected", time: result.rows[0].current_time });
   } catch (err) {
-    console.error("Erreur de connexion à la  base de données :", err);
+    console.error("Erreur de connexion à la base de données :", err);
     res.status(500).json({ db: "error", message: err.message });
   }
 });
-
-app.get('/api/online-users', (req, res) => {
-  const authHeader = req.headers.authorization
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    try {
-      const token = authHeader.split(' ')[1]
-      const decoded = jwt.decode(token)
-      if (decoded?.id) {
-        recordUserActivity(decoded.id)
-      }
-    } catch {
-      // ignore token decode errors
-    }
-  }
-
-  const activeCount = getConnectedUsersCount()
-  const socketCount = io.engine?.clientsCount || 0
-  res.json({ connectedUsers: Math.max(activeCount, socketCount) })
-})
 
 app.get("/api/drop-timer", (req, res) => {
   const cycleSeconds = 5 * 60
@@ -74,45 +48,8 @@ app.get("/api/drop-timer", (req, res) => {
   })
 })
 
-
-async function startServer() {
-  // Insert des comptes de démonstration si ils n'existent pas déjà
-  await pool.query(`
-    INSERT INTO utilisateurs
-      (nom_utilisateur, email, mot_de_passe_hash, statut, credits)
-    VALUES
-      ('demo-joueur', 'joueur.demo@m9tcg.local', '$2b$10$uWXDSzG.Ij2gErVSwwgQl.Q23..Jyoc48IAbbeVMEVGlVHMj.TdWC', 'actif', 1000),
-      ('demo-admin', 'admin.demo@m9tcg.local', '$2b$10$8HEhcGOoGh.LR6EAev7.y.sLy7AQ5TpAI/d/fTz2W896Y8FkwRopG', 'admin', 1000)
-    ON CONFLICT DO NOTHING
-  `)
-
-  // Insertion des cartes de démonstration si elles n'existent pas déjà
-  await pool.query(`
-    INSERT INTO carte
-      (nom_carte, image, description, rarete, valeur, mana, health, damage)
-    VALUES
-      ('Carte Démo 1', 'https://picsum.photos/400/280?random=89', 'Description de la carte démo 1', 1, 10, 1, 5, 2),
-      ('Carte Démo 2', 'https://picsum.photos/400/280?random=90', 'Description de la carte démo 2', 2, 20, 2, 10, 4),
-      ('Carte Démo 3', 'https://picsum.photos/400/280?random=91', 'Description de la carte démo 3', 3, 30, 3, 15, 6)
-    ON CONFLICT DO NOTHING
-  `)
-
-  //insertion d'un premier pack de démo (le meilleur)
-  await pool.query(`
-    insert into Packs
-      (nom_pack, image_pack, description_pack, liste_carte, valeur)
-    values
-      ('Belle pro moment', 'https://imgs.search.brave.com/AplNxDUoDF5PCln6JDPv-aEbINciPiMK9IOYTuqg4VA/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMud2l4c3RhdGlj/LmNvbS9tZWRpYS82/ZmU5ODNfN2FkMDNk/M2U1ZTM5NDg2ZTg4/N2Y5NDQwNWMxYjZj/ODB-bXYyLnBuZy92/MS9maWxsL3dfOTgw/LGhfNjUzLGFsX2Ms/cV85MCx1c21fMC42/Nl8xLjAwXzAuMDEs/ZW5jX2F2aWYscXVh/bGl0eV9hdXRvL2xv/Z28lMjBMYSUyMGJl/bGxlJTIwUHJvdmlu/Y2UlMjBBdXRoZXRp/cXVlLnBuZw',
-      'You found me in a belle pro moment of my life', ARRAY[1, 2, 3], 10)
-    on conflict do nothing
-  `)
-
-  server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`)
-  })
-}
-
-startServer().catch((error) => {
-  console.error("Erreur lors de la préparation de la base de données :", error)
-  process.exit(1)
+// Les données de démonstration (comptes, cartes) sont insérées par db/seed.sql,
+// exécuté par PostgreSQL uniquement à la création initiale de la base de données.
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`)
 })
