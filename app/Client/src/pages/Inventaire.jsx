@@ -66,7 +66,8 @@ function Inventaire() {
                 entries.map(async (entry) => {
                     const reponseCarte = await fetch(`${API_BASE_URL}/api/card/${entry.id_carte}`)
                     if (!reponseCarte.ok) return null
-                    return await reponseCarte.json()
+                    const carte = await reponseCarte.json()
+                    return { ...carte, quantite: entry.quantite }
                 })
             )
 
@@ -278,6 +279,7 @@ function Inventaire() {
                             <Card
                                 key={carte.id_carte}
                                 carte={carte}
+                                quantite={carte.quantite}
                                 onClick={() => setCarteSelectionnee(carte)}
                             />
                         ))}

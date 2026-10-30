@@ -7,7 +7,9 @@ const rareteLabels = {
     4: 'Légendaire',
 }
 
-export default function Card({ carte, onClick }) {
+export default function Card({ carte, onClick, quantite = 1 }) {
+    const libelleQuantite = `${quantite} exemplaire${quantite > 1 ? 's' : ''}`
+
     return (
         <div
             className={`inventory-card inventory-card--rarity-${carte.rarete}`}
@@ -25,9 +27,20 @@ export default function Card({ carte, onClick }) {
                 <span className="inventory-card__rank">
                     {rareteLabels[carte.rarete] ?? 'Carte'}
                 </span>
-                <span className="inventory-card__serial">
-                    ID {String(carte.id_carte).padStart(3, '0')}
-                </span>
+                <div className="inventory-card__metadata">
+                    {quantite > 1 && (
+                        <span
+                            className="inventory-card__quantity"
+                            title={libelleQuantite}
+                            aria-label={libelleQuantite}
+                        >
+                            x{quantite}
+                        </span>
+                    )}
+                    <span className="inventory-card__serial">
+                        ID {String(carte.id_carte).padStart(3, '0')}
+                    </span>
+                </div>
             </div>
             <div className="inventory-card__image-frame">
                 <img
