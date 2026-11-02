@@ -15,6 +15,7 @@ function Decks() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const [newDeckName, setNewDeckName] = useState('')
+    const [newDeckImage, setNewDeckImage] = useState('')
     const [creatingDeck, setCreatingDeck] = useState(false)
 
     async function loadDeckDetails(deckId) {
@@ -101,8 +102,15 @@ function Decks() {
 
     async function handleCreateDeck(event) {
         event.preventDefault()
+        setError(null)
+
         if (!newDeckName.trim()) {
             setError('Le nom du deck est obligatoire.')
+            return
+        }
+
+        if (!newDeckImage.trim()) {
+            setError('L\'image du deck est obligatoire.')
             return
         }
 
@@ -114,7 +122,7 @@ function Decks() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ nomDeck: newDeckName.trim() }),
+                body: JSON.stringify({ nomDeck: newDeckName.trim(), image: newDeckImage.trim() }),
             })
 
             if (!response.ok) {
@@ -123,6 +131,7 @@ function Decks() {
             }
 
             setNewDeckName('')
+            setNewDeckImage('')
             await fetchDecksData()
         } catch (err) {
             console.error('Erreur handleCreateDeck:', err)
@@ -181,50 +190,59 @@ function Decks() {
     const selectedDeckCards = selectedDeck?.cartes || []
 
     return (
-        <main className="content-left-spacing">
-            <div className="inventory-header">
+        <main className="content-left-spacing decks-page">
+            <div className="inventory-header decks-header">
                 <div>
-                    <h1 className="inventory-title">Mes decks</h1>
-                    <p className="inventory-subtitle">Créez, sélectionnez et gérez vos decks de cartes.</p>
+                    <h1 className="inventory-title decks-title">Mes decks</h1>
+                    <p className="inventory-subtitle decks-subtitle">Créez, sélectionnez et gérez vos decks de cartes.</p>
                 </div>
                 <div className="buttons">
-                    <button className="button is-link" type="button" onClick={() => navigate('/inventaire')}>
+                    <button className="button is-link decks-back-button" type="button" onClick={() => navigate('/inventaire')}>
                         Retour à l&apos;inventaire
                     </button>
                 </div>
             </div>
 
             {error && (
-                <div className="notification is-danger is-light">
+                <div className="notification is-danger is-light decks-alert">
                     {error}
                 </div>
             )}
 
             {loading ? (
-                <div className="box has-text-centered">
+                <div className="box has-text-centered decks-loading">
                     <span className="icon is-medium">
                         <i className="fas fa-spinner fa-spin" />
                     </span>
                     <p>Chargement des decks...</p>
                 </div>
             ) : (
-                <div className="columns is-variable is-5">
+                <div className="columns is-variable is-5 decks-layout">
                     <div className="column is-4">
-                        <div className="box">
+                        <div className="box decks-panel decks-panel-left">
                             <h2 className="title is-5">Liste des decks</h2>
 
-                            <form onSubmit={handleCreateDeck} className="field has-addons mb-4">
-                                <div className="control is-expanded">
+                            <form onSubmit={handleCreateDeck} className="decks-create-form mb-4">
+                                <div className="control is-expanded decks-form-control">
                                     <input
-                                        className="input"
+                                        className="input decks-input"
                                         type="text"
                                         placeholder="Nom du deck"
                                         value={newDeckName}
                                         onChange={(event) => setNewDeckName(event.target.value)}
                                     />
                                 </div>
-                                <div className="control">
-                                    <button className="button is-primary" type="submit" disabled={creatingDeck}>
+                                <div className="control is-expanded decks-form-control">
+                                    <input
+                                        className="input decks-input"
+                                        type="url"
+                                        placeholder="URL de l'image du deck"
+                                        value={newDeckImage}
+                                        onChange={(event) => setNewDeckImage(event.target.value)}
+                                    />
+                                </div>
+                                <div className="control decks-form-submit">
+                                    <button className="button is-primary decks-create-button" type="submit" disabled={creatingDeck}>
                                         {creatingDeck ? '...' : 'Créer'}
                                     </button>
                                 </div>
@@ -233,19 +251,19 @@ function Decks() {
                             {decks.length === 0 ? (
                                 <p className="has-text-grey">Aucun deck pour le moment.</p>
                             ) : (
-                                <div className="menu">
+                                <div className="menu decks-list">
                                     {decks.map((deck) => (
                                         <button
                                             key={deck.id_deck}
                                             type="button"
-                                            className={`button is-fullwidth mb-2 ${selectedDeckId === deck.id_deck ? 'is-warning' : 'is-light'}`}
+                                            className={`button is-fullwidth mb-2 deck-list-item ${selectedDeckId === deck.id_deck ? 'deck-list-item-active' : ''}`}
                                             onClick={() => {
                                                 setSelectedDeckId(deck.id_deck)
                                                 loadDeckDetails(deck.id_deck)
                                             }}
                                         >
-                                            <span>{deck.nom_deck}</span>
-                                            <span className="ml-2 tag is-light">{deck.total_cartes ?? 0}</span>
+                                            <span className="deck-list-name">{deck.nom_deck}</span>
+                                            <span className="ml-2 tag is-light deck-list-count">{deck.total_cartes ?? 0}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -255,28 +273,32 @@ function Decks() {
 
                     <div className="column is-8">
                         {selectedDeck ? (
-                            <div className="box">
-                                <div className="level">
-                                    <div className="level-left">
-                                        <div>
-                                            <p className="subtitle is-6 mb-1">Deck sélectionné</p>
-                                            <h2 className="title is-4 mb-0">{selectedDeck.nom_deck}</h2>
-                                        </div>
+                            <div className="box decks-panel decks-panel-right">
+                                <div className="level decks-selected-header">
+                                    <div className="level-left decks-selected-meta">
+                                        <p className="subtitle is-6 mb-1">Deck sélectionné</p>
+                                        <h2 className="title is-4 mb-0">{selectedDeck.nom_deck}</h2>
                                     </div>
                                     <div className="level-right">
                                         <span className="tag is-info is-medium">{selectedDeckCards.length} cartes</span>
                                     </div>
                                 </div>
 
+                                {selectedDeck.image && (
+                                    <figure className="decks-selected-image">
+                                        <img src={selectedDeck.image} alt={selectedDeck.nom_deck} />
+                                    </figure>
+                                )}
+
                                 {selectedDeckCards.length === 0 ? (
                                     <div className="notification is-light">
                                         Ce deck est vide. Ajoutez des cartes depuis votre inventaire.
                                     </div>
                                 ) : (
-                                    <div className="columns is-multiline">
+                                    <div className="columns is-multiline decks-cards-grid">
                                         {selectedDeckCards.map((carte) => (
                                             <div className="column is-6-tablet is-4-desktop" key={`${selectedDeck.id_deck}-${carte.id_carte}`}>
-                                                <div className="card">
+                                                <div className="card decks-card-item">
                                                     <div className="card-image">
                                                         <figure className="image is-4by5">
                                                             <img src={carte.image} alt={carte.nom_carte} style={{ objectFit: 'cover' }} />
@@ -300,7 +322,7 @@ function Decks() {
                                 )}
                             </div>
                         ) : (
-                            <div className="box has-text-centered">
+                            <div className="box has-text-centered decks-empty-state">
                                 <p className="has-text-grey">Sélectionnez ou créez un deck pour commencer.</p>
                             </div>
                         )}
@@ -309,12 +331,12 @@ function Decks() {
             )}
 
             {!loading && user && inventory.length > 0 && (
-                <section className="box mt-5">
+                <section className="box mt-5 decks-panel decks-inventory-panel">
                     <h3 className="title is-5">Ajouter une carte depuis l&apos;inventaire</h3>
-                    <div className="columns is-multiline">
+                    <div className="columns is-multiline decks-cards-grid">
                         {inventory.map((carte) => (
                             <div className="column is-6-tablet is-4-desktop is-3-widescreen" key={carte.id_carte}>
-                                <div className="card">
+                                <div className="card decks-card-item">
                                     <div className="card-image">
                                         <figure className="image is-4by5">
                                             <img src={carte.image} alt={carte.nom_carte} style={{ objectFit: 'cover' }} />

@@ -80,33 +80,25 @@ router.get("/decks/:id", async (req, res) => {
 
 router.post("/decks", async (req, res) => {
     const nomDeck = typeof req.body.nomDeck === "string" ? req.body.nomDeck.trim() : ""
-    const imageDeck = typeof req.body.image === "string" ? req.body.image.trim() : (req.body.image ?? null)
+    const imageDeck = typeof req.body.image === "string" ? req.body.image.trim() : ""
 
     if (!nomDeck || nomDeck.length > DECK_NAME_MAX_LENGTH) {
         return res.status(400).json({ error: "Le nom du deck est requis et doit contenir au maximum 30 caractères" })
     }
 
+    if (!imageDeck) {
+        return res.status(400).json({ error: "L'image du deck est requise" })
+    }
+
     try {
-        const hasImage = imageDeck !== null && imageDeck !== undefined && imageDeck !== ""
         const result = await pool.query(
-            hasImage
-                ? `insert into deck (id_utilisateur, nom_deck, image)
-                   values ($1, $2, $3)
-                   returning id_deck, nom_deck, image, cree_le`
-                : `insert into deck (id_utilisateur, nom_deck)
-                   values ($1, $2)
-                   returning id_deck, nom_deck, cree_le`,
-            hasImage
-                ? [req.user.id, nomDeck, imageDeck]
-                : [req.user.id, nomDeck]
+            `insert into deck (id_utilisateur, nom_deck, image)
+             values ($1, $2, $3)
+             returning id_deck, nom_deck, image, cree_le`,
+            [req.user.id, nomDeck, imageDeck]
         )
 
-        const deck = result.rows[0]
-        if (deck.image === null || deck.image === undefined) {
-            delete deck.image
-        }
-
-        res.status(201).json(deck)
+        res.status(201).json(result.rows[0])
     } catch (error) {
         console.error("Erreur dans /inventory/decks", error)
         res.status(500).json({ error: "Erreur serveur" })
