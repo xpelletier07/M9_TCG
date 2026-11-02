@@ -11,6 +11,7 @@ import creditsRouter from "../routes/credits.js"
 import settingsRouter from "../routes/settings.js"
 import randomCardRouter from "../routes/randomcard.js"
 
+
 const apiRouter = express.Router()
 
 apiRouter.use("/auth/github", githubAuthRouter)

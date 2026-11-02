@@ -24,5 +24,16 @@ INSERT INTO Packs
   (nom_pack, image_pack, description_pack, liste_carte, valeur)
 values
   ('Belle pro moment', 'https://imgs.search.brave.com/AplNxDUoDF5PCln6JDPv-aEbINciPiMK9IOYTuqg4VA/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMud2l4c3RhdGlj/LmNvbS9tZWRpYS82/ZmU5ODNfN2FkMDNk/M2U1ZTM5NDg2ZTg4/N2Y5NDQwNWMxYjZj/ODB-bXYyLnBuZy92/MS9maWxsL3dfOTgw/LGhfNjUzLGFsX2Ms/cV85MCx1c21fMC42/Nl8xLjAwXzAuMDEs/ZW5jX2F2aWYscXVh/bGl0eV9hdXRvL2xv/Z28lMjBMYSUyMGJl/bGxlJTIwUHJvdmlu/Y2UlMjBBdXRoZXRp/cXVlLnBuZw',
-  'You found me in a belle pro moment of my life', ARRAY[1, 2, 3], 10)
+  'You found me in a belle pro moment of my life', ARRAY[1, 2, 3], 10);
+
+
+INSERT INTO deck
+  (id_utilisateur, nom_deck, image)
+values
+  (1, 'Deck Démo 1', 'https://picsum.photos/400/280?random=92'),
+  (1, 'Deck Démo 2', 'https://picsum.photos/400/280?random=93'),
+  (2, 'Deck Démo Admin', 'https://picsum.photos/400/280?random=94')
+
+
+
 ON CONFLICT DO NOTHING;
