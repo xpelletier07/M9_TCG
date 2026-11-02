@@ -33,7 +33,7 @@ values
   (1, 'Deck Démo 1', 'https://picsum.photos/400/280?random=92'),
   (1, 'Deck Démo 2', 'https://picsum.photos/400/280?random=93'),
   (2, 'Deck Démo Admin', 'https://picsum.photos/400/280?random=94')
-
+;
 
 
 ON CONFLICT DO NOTHING;
