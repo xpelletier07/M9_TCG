@@ -1,8 +1,10 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import { createServer } from "http";
 import { pool } from "./db/pool.js"
 import apiRouter from "./Router/Router_Global.js"
+import { attachRealtime } from "./realtime.js"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -50,6 +52,8 @@ app.get("/api/drop-timer", (req, res) => {
 
 // Les données de démonstration (comptes, cartes) sont insérées par db/seed.sql,
 // exécuté par PostgreSQL uniquement à la création initiale de la base de données.
-app.listen(PORT, () => {
+const server = createServer(app);
+attachRealtime(server);
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
 })

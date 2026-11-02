@@ -1551,4 +1551,334 @@ html.tcg-dark .modal-card-body .input {
 html.tcg-dark .modal-card-body .input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-bg);
+
+}
+/* ── Gameplay arena ───────────────────────────────────────────── */
+
+.combat-game-board {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.combat-player-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid rgba(156, 227, 212, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e9f8f5;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.combat-player-bar.is-active-turn {
+  border-color: rgba(56, 189, 165, 0.55);
+  background: rgba(56, 189, 165, 0.08);
+}
+
+.combat-player-bar.is-targetable-player {
+  border-color: rgba(229, 82, 82, 0.7);
+  cursor: crosshair;
+}
+
+.combat-player-bar.is-targetable-player:hover {
+  background: rgba(229, 82, 82, 0.1);
+}
+
+.combat-player-bar--mine {
+  margin-top: 0.25rem;
+}
+
+.combat-player-name {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: #fff;
+  min-width: 5rem;
+}
+
+.combat-hp-display {
+  flex-shrink: 0;
+}
+
+.combat-hp-bar {
+  position: relative;
+  height: 1.4rem;
+  width: 9rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.combat-hp-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  transition: width 0.35s ease;
+  border-radius: 6px;
+}
+
+.combat-hp-bar-fill--opponent { background: #e05252; }
+.combat-hp-bar-fill--mine     { background: #38bda5; }
+
+.combat-hp-bar span {
+  position: relative;
+  z-index: 1;
+  display: block;
+  line-height: 1.4rem;
+  padding: 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.combat-mana-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.combat-mana-label {
+  font-size: 0.72rem;
+  color: #9ce3d4;
+  white-space: nowrap;
+}
+
+.combat-mana-crystals {
+  display: flex;
+  gap: 3px;
+}
+
+.combat-mana-crystal {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  border: 1px solid rgba(156, 227, 212, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.combat-mana-crystal.is-full {
+  background: #38bda5;
+  border-color: #38bda5;
+}
+
+.combat-deck-count {
+  font-size: 0.7rem;
+  color: #9ce3d4;
+  margin-left: auto;
+}
+
+.combat-attack-hint {
+  font-size: 0.7rem;
+  color: #f29b73;
+  font-weight: 700;
+}
+
+/* Plateaux */
+
+.combat-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  min-height: 5.5rem;
+  padding: 0.65rem;
+  border: 1px dashed rgba(156, 227, 212, 0.22);
+  border-radius: 10px;
+  align-items: center;
+}
+
+.combat-board-empty {
+  color: rgba(156, 227, 212, 0.35);
+  font-size: 0.8rem;
+  font-style: italic;
+  margin: auto;
+}
+
+/* Barre de tour */
+
+.combat-turn-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.35rem 0;
+}
+
+.combat-end-turn-btn {
+  padding: 0.55rem 1.4rem;
+  border: 0;
+  border-radius: 7px;
+  background: #38bda5;
+  color: #0b2c2a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  transition: background 0.15s;
+}
+
+.combat-end-turn-btn:hover { background: #4dd4bb; }
+
+.combat-cancel-btn {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgba(156, 227, 212, 0.35);
+  border-radius: 7px;
+  background: transparent;
+  color: #9ce3d4;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.combat-cancel-btn:hover { background: rgba(156, 227, 212, 0.08); }
+
+.combat-waiting-label {
+  color: #9ce3d4;
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
+.combat-turn-count {
+  font-size: 0.7rem;
+  color: rgba(156, 227, 212, 0.5);
+}
+
+/* Cartes */
+
+.combat-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.45rem 0.5rem;
+  width: 5.2rem;
+  border: 1px solid rgba(156, 227, 212, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e9f8f5;
+  font-size: 0.72rem;
+  text-align: center;
+  cursor: default;
+  transition: transform 0.1s, border-color 0.1s, background 0.1s;
+  flex-shrink: 0;
+}
+
+.combat-card-name {
+  font-weight: 700;
+  font-size: 0.68rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combat-card-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.2rem;
+}
+
+.combat-card-attack {
+  color: #f29b73;
+  font-weight: 900;
+  font-size: 0.88rem;
+}
+
+.combat-card-hp {
+  color: #7ce0c8;
+  font-weight: 900;
+  font-size: 0.88rem;
+}
+
+.combat-card-mana-cost {
+  position: absolute;
+  top: -0.4rem;
+  left: -0.4rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  background: #38bda5;
+  color: #0b2c2a;
+  font-size: 0.65rem;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(156, 227, 212, 0.5);
+}
+
+.combat-card-can-attack-badge {
+  position: absolute;
+  bottom: -0.35rem;
+  right: -0.35rem;
+  background: #f29b73;
+  color: #492016;
+  font-size: 0.52rem;
+  font-weight: 900;
+  padding: 0.1rem 0.22rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.combat-card.can-attack {
+  border-color: rgba(242, 155, 115, 0.6);
+  cursor: pointer;
+}
+
+.combat-card.can-attack:hover,
+.combat-card.is-selected {
+  border-color: #f29b73;
+  transform: translateY(-5px);
+  background: rgba(242, 155, 115, 0.13);
+}
+
+.combat-card.is-targetable {
+  border-color: rgba(229, 82, 82, 0.65);
+  cursor: crosshair;
+}
+
+.combat-card.is-targetable:hover {
+  border-color: #e05252;
+  background: rgba(224, 82, 82, 0.13);
+  transform: translateY(-3px);
+}
+
+.combat-card--hand.can-play {
+  border-color: rgba(56, 189, 165, 0.55);
+  cursor: pointer;
+}
+
+.combat-card--hand.can-play:hover {
+  border-color: #38bda5;
+  transform: translateY(-8px);
+  background: rgba(56, 189, 165, 0.12);
+}
+
+.combat-card--hand.cannot-play {
+  opacity: 0.45;
+}
+
+/* Main */
+
+.combat-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  min-height: 5rem;
+  border: 1px solid rgba(156, 227, 212, 0.13);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.12);
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.combat-hand-empty {
+  color: rgba(156, 227, 212, 0.35);
+  font-size: 0.8rem;
+  font-style: italic;
+  margin: auto;
 }
