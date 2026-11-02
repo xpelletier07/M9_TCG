@@ -140,7 +140,7 @@
 - **Blocages :** Plusieurs examens donc le travail a été mis de côté un peu pour la plupart des membres de l'équipe
 - **Décisions :** Aucunes décisions importantes
 
-## Semaine 9-2 | Lundi 29 octobre 2026
+## Semaine 9-2 | Jeudi 29 octobre 2026
 - **Absence :** Aucune
 - **Avancées :** 
     - *Xavier :* Finaliser l'arenes de combat, link les settings utilisateur dans combats et c'est occuper des pulls requests.
@@ -150,3 +150,16 @@
     - *William :* Page profil et les settings.
 - **Blocages :** Aucun
 - **Décisions :** Finaliser avant la remises les choses qui nous à été donné pour le sprint 2.
+
+# SPRINT 3
+
+## Semaine 10-1 | Lundi 02 novembre 2026
+- **Absence :** Alek
+- **Avancées :** 
+    - *Xavier :* Combat - Mécanique de combat + effet particulier
+    - *Alek :* Bazaar - Vendre et historique d'achat et de vente
+    - *Marco :* Bazaar - Acheter et historique d'achat et de vente
+    - *Lotfi :* Combat - L'historique de combat
+    - *William :* Combat - Liste de matchmaking + CSS
+- **Blocages :** Aucun
+- **Décisions :** Travailler en petite équipe avec la team Marco et Alek pour le Bazaar et la team de Xavier, William et Lotfi pour le combat.
