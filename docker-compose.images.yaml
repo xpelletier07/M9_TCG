@@ -9,6 +9,8 @@ services:
         mkdir -p /initdb
         curl -fsSL https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/app/Serveur/db/db.sql -o /initdb/db.sql
         curl -fsSL https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/app/Serveur/db/seed.sql -o /initdb/seed.sql
+        # Données de test du combat (optionnelles : ignorées si le fichier n'existe pas encore sur main)
+        curl -fsSL https://raw.githubusercontent.com/xpelletier07/M9_TCG/main/app/Serveur/db/seed-combat-test.sql -o /initdb/zz-seed-combat-test.sql || rm -f /initdb/zz-seed-combat-test.sql
     volumes:
       - dbinit:/initdb
     restart: "no"
