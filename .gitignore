@@ -1,6 +1,10 @@
 # Ajouter whatever AI agent ajoute comme fichiers/dossiers
 .openclaude/
 .claude/
+
+.superpowers/
+superpowers/
+
 *.env
 # Logs
 logs
