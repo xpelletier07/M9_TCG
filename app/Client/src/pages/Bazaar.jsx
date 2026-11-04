@@ -5,8 +5,8 @@ import { API_BASE_URL } from "../config"
 
 function Bazaar() {
     const serveur = API_BASE_URL
-    const [cartes, setAllCartes] = useState(null)
-    const [cartesFiltres, setCartes] = useState(null)
+    const [allCartes, setAllCartes] = useState(null)
+    const [cartesFiltres, setCartesFiltres] = useState(null)
     const [nomCarte, setNomCarte] = useState("")
     const [mana, setMana] = useState("")
     const [dmg, setDmg] = useState("")
@@ -25,7 +25,7 @@ function Bazaar() {
             if (reponse.ok) {
                 const data = await reponse.json()
                 setAllCartes(data)
-                setCartes(data)
+                setCartesFiltres(data)
             }
         }
         getCartes().then(() => { console.log("cartes du bazaar récupérées de l'API") })
@@ -60,10 +60,10 @@ function Bazaar() {
             if (nomCarte !== "") {
                 resultats = resultats.filter((a) => a.nom_carte.toLowerCase().includes(nomCarte.toLowerCase()))
             }
-            setCartes(resultats)
+            setCartesFiltres(resultats)
         }
         filtrerCartes()
-    }, [nomCarte, mana, dmg, rarete, vie, prixMax, cartes])
+    }, [nomCarte, mana, dmg, rarete, vie, prixMax, allCartes])
 
     return (
         <main className="content-left-spacing">
