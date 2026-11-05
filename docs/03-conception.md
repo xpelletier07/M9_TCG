@@ -12,7 +12,6 @@ Chemin menant au diagramme entité relation: ![Computer](diagrammes/v6.drawio.pn
 - POST /auth/login — Vérifie les identifiants et retourne un token JWT (expire après 2h).
 - POST /auth/check-email — Lors de la création du compte, vérifie si l'email n'est pas déjà présent dans la base.
 - GET /auth/whoAmI — (protégée, `checkAuth`) Retourne les infos de l'utilisateur connecté.
-- PUT /auth/makeMeAdmin — (protégée, `checkAuth`) Route temporaire de test qui donne le statut admin à l'utilisateur connecté, à retirer une fois la gestion des rôles finalisée.
 
 ### Page Catalogue des Cartes (`/collection`):
 - GET /collection/all — (protégée, `checkAuth`) Retourne toutes les cartes du catalogue.
@@ -130,7 +129,6 @@ Configuration requise (variables d'environnement): `GITHUB_CLIENT_ID`, `GITHUB_C
 ### Attribution des rôles
 - **Création par signup**: Rôle `user` attribué automatiquement
 - **Création par OAuth GitHub**: Rôle `user` attribué automatiquement
-- **Promotion en admin**: Via la route `PUT /auth/makeMeAdmin` (temporaire, à remplacer par un système d'administration)
 
 ### Vérification des permissions
 - `checkAuth`: Middleware qui vérifie la présence et la validité du JWT
