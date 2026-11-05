@@ -28,11 +28,19 @@ router.get("/decks", async (req, res) => {
     try {
         const result = await pool.query(
             `select d.id_deck, d.nom_deck, d.image, d.cree_le,
-                    coalesce(sum(dc.quantite), 0)::int as total_cartes
+                    coalesce(sum(dc.quantite), 0)::int as total_cartes,
+                    (
+                        select c.image
+                        from deck_carte dc2
+                        join carte c on c.id_carte = dc2.id_carte
+                        where dc2.id_deck = d.id_deck
+                        order by c.rarete desc, c.valeur desc
+                        limit 1
+                    ) as image_carte_rare
              from deck d
              left join deck_carte dc on dc.id_deck = d.id_deck
              where d.id_utilisateur = $1
-             group by d.id_deck, d.image
+             group by d.id_deck, d.image, d.nom_deck, d.cree_le
              order by d.cree_le desc`,
             [req.user.id]
         )
@@ -84,10 +92,6 @@ router.post("/decks", async (req, res) => {
 
     if (!nomDeck || nomDeck.length > DECK_NAME_MAX_LENGTH) {
         return res.status(400).json({ error: "Le nom du deck est requis et doit contenir au maximum 30 caractères" })
-    }
-
-    if (!imageDeck) {
-        return res.status(400).json({ error: "L'image du deck est requise" })
     }
 
     try {

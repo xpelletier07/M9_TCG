@@ -1,0 +1,1577 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Decks.css  –  Interface Complète & Finale du Gestionnaire de Decks
+   Design Gaming TCG Professionnel (Thème Clair & Thème Sombre)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── THÈME CLAIR (par défaut) ── */
+.decks-page {
+  --dk-bg-main: #f0f5fc;
+  --dk-text: #1e293b;
+  --dk-text-heading: #0f172a;
+  --dk-text-muted: #64748b;
+  --dk-text-subtle: #94a3b8;
+
+  --dk-accent: #2563eb;
+  --dk-accent-rgb: 37, 99, 235;
+  --dk-accent-hover: #1d4ed8;
+  --dk-accent-glow: rgba(37, 99, 235, 0.25);
+
+  --dk-panel-bg: rgba(255, 255, 255, 0.82);
+  --dk-panel-border: rgba(13, 42, 110, 0.12);
+  --dk-panel-shadow: 0 10px 28px rgba(13, 42, 110, 0.06);
+
+  --dk-card-bg: #ffffff;
+  --dk-card-border: rgba(13, 42, 110, 0.14);
+
+  --dk-input-bg: #ffffff;
+  --dk-input-border: rgba(13, 42, 110, 0.2);
+  --dk-input-text: #0f172a;
+  --dk-input-placeholder: #94a3b8;
+
+  --dk-badge-bg: rgba(37, 99, 235, 0.08);
+  --dk-badge-text: #1d4ed8;
+  --dk-badge-border: rgba(37, 99, 235, 0.2);
+
+  --dk-modal-bg: #ffffff;
+  --dk-modal-border: rgba(13, 42, 110, 0.16);
+  --dk-modal-shadow: 0 30px 70px -15px rgba(13, 42, 110, 0.35);
+
+  --dk-hover-bg: rgba(37, 99, 235, 0.06);
+  --dk-active-bg: rgba(37, 99, 235, 0.12);
+  --dk-active-border: rgba(37, 99, 235, 0.35);
+
+  --dk-hud-bg: rgba(255, 255, 255, 0.9);
+  --dk-hud-border: rgba(13, 42, 110, 0.12);
+}
+
+/* ── THÈME SOMBRE (tcg-dark) ── */
+html.tcg-dark .decks-page {
+  --dk-bg-main: transparent;
+  --dk-text: #d0dbe8;
+  --dk-text-heading: #f8fafc;
+  --dk-text-muted: #8295ad;
+  --dk-text-subtle: #5e7186;
+
+  --dk-accent: #70b9ff;
+  --dk-accent-rgb: 112, 185, 255;
+  --dk-accent-hover: #96ccff;
+  --dk-accent-glow: rgba(112, 185, 255, 0.35);
+
+  --dk-panel-bg: rgba(18, 27, 43, 0.75);
+  --dk-panel-border: rgba(112, 185, 255, 0.16);
+  --dk-panel-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+
+  --dk-card-bg: rgba(23, 34, 54, 0.85);
+  --dk-card-border: rgba(112, 185, 255, 0.18);
+
+  --dk-input-bg: rgba(11, 18, 30, 0.8);
+  --dk-input-border: rgba(112, 185, 255, 0.24);
+  --dk-input-text: #f0f7ff;
+  --dk-input-placeholder: #5e7186;
+
+  --dk-badge-bg: rgba(112, 185, 255, 0.12);
+  --dk-badge-text: #70b9ff;
+  --dk-badge-border: rgba(112, 185, 255, 0.28);
+
+  --dk-modal-bg: #0d1524;
+  --dk-modal-border: rgba(112, 185, 255, 0.24);
+  --dk-modal-shadow: 0 30px 80px -10px rgba(0, 0, 0, 0.8), 0 0 40px rgba(37, 99, 235, 0.2);
+
+  --dk-hover-bg: rgba(112, 185, 255, 0.08);
+  --dk-active-bg: rgba(112, 185, 255, 0.15);
+  --dk-active-border: rgba(112, 185, 255, 0.4);
+
+  --dk-hud-bg: rgba(17, 26, 42, 0.85);
+  --dk-hud-border: rgba(112, 185, 255, 0.18);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE STRUCTURE & EN-TÊTE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.decks-page {
+  min-height: 100vh;
+  color: var(--dk-text);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.decks-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.decks-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.decks-kicker-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--dk-badge-bg);
+  border: 1px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.decks-kicker-separator {
+  color: var(--dk-text-subtle);
+  font-size: 0.75rem;
+}
+
+.decks-kicker-text {
+  color: var(--dk-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.decks-title {
+  margin: 0 0 0.35rem;
+  color: var(--dk-text-heading);
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.decks-subtitle {
+  margin: 0;
+  color: var(--dk-text-muted);
+  font-size: 0.98rem;
+  max-width: 48rem;
+  line-height: 1.5;
+}
+
+.decks-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ── BOUTONS GÉNÉRIQUES GAMING ── */
+.decks-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.decks-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.decks-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.decks-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.decks-btn--primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+.decks-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.decks-btn--glow {
+  background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+}
+
+.decks-btn--glow:hover:not(:disabled) {
+  background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+  box-shadow: 0 8px 26px rgba(16, 185, 129, 0.5);
+}
+
+.decks-btn--secondary {
+  background: var(--dk-panel-bg);
+  border-color: var(--dk-panel-border);
+  color: var(--dk-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.decks-btn--secondary:hover:not(:disabled) {
+  background: var(--dk-hover-bg);
+  border-color: var(--dk-accent);
+  color: var(--dk-accent);
+}
+
+.decks-btn--ghost {
+  background: rgba(var(--dk-accent-rgb), 0.12);
+  border-color: rgba(var(--dk-accent-rgb), 0.3);
+  color: var(--dk-accent);
+}
+
+.decks-btn--ghost:hover:not(:disabled) {
+  background: rgba(var(--dk-accent-rgb), 0.22);
+  border-color: rgba(var(--dk-accent-rgb), 0.5);
+}
+
+.decks-btn--danger-ghost {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+.decks-btn--danger-ghost:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+.decks-btn--danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+}
+
+.decks-btn--danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.decks-btn--sm {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+
+.decks-btn--lg {
+  padding: 0.85rem 1.6rem;
+  font-size: 0.95rem;
+  border-radius: 12px;
+}
+
+/* ── ALERTES & NOTIFICATIONS ── */
+.decks-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.9rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: decks-slide-down 250ms ease;
+}
+
+@keyframes decks-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.decks-alert--danger {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.decks-alert--success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.decks-alert span {
+  flex: 1;
+}
+
+.decks-alert-close {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.2rem;
+  opacity: 0.7;
+}
+
+.decks-alert-close:hover {
+  opacity: 1;
+}
+
+/* ── LOADING SPINNER ── */
+.decks-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  min-height: 24rem;
+  color: var(--dk-text-muted);
+  font-weight: 600;
+}
+
+.decks-spinner {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 3.5px solid rgba(var(--dk-accent-rgb), 0.2);
+  border-top-color: var(--dk-accent);
+  border-radius: 50%;
+  animation: decks-spin 0.7s linear infinite;
+}
+
+.decks-spinner--sm {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-width: 2px;
+}
+
+@keyframes decks-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LAYOUT 2 COLONNES (SIDEBAR + MAIN)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.decks-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .decks-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── SIDEBAR DES DECKS ── */
+.decks-sidebar {
+  position: sticky;
+  top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 18px;
+  background: var(--dk-panel-bg);
+  border: 1.5px solid var(--dk-panel-border);
+  box-shadow: var(--dk-panel-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.decks-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--dk-panel-border);
+}
+
+.decks-sidebar-title {
+  margin: 0;
+  color: var(--dk-text-heading);
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.decks-sidebar-count {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--dk-text-muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.decks-mini-create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--dk-badge-bg);
+  border: 1px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.decks-mini-create-btn:hover {
+  background: var(--dk-accent);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+/* ── LISTE DES DECKS DANS LA SIDEBAR ── */
+.decks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: calc(100vh - 18rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.decks-list-item-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  transition: background 160ms ease;
+}
+
+.decks-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  background: var(--dk-card-bg);
+  border: 1.5px solid var(--dk-card-border);
+  color: var(--dk-text);
+  cursor: pointer;
+  text-align: left;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.decks-list-item:hover {
+  border-color: var(--dk-accent);
+  transform: translateX(3px);
+  background: var(--dk-hover-bg);
+}
+
+.decks-list-item--active {
+  background: var(--dk-active-bg) !important;
+  border-color: var(--dk-accent) !important;
+  box-shadow: 0 4px 16px var(--dk-accent-glow);
+}
+
+.decks-list-thumb-wrapper {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1.5px solid var(--dk-panel-border);
+}
+
+.decks-list-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.decks-list-thumb-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.decks-list-active-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3.5px;
+  background: var(--dk-accent);
+  border-radius: 0 3px 3px 0;
+}
+
+.decks-list-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.decks-list-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--dk-text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.decks-list-meta {
+  font-size: 0.72rem;
+  color: var(--dk-text-muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.decks-list-count-badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--dk-badge-bg);
+  border: 1px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* Actions rapides sur le deck au hover */
+.decks-item-actions {
+  position: absolute;
+  right: 0.5rem;
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  z-index: 3;
+}
+
+.decks-list-item-wrap:hover .decks-item-actions {
+  display: flex;
+}
+
+.decks-list-item-wrap:hover .decks-list-count-badge {
+  display: none;
+}
+
+.decks-item-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--dk-panel-border);
+  background: var(--dk-panel-bg);
+  color: var(--dk-text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 160ms ease;
+}
+
+.decks-item-action-btn:hover {
+  background: var(--dk-accent);
+  color: #fff;
+  border-color: var(--dk-accent);
+  transform: scale(1.08);
+}
+
+.decks-item-action-btn--danger:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+/* Empty sidebar */
+.decks-empty-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.decks-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--dk-badge-bg);
+  color: var(--dk-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.decks-empty-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--dk-text-heading);
+  margin: 0 0 0.35rem;
+}
+
+.decks-empty-text {
+  font-size: 0.8rem;
+  color: var(--dk-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ZONE PRINCIPALE (SHOWCASE DU DECK ACTIF)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.decks-main {
+  min-width: 0;
+}
+
+.decks-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── HERO BANNER DU DECK ── */
+.decks-hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1.5px solid var(--dk-panel-border);
+  background: var(--dk-panel-bg);
+  box-shadow: var(--dk-panel-shadow);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.decks-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.22;
+  filter: blur(28px);
+  transform: scale(1.15);
+  pointer-events: none;
+}
+
+.decks-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.decks-hero-avatar-wrap {
+  width: 90px;
+  height: 90px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 2.5px solid var(--dk-accent);
+  box-shadow: 0 8px 24px var(--dk-accent-glow);
+  flex-shrink: 0;
+}
+
+.decks-hero-avatar-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.decks-hero-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+
+.decks-hero-meta {
+  flex: 1;
+  min-width: 220px;
+}
+
+.decks-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--dk-badge-bg);
+  border: 1px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+
+.decks-hero-title {
+  margin: 0 0 0.3rem;
+  color: var(--dk-text-heading);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.decks-hero-created {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--dk-text-muted);
+  font-weight: 600;
+}
+
+.decks-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+/* ── BARRE DE STATISTIQUES & ANALYTICS (HUD) ── */
+.decks-hud-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  padding: 1.1rem 1.4rem;
+  border-radius: 16px;
+  background: var(--dk-hud-bg);
+  border: 1.5px solid var(--dk-hud-border);
+  box-shadow: var(--dk-panel-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.decks-hud-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.decks-hud-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dk-text-muted);
+}
+
+.decks-hud-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--dk-text-heading);
+  letter-spacing: -0.02em;
+}
+
+.decks-hud-sub {
+  font-size: 0.78rem;
+  color: var(--dk-text-muted);
+  font-weight: 600;
+}
+
+.decks-hud-value--mana {
+  color: #38bdf8;
+}
+
+.decks-hud-value--power {
+  font-size: 1rem;
+}
+
+.stat-atq {
+  color: #f59e0b;
+}
+
+.stat-sep {
+  color: var(--dk-text-subtle);
+  font-size: 0.8rem;
+}
+
+.stat-vie {
+  color: #ef4444;
+}
+
+.decks-rarity-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 2px;
+}
+
+.rarity-pill {
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rarity-pill--1 {
+  background: rgba(148, 163, 184, 0.18);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.rarity-pill--2 {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.rarity-pill--3 {
+  background: rgba(192, 132, 252, 0.18);
+  color: #c084fc;
+  border: 1px solid rgba(192, 132, 252, 0.3);
+}
+
+.rarity-pill--4 {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+/* ── SECTION DES CARTES DU DECK ── */
+.decks-cards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.decks-cards-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.decks-cards-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--dk-text-heading);
+}
+
+.decks-cards-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--dk-badge-bg);
+  border: 1px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  font-size: 0.72rem;
+  font-family: var(--mono);
+}
+
+/* ── GRILLE DES CARTES DU DECK ── */
+.decks-cards-grid {
+  margin-bottom: 2rem;
+}
+
+.decks-card-wrapper {
+  position: relative;
+  transition: transform 200ms ease;
+}
+
+.decks-card-wrapper:hover {
+  transform: translateY(-4px);
+}
+
+/* Bouton de retrait élégant */
+.decks-remove-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border: 1.5px solid rgba(239, 68, 68, 0.7);
+  border-radius: 999px;
+  background: rgba(185, 28, 28, 0.9);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.decks-card-wrapper:hover .decks-remove-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.decks-remove-badge:hover {
+  background: #dc2626;
+  border-color: #f87171;
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.6);
+}
+
+/* Empty deck inside showcase */
+.decks-empty-deck-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  border-radius: 20px;
+  border: 2px dashed var(--dk-panel-border);
+  background: var(--dk-panel-bg);
+  text-align: center;
+}
+
+.decks-empty-deck-illustration {
+  width: 70px;
+  height: 70px;
+  border-radius: 18px;
+  background: var(--dk-badge-bg);
+  border: 1.5px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  margin-bottom: 1.25rem;
+}
+
+.decks-empty-deck-state h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--dk-text-heading);
+}
+
+.decks-empty-deck-state p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--dk-text-muted);
+  max-width: 28rem;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MINI-PAGE / MODALE DE SÉLECTION DE CARTES ("CARD PICKER")
+   ═══════════════════════════════════════════════════════════════════ */
+
+.decks-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.75rem, 2.5vw, 2.5rem);
+  background: rgba(3, 8, 18, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: decks-backdrop-fade 200ms ease;
+}
+
+.decks-modal-window {
+  display: flex;
+  flex-direction: column;
+  width: min(1140px, 95vw);
+  height: min(88vh, 880px);
+  border-radius: 22px;
+  border: 1.5px solid var(--dk-modal-border);
+  background: var(--dk-modal-bg);
+  box-shadow: var(--dk-modal-shadow);
+  color: var(--dk-text);
+  overflow: hidden;
+  animation: decks-modal-pop 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.decks-modal-window--compact {
+  width: min(540px, 94vw);
+  height: auto;
+  max-height: 90vh;
+}
+
+.decks-modal-window--alert {
+  width: min(460px, 92vw);
+  height: auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* ── MODAL HEADER ── */
+.decks-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.4rem 1.75rem 1.1rem;
+  border-bottom: 1.5px solid var(--dk-modal-border);
+  background: var(--dk-modal-bg);
+  flex-shrink: 0;
+}
+
+.decks-modal-header-text {
+  min-width: 0;
+}
+
+.decks-modal-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.decks-modal-kicker {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dk-accent);
+}
+
+.decks-modal-deck-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--dk-badge-bg);
+  border: 1px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.decks-modal-title {
+  margin: 0 0 0.25rem;
+  color: var(--dk-text-heading);
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.decks-modal-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--dk-text-muted);
+  line-height: 1.4;
+}
+
+.decks-modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid var(--dk-modal-border);
+  background: var(--dk-hover-bg);
+  color: var(--dk-text-muted);
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 800;
+  transition: all 160ms ease;
+  flex-shrink: 0;
+}
+
+.decks-modal-close-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
+/* ── MODAL FILTRES & RECHERCHE HUD ── */
+.decks-modal-filterbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.75rem;
+  border-bottom: 1px solid var(--dk-modal-border);
+  background: rgba(var(--dk-accent-rgb), 0.03);
+  flex-wrap: wrap;
+}
+
+.decks-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.decks-search-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--dk-text-subtle);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.decks-picker-search {
+  width: 100%;
+  padding: 0.6rem 2.2rem 0.6rem 2.4rem;
+  border-radius: 9px;
+  border: 1.5px solid var(--dk-input-border);
+  background: var(--dk-input-bg);
+  color: var(--dk-input-text);
+  font: inherit;
+  font-size: 0.86rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 160ms ease;
+}
+
+.decks-picker-search:focus {
+  border-color: var(--dk-accent);
+  box-shadow: 0 0 0 3px var(--dk-accent-glow);
+}
+
+.decks-search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 0;
+  color: var(--dk-text-subtle);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.2rem;
+}
+
+.decks-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.decks-filter-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dk-text-muted);
+}
+
+.decks-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--dk-panel-bg);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--dk-panel-border);
+}
+
+.decks-filter-pill {
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--dk-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  transition: all 150ms ease;
+}
+
+.decks-filter-pill:hover {
+  color: var(--dk-text-heading);
+}
+
+.decks-filter-pill--active {
+  background: var(--dk-accent);
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px var(--dk-accent-glow);
+}
+
+/* ── MODAL BODY (DÉFILANT) ── */
+.decks-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.75rem;
+  scrollbar-width: thin;
+}
+
+.decks-modal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 20rem;
+  text-align: center;
+  color: var(--dk-text-muted);
+}
+
+.decks-modal-empty-icon {
+  font-size: 3rem;
+  color: var(--dk-text-subtle);
+  margin-bottom: 0.75rem;
+}
+
+.decks-modal-empty-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--dk-text-heading);
+}
+
+.decks-modal-empty-sub {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+/* ── CARTES DANS LE CARD PICKER ── */
+.decks-picker-card-wrapper {
+  position: relative;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  border-radius: 13px;
+}
+
+.decks-picker-card-wrapper:hover:not(.decks-picker-card-wrapper--disabled) {
+  transform: translateY(-6px);
+}
+
+.decks-picker-card-wrapper--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.decks-picker-unavailable {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 13px;
+  background: rgba(3, 7, 18, 0.78);
+  backdrop-filter: blur(3px);
+  color: #fca5a5;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  pointer-events: none;
+}
+
+.decks-picker-add-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.decks-picker-card-wrapper:hover:not(.decks-picker-card-wrapper--disabled) .decks-picker-add-hint {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── MODAL FOOTER ── */
+.decks-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.75rem;
+  border-top: 1.5px solid var(--dk-modal-border);
+  background: var(--dk-modal-bg);
+  flex-shrink: 0;
+}
+
+.decks-modal-footer--centered {
+  justify-content: center;
+}
+
+.decks-modal-footer-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.decks-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  background: var(--dk-badge-bg);
+  border: 1px solid var(--dk-badge-border);
+  color: var(--dk-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.decks-stat-pill strong {
+  color: var(--dk-accent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORMULAIRE CRÉATION & ÉDITION DE DECK
+   ═══════════════════════════════════════════════════════════════════ */
+
+.decks-dialog-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.decks-dialog-body {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
+.decks-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+}
+
+.decks-form-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--dk-text-heading);
+}
+
+.decks-required {
+  color: #ef4444;
+}
+
+.decks-char-counter {
+  align-self: flex-end;
+  font-size: 0.72rem;
+  color: var(--dk-text-subtle);
+  font-family: var(--mono);
+}
+
+.decks-input {
+  width: 100%;
+  padding: 0.7rem 0.95rem;
+  border-radius: 9px;
+  border: 1.5px solid var(--dk-input-border);
+  background: var(--dk-input-bg);
+  color: var(--dk-input-text);
+  font: inherit;
+  font-size: 0.88rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 160ms ease;
+}
+
+.decks-input:focus {
+  border-color: var(--dk-accent);
+  box-shadow: 0 0 0 3px var(--dk-accent-glow);
+}
+
+.decks-form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.decks-optional-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dk-text-subtle);
+  background: var(--dk-badge-bg);
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--dk-badge-border);
+}
+
+.decks-form-hint {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--dk-text-muted);
+  line-height: 1.4;
+}
+
+.decks-form-hint strong {
+  color: var(--dk-accent);
+}
+
+.decks-preview-fallback-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--dk-badge-bg);
+  border: 1.5px solid var(--dk-badge-border);
+  color: var(--dk-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.decks-preview-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.decks-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--dk-panel-bg);
+  border: 1.5px solid var(--dk-panel-border);
+}
+
+.decks-preview-card img {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1.5px solid var(--dk-accent);
+}
+
+.decks-preview-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.decks-preview-text strong {
+  font-size: 0.92rem;
+  color: var(--dk-text-heading);
+}
+
+.decks-preview-text span {
+  font-size: 0.76rem;
+  color: var(--dk-text-muted);
+}
+
+/* ── MODALE SUPPRESSION ALERTE ── */
+.decks-modal-alert-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.12);
+  border: 2px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 1.25rem;
+}
+
+.decks-modal-alert-text {
+  font-size: 0.92rem;
+  color: var(--dk-text-muted);
+  line-height: 1.6;
+  margin: 0.75rem 0 1.5rem;
+}
+
+.decks-modal-alert-text strong {
+  color: var(--dk-text-heading);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 860px) {
+  .decks-header {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .decks-sidebar {
+    position: static;
+  }
+
+  .decks-hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .decks-hero-actions {
+    width: 100%;
+  }
+
+  .decks-hero-actions .decks-btn {
+    flex: 1;
+  }
+
+  .decks-hud-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .decks-modal-window {
+    width: 96vw;
+    height: 92vh;
+  }
+
+  .decks-modal-filterbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .decks-filter-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
