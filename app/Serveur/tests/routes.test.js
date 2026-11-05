@@ -804,44 +804,6 @@ test("GET /auth/whoAmI retourne 500 sur erreur de base de données", async () =>
     })
 })
 
-test("PUT /auth/makeMeAdmin exige une authentification", async () => {
-    const { response, body } = await request("/auth/makeMeAdmin", { method: "PUT" })
-
-    assert.equal(response.status, 401)
-    assert.equal(body.error, "Authentification requise")
-})
-
-test("PUT /auth/makeMeAdmin passe l'utilisateur connecté au statut admin", async () => {
-    let queryParams
-    setQueryResult((sql, params) => {
-        queryParams = params
-        return { rows: [], rowCount: 1 }
-    })
-
-    const { response, body } = await request("/auth/makeMeAdmin", {
-        method: "PUT",
-        headers: authenticatedHeaders(),
-    })
-
-    assert.equal(response.status, 204)
-    assert.equal(body, null)
-    assert.deepEqual(queryParams, ["admin", 7])
-})
-
-test("PUT /auth/makeMeAdmin retourne 500 sur erreur de base de données", async () => {
-    await withSilentErrors(async () => {
-        setQueryError()
-
-        const { response, body } = await request("/auth/makeMeAdmin", {
-            method: "PUT",
-            headers: authenticatedHeaders(),
-        })
-
-        assert.equal(response.status, 500)
-        assert.equal(body.error, "Erreur serveur")
-    })
-})
-
 // =============================================================
 // /collection
 // =============================================================

@@ -160,24 +160,6 @@
       "response": []
     },
     {
-      "name": "make admin",
-      "request": {
-        "method": "PUT",
-        "header": [],
-        "url": {
-          "raw": "{{url}}/auth/makeMeAdmin",
-          "host": [
-            "{{url}}"
-          ],
-          "path": [
-            "auth",
-            "makeMeAdmin"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
       "name": "whoAmI",
       "request": {
         "method": "GET",
