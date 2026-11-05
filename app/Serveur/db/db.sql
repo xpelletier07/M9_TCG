@@ -141,3 +141,26 @@ CREATE TABLE IF NOT EXISTS combat_joueurs (
     whoami VARCHAR(50) NOT NULL,
     PRIMARY KEY (id_combat, id_utilisateur)
 );
+
+--Offres de vente du Bazaar (créées par la fonctionnalité de vente; l'achat les consomme)
+CREATE TABLE IF NOT EXISTS bazaar_offre (
+    id_offre SERIAL PRIMARY KEY,
+    id_vendeur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    id_carte INT NOT NULL REFERENCES carte(id_carte) ON DELETE CASCADE,
+    quantite INT NOT NULL CHECK (quantite > 0),
+    prix_unitaire FLOAT NOT NULL CHECK (prix_unitaire > 0),
+    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bazaar_offre_carte_prix ON bazaar_offre (id_carte, prix_unitaire, cree_le);
+
+--Historique des transactions du Bazaar (une ligne par offre remplie, totalement ou partiellement)
+CREATE TABLE IF NOT EXISTS bazaar_transaction (
+    id_transaction SERIAL PRIMARY KEY,
+    id_acheteur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    id_vendeur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    id_carte INT NOT NULL REFERENCES carte(id_carte) ON DELETE CASCADE,
+    quantite INT NOT NULL CHECK (quantite > 0),
+    prix_unitaire FLOAT NOT NULL,
+    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
+);
