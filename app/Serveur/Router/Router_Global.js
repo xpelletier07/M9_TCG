@@ -11,6 +11,7 @@ import creditsRouter from "../routes/credits.js"
 import settingsRouter from "../routes/settings.js"
 import randomCardRouter from "../routes/randomcard.js"
 import bazaarRouter from "../routes/bazaar.js"
+import ventesBazaar from "../routes/ventesBazaar.js"
 
 const apiRouter = express.Router()
 
@@ -26,6 +27,7 @@ apiRouter.use("/cards", randomCardRouter)
 apiRouter.use("/bazaar", bazaarRouter)
 apiRouter.use(carteRouter)
 apiRouter.use(inventaireRouter)
+apiRouter.use("/venteBazaar", ventesBazaar)
 
 
 export default apiRouter
