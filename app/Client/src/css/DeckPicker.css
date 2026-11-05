@@ -1,0 +1,287 @@
+/* Emplacement de deck (lobby) et fenêtre de sélection. Thème sombre via html.tcg-dark. */
+
+.deck-slot {
+  --slot-bg: rgba(255, 255, 255, 0.75);
+  --slot-border: rgba(37, 99, 235, 0.25);
+  --slot-text: #0d2a6e;
+  --slot-muted: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin: 14px 0;
+  padding: 12px;
+  border: 2px dashed var(--slot-border);
+  border-radius: 16px;
+  background: var(--slot-bg);
+  color: var(--slot-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.deck-slot:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #2563eb;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+}
+
+.deck-slot:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.deck-slot.has-deck {
+  border-style: solid;
+}
+
+.deck-slot-art,
+.deck-slot-plus {
+  flex: 0 0 64px;
+  height: 88px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.deck-slot-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.deck-slot-plus {
+  display: grid;
+  place-items: center;
+  font-size: 40px;
+  font-weight: 300;
+  color: #2563eb;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.12));
+}
+
+.deck-slot-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--slot-muted);
+}
+
+.deck-slot-info strong {
+  font-size: 16px;
+  color: var(--slot-text);
+}
+
+.deck-slot-label,
+.deck-picker-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.deck-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 18, 45, 0.55);
+  backdrop-filter: blur(4px);
+  animation: deck-picker-fade 0.2s ease;
+}
+
+.deck-picker {
+  width: min(720px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  padding: 22px;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #0d2a6e;
+  box-shadow: 0 30px 60px rgba(8, 18, 45, 0.35);
+  animation: deck-picker-pop 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.deck-picker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.deck-picker-header h2 {
+  margin: 2px 0 0;
+  font-size: 24px;
+  color: inherit;
+}
+
+.deck-picker-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.deck-picker-status {
+  color: #64748b;
+}
+
+.deck-picker-status.is-error {
+  color: #dc2626;
+}
+
+.deck-picker-empty {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+}
+
+.deck-picker-link {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0d2a6e, #2563eb);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.deck-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deck-picker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #0d2a6e;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.deck-picker-item span:last-child {
+  color: #64748b;
+}
+
+.deck-picker-item strong {
+  font-size: 15px;
+}
+
+.deck-picker-item:hover {
+  transform: translateY(-3px);
+  border-color: #93c5fd;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
+}
+
+.deck-picker-item.is-selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.deck-picker-art {
+  height: 110px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.deck-picker-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.combat-ready-hint {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+}
+
+.combat-deck-flag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.combat-lobby-toast {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+@keyframes deck-picker-fade {
+  from { opacity: 0; }
+}
+
+@keyframes deck-picker-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+}
+
+/* Thème sombre */
+html.tcg-dark .deck-slot {
+  --slot-bg: rgba(17, 27, 43, 0.85);
+  --slot-border: rgba(96, 165, 250, 0.35);
+  --slot-text: #e8f1ff;
+  --slot-muted: #a9bdd6;
+}
+
+html.tcg-dark .deck-picker {
+  background: #0f1b33;
+  color: #e8f1ff;
+}
+
+html.tcg-dark .deck-picker-item {
+  border-color: rgba(96, 165, 250, 0.2);
+  background: rgba(30, 58, 138, 0.25);
+  color: #e8f1ff;
+}
+
+html.tcg-dark .deck-picker-item span:last-child,
+html.tcg-dark .deck-picker-status,
+html.tcg-dark .deck-picker-empty,
+html.tcg-dark .combat-ready-hint {
+  color: #a9bdd6;
+}
+
+html.tcg-dark .combat-deck-flag {
+  color: #34d399;
+}
+
+html.tcg-dark .combat-lobby-toast {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-slot,
+  .deck-picker-item,
+  .deck-picker,
+  .deck-picker-backdrop {
+    animation: none;
+    transition: none;
+  }
+}
