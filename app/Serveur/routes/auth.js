@@ -142,16 +142,4 @@ router.get("/whoAmI", checkAuth, async (req, res) => {
     }
 })
 
-// A SUPPRIMER LORSQU'ON VA AVOIR UNE SEUL BD QUI ROULE TOUT LE TEMPS
-// route temporaire pour rendre les utilisateurs de tests admin
-router.put("/makeMeAdmin", checkAuth, async (req, res) => {
-    try {
-        const rows = await pool.query("update utilisateurs set statut = $1 where id = $2", ["admin", req.user.id])
-        res.status(204).send()
-    } catch (error) {
-        console.error("Erreur dans /auth/whoAmI", error)
-        res.status(500).json({ error: "Erreur serveur" })
-    }
-})
-
 export default router
