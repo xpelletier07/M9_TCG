@@ -163,3 +163,14 @@
     - *William :* Combat - Liste de matchmaking + CSS
 - **Blocages :** Aucun
 - **Décisions :** Travailler en petite équipe avec la team Marco et Alek pour le Bazaar et la team de Xavier, William et Lotfi pour le combat.
+
+## Semaine 10-2 | Jeudi 05 novembre 2026
+- **Absence :** Aucune
+- **Avancées :** 
+    - *Xavier :* Combat - Les composantes/ animation des cartes et implémentation de deck de test.
+    - *Alek :* Rien
+    - *Marco :* Bazaar - Implémentation de l'achat d'un certain nombre de carte, d'un prix par unité, et le retrait d'argent.
+    - *Lotfi :* Combat - Les routes de page deck.
+    - *William :* Combat - Petit update de l'interface de quantiter de carte d'un rond pour un rectangle.
+- **Blocages :** Aucun
+- **Décisions :** Finaliser les tâches attribués au début et faire les fixes apportés par le prof et Xavier.
