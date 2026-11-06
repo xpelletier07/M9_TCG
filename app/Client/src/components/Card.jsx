@@ -8,7 +8,8 @@ const rareteLabels = {
 }
 
 export default function Card({ carte, onClick, quantite = 1 }) {
-    const libelleQuantite = `${quantite} exemplaire${quantite > 1 ? 's' : ''}`
+    const quantiteNum = Number(quantite) || 1
+    const libelleQuantite = `${quantiteNum} exemplaire${quantiteNum > 1 ? 's' : ''}`
 
     return (
         <div
@@ -28,13 +29,14 @@ export default function Card({ carte, onClick, quantite = 1 }) {
                     {rareteLabels[carte.rarete] ?? 'Carte'}
                 </span>
                 <div className="inventory-card__metadata">
-                    {quantite > 1 && (
+                    {quantiteNum > 1 && (
                         <span
                             className="inventory-card__quantity"
                             title={libelleQuantite}
                             aria-label={libelleQuantite}
                         >
-                            x{quantite}
+                            <span className="inventory-card__quantity-prefix">x</span>
+                            <span className="inventory-card__quantity-value">{quantiteNum}</span>
                         </span>
                     )}
                     <span className="inventory-card__serial">
