@@ -342,6 +342,49 @@
   color: #ffd078;
 }
 
+/* Variante utilisée dans la fenêtre modale (CardModal) */
+.card-modal-view {
+  width: min(360px, 92vw);
+  overflow: visible;
+}
+
+.inventory-card--modal {
+  cursor: default;
+}
+
+.inventory-card--modal:hover {
+  transform: none;
+}
+
+.inventory-card--modal .inventory-card__description {
+  display: block;
+  min-height: 0;
+  font-size: 0.82rem;
+  -webkit-line-clamp: unset;
+}
+
+.inventory-card__value {
+  margin-top: 0.6rem;
+  color: #9fb2c9;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.inventory-card__value strong {
+  color: #ffd078;
+  font-size: 0.85rem;
+}
+
+.card-modal-view__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
 @media (max-width: 1024px) {
   .inventory-cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
