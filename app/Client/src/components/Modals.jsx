@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
 import { API_BASE_URL } from "../config"
+import "../css/InventoryCards.css"
 
 const raretes = {
     1: "Commun",
@@ -156,6 +157,70 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
 
     if (!carte || !form) return null
 
+    // mode lecture : même affichage que les cartes de la collection et de l'inventaire
+    if (!isEditing) {
+        return (
+            <div className="modal is-active" role="dialog" aria-modal="true" aria-labelledby="card-modal-title">
+                <div className="modal-background" onClick={onClose} />
+                <div className="modal-content card-modal-view">
+                    <div className={`inventory-card inventory-card--modal inventory-card--rarity-${carte.rarete}`}>
+                        <div className="inventory-card__eyebrow">
+                            <span className="inventory-card__rank">
+                                {raretes[carte.rarete] ?? 'Carte'}
+                            </span>
+                            <div className="inventory-card__metadata">
+                                <span className="inventory-card__serial">
+                                    ID {String(carte.id_carte).padStart(3, '0')}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="inventory-card__image-frame">
+                            <img
+                                src={carte.image}
+                                alt={`Image de la carte ${carte.nom_carte}`}
+                                className="inventory-card__image"
+                            />
+                        </div>
+                        <div className="inventory-card__content">
+                            <h3 id="card-modal-title" className="inventory-card__name">{carte.nom_carte}</h3>
+                            <p className="inventory-card__description">{carte.description}</p>
+                            <div className="inventory-card__stats">
+                                <span className="inventory-card__stat inventory-card__stat--mana" title="Mana">
+                                    <span>Mana</span><strong>{carte.mana}</strong>
+                                </span>
+                                <span className="inventory-card__stat inventory-card__stat--health" title="Vie">
+                                    <span>Vie</span><strong>{carte.health}</strong>
+                                </span>
+                                <span className="inventory-card__stat inventory-card__stat--damage" title="Dégâts">
+                                    <span>ATQ</span><strong>{carte.damage}</strong>
+                                </span>
+                            </div>
+                            <div className="inventory-card__value">
+                                Valeur <strong>{carte.valeur}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    {erreur && (
+                        <div className="notification is-danger mt-3">
+                            {erreur}
+                        </div>
+                    )}
+                    <div className="card-modal-view__actions">
+                        <button type="button" className="button" onClick={onClose}>Fermer</button>
+                        {isAdmin && (
+                            <>
+                                <button type="button" className="button is-warning" onClick={() => setIsEditing(true)}>Modifier</button>
+                                <button type="button" className="button is-danger" onClick={supprimerCarte} disabled={isSubmitting}>Supprimer</button>
+                            </>
+                        )}
+                    </div>
+                </div>
+                <button type="button" className="modal-close is-large" aria-label="Fermer" onClick={onClose} />
+            </div>
+        )
+    }
+
+    // mode édition (admin) : formulaire
     return (
         <div className="modal is-active" role="dialog" aria-modal="true" aria-labelledby="card-modal-title">
             <div className="modal-background" onClick={onClose} />
