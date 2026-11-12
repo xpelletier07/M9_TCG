@@ -1,0 +1,52 @@
+/* Largeur de la sidebar : suit son état (dépliée 250px / repliée 74px) pour que la fenêtre suive la page */
+.tcg-layout {
+  --bazaar-sidebar-w: 250px;
+}
+
+.tcg-layout:has(.tcg-sidebar.collapsed) {
+  --bazaar-sidebar-w: 74px;
+}
+
+/* La fenêtre d'offres occupe la zone de contenu (à droite de la sidebar) et se redimensionne comme la page */
+.modal.bazaar-modal {
+  left: var(--bazaar-sidebar-w);
+  transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Contour de la fenêtre dans la couleur de rareté de la carte */
+.bazaar-modal .modal-card {
+  --card-accent: #b8c0cc;
+  --card-accent-rgb: 184, 192, 204;
+  border: 3px solid var(--card-accent);
+  border-radius: 14px;
+  box-shadow:
+    0 0 24px rgba(var(--card-accent-rgb), 0.45),
+    0 18px 40px rgba(2, 8, 20, 0.4);
+}
+
+.bazaar-modal .modal-card-head,
+.bazaar-modal .modal-card-foot {
+  border-color: rgba(var(--card-accent-rgb), 0.5);
+}
+
+.bazaar-modal--rarity-2 .modal-card {
+  --card-accent: #70b9ff;
+  --card-accent-rgb: 112, 185, 255;
+}
+
+.bazaar-modal--rarity-3 .modal-card {
+  --card-accent: #c59aff;
+  --card-accent-rgb: 197, 154, 255;
+}
+
+.bazaar-modal--rarity-4 .modal-card {
+  --card-accent: #ffd176;
+  --card-accent-rgb: 255, 209, 118;
+}
+
+/* Carte affichée en haut des offres */
+.bazaar-modal__carte {
+  width: 240px;
+  max-width: 100%;
+  margin: 0 auto 1.25rem;
+}
