@@ -3,6 +3,9 @@ import { io } from 'socket.io-client'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { API_BASE_URL } from '../config'
+import DeckSlot from '../components/combat/DeckSlot.jsx'
+import DeckPickerModal from '../components/combat/DeckPickerModal.jsx'
+import '../css/DeckPicker.css'
 
 
 
@@ -27,6 +30,13 @@ function Combat() {
   const [unreadMessageCount, setUnreadMessageCount] = useState(0)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [messagePreview, setMessagePreview] = useState(null)
+  const [selectedDeck, setSelectedDeck] = useState(null)
+  const [isDeckPickerOpen, setIsDeckPickerOpen] = useState(false)
+  const [validDecks, setValidDecks] = useState([])
+  const [decksLoading, setDecksLoading] = useState(false)
+  const [decksError, setDecksError] = useState(null)
+  const [lobbyError, setLobbyError] = useState(null)
+  const lobbyErrorTimerRef = useRef(null)
 
   function resetCombatState() {
     setJoinedMatchId(null)
@@ -38,6 +48,14 @@ function Combat() {
     setMessage('')
     setMessagePreview(null)
     setIsChatOpen(false)
+    setSelectedDeck(null)
+    setLobbyError(null)
+  }
+
+  function showLobbyError(errorMessage) {
+    setLobbyError(errorMessage)
+    if (lobbyErrorTimerRef.current) clearTimeout(lobbyErrorTimerRef.current)
+    lobbyErrorTimerRef.current = setTimeout(() => setLobbyError(null), 4000)
   }
 
   function connectToCombat(matchId) {
@@ -100,6 +118,12 @@ function Combat() {
         previewTimerRef.current = null
       }, 4000)
     })
+    socket.on('combat:deck-selected', ({ deck }) => {
+      setSelectedDeck(deck)
+    })
+    socket.on('combat:action-error', ({ message }) => {
+      showLobbyError(message)
+    })
     socket.on('combat:error', ({ message }) => {
       setMatchStatus(`Erreur : ${message}`)
       if (!joinedMatchRef.current) socket.disconnect()
@@ -116,6 +140,7 @@ function Combat() {
     return () => {
       socketRef.current?.disconnect()
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
+      if (lobbyErrorTimerRef.current) clearTimeout(lobbyErrorTimerRef.current)
       socketRef.current = null
     }
   }, [])
@@ -123,8 +148,30 @@ function Combat() {
   const currentPlayer = players.find((player) => player.playerId === socketId)
   const canReady = Boolean(joinedMatchId) && players.length === 2 && !combatStarted
 
+  async function openDeckPicker() {
+    setIsDeckPickerOpen(true)
+    setDecksLoading(true)
+    setDecksError(null)
+    try {
+      const response = await fetch(`${API_BASE_URL}/combat/decks`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) throw new Error('Erreur serveur')
+      setValidDecks(await response.json())
+    } catch {
+      setDecksError('Impossible de charger tes decks.')
+    } finally {
+      setDecksLoading(false)
+    }
+  }
+
+  function selectDeck(deck) {
+    socketRef.current?.emit('combat:select-deck', { deckId: deck.id_deck })
+    setIsDeckPickerOpen(false)
+  }
+
   function toggleReady() {
-    if (!canReady) return
+    if (!canReady || !selectedDeck) return
     socketRef.current?.emit('combat:ready', { ready: !currentPlayer?.ready })
   }
 
@@ -282,6 +329,9 @@ function Combat() {
               <li key={player.playerId}>
                 <span className="combat-player-avatar" aria-hidden="true">{(player.profile?.nom_utilisateur ?? player.playerId).slice(-2)}</span>
                 <span className="combat-player-name">{player.playerId === socketId ? 'Vous' : (player.profile?.nom_utilisateur ?? player.playerId)}</span>
+                {player.playerId !== socketId && player.hasDeck && (
+                  <span className="combat-deck-flag">Deck choisi ✓</span>
+                )}
                 <span className={`combat-ready-state ${player.ready ? 'is-ready' : ''}`}>
                   {player.ready ? 'READY' : 'En attente'}
                 </span>
@@ -289,14 +339,37 @@ function Combat() {
             ))}
             {players.length === 0 && <li className="combat-empty-message">Rejoins une partie pour voir ses joueurs.</li>}
           </ul>
+          {!combatStarted && (
+            <DeckSlot deck={selectedDeck} onClick={openDeckPicker} />
+          )}
           {players.length === 2 && !combatStarted && (
-            <button className={`combat-ready-button ${currentPlayer?.ready ? 'is-ready' : ''}`} type="button" onClick={toggleReady}>
+            <button
+              className={`combat-ready-button ${currentPlayer?.ready ? 'is-ready' : ''}`}
+              type="button"
+              onClick={toggleReady}
+              disabled={!selectedDeck}
+              title={selectedDeck ? undefined : 'Choisis un deck'}
+            >
               {currentPlayer?.ready ? 'READY - Annuler' : 'READY'}
             </button>
           )}
+          {players.length === 2 && !combatStarted && !selectedDeck && (
+            <p className="combat-ready-hint">Choisis un deck pour être prêt.</p>
+          )}
+          {lobbyError && <p className="combat-lobby-toast" role="alert">{lobbyError}</p>}
           {combatStarted && <p className="combat-started-message">La partie est lancée. Bon combat !</p>}
         </aside>}
       </section>
+
+      <DeckPickerModal
+        open={isDeckPickerOpen}
+        decks={validDecks}
+        loading={decksLoading}
+        error={decksError}
+        selectedDeckId={selectedDeck?.id_deck}
+        onSelect={selectDeck}
+        onClose={() => setIsDeckPickerOpen(false)}
+      />
     </main>
   )
 }
