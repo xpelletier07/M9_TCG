@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Card from "../components/Card";
+import "../css/Bazaar.css";
 
 import { API_BASE_URL } from "../config"
 
@@ -52,7 +53,12 @@ function Bazaar() {
         setMessageAchat(null)
     }
 
-    const offresCarte = carteSelectionnee ? offres.filter((o) => o.id_carte === carteSelectionnee.id_carte) : []
+    // offres de la carte sélectionnée, triées du moins cher au plus cher (à prix égal : la plus ancienne d'abord)
+    const offresCarte = carteSelectionnee
+        ? offres
+            .filter((o) => o.id_carte === carteSelectionnee.id_carte)
+            .sort((a, b) => a.prix_unitaire - b.prix_unitaire || new Date(a.cree_le) - new Date(b.cree_le))
+        : []
 
     function quantiteChoisie(offre) {
         return Math.min(offre.quantite, Math.max(1, quantites[offre.id_offre] ?? 1))
@@ -299,14 +305,17 @@ function Bazaar() {
 
                     {/* Fenêtre : offres de tous les vendeurs pour la carte cliquée */}
                     {carteSelectionnee &&
-                        <div className="modal is-active">
+                        <div className={`modal is-active bazaar-modal bazaar-modal--rarity-${carteSelectionnee.rarete}`}>
                             <div className="modal-background" onClick={fermerAchat}></div>
-                            <div className="modal-card" style={{ width: "min(900px, 95vw)" }}>
+                            <div className="modal-card" style={{ width: "min(900px, 95%)" }}>
                                 <header className="modal-card-head">
                                     <p className="modal-card-title">{carteSelectionnee.nom_carte} — offres des vendeurs</p>
                                     <button type="button" className="delete" aria-label="close" onClick={fermerAchat}></button>
                                 </header>
                                 <section className="modal-card-body">
+                                    <div className="bazaar-modal__carte">
+                                        <Card carte={carteSelectionnee} onClick={() => {}} />
+                                    </div>
                                     {offresCarte.length === 0 &&
                                         <p>Personne ne vend cette carte pour le moment.</p>
                                     }
@@ -323,7 +332,7 @@ function Bazaar() {
                                             </div>
                                             <div className="control">
                                                 <button type="button" className="button is-primary" disabled={achatEnCours} onClick={acheterMoinsChers}>
-                                                    Acheter les {nbMoinsChers} moins chère{nbMoinsChers > 1 ? "s" : ""} ({coutMoinsChers} crédits)
+                                                    {nbMoinsChers > 1 ? `Acheter les ${nbMoinsChers} moins chères` : "Acheter la moins chère"} ({coutMoinsChers} crédits)
                                                 </button>
                                             </div>
                                         </div>
