@@ -14,20 +14,22 @@ function Bazaar() {
     const [vie, setVie] = useState("")
     const [prixMax, setPrixMax] = useState("")
     const [carteSelectionnee, setCarteSelectionnee] = useState(null)
-    const [quantiteAchat, setQuantiteAchat] = useState(1)
+    const [offres, setOffres] = useState([])
+    const [quantites, setQuantites] = useState({})
+    const [quantiteMoinsChers, setQuantiteMoinsChers] = useState(1)
     const [messageAchat, setMessageAchat] = useState(null)
     const [achatEnCours, setAchatEnCours] = useState(false)
     const token = localStorage.getItem("token")
 
-    // récupère les offres de vente (carte, vendeur, quantité et prix unitaire)
+    // récupère toutes les cartes du jeu (avec le prix le plus bas) et toutes les offres de vente
     const getCartes = useCallback(async () => {
-        const reponse = await fetch(`${serveur}/bazaar/offres`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        if (reponse.ok) {
-            const data = await reponse.json()
-            setAllCartes(data)
-        }
+        const headers = { Authorization: `Bearer ${token}` }
+        const [repCartes, repOffres] = await Promise.all([
+            fetch(`${serveur}/bazaar/cartes`, { headers }),
+            fetch(`${serveur}/bazaar/offres`, { headers })
+        ])
+        if (repCartes.ok) setAllCartes(await repCartes.json())
+        if (repOffres.ok) setOffres(await repOffres.json())
     }, [serveur, token])
 
     // useEffect pour récuperer les cartes du bazaar au chargement de la page
@@ -38,9 +40,10 @@ function Bazaar() {
         chargerCartes()
     }, [getCartes])
 
-    function ouvrirAchat(carte) {
+    // clic sur une carte : affiche toutes les offres des vendeurs pour cette carte
+    function ouvrirCarte(carte) {
         setCarteSelectionnee(carte)
-        setQuantiteAchat(1)
+        setQuantites({})
         setMessageAchat(null)
     }
 
@@ -49,19 +52,63 @@ function Bazaar() {
         setMessageAchat(null)
     }
 
-    // achète la quantité choisie de l'offre sélectionnée, au prix fixé par le vendeur
-    async function acheter() {
+    const offresCarte = carteSelectionnee ? offres.filter((o) => o.id_carte === carteSelectionnee.id_carte) : []
+
+    function quantiteChoisie(offre) {
+        return Math.min(offre.quantite, Math.max(1, quantites[offre.id_offre] ?? 1))
+    }
+
+    // coût des N exemplaires les moins chers (les offres arrivent déjà triées par prix croissant)
+    const totalEnVente = offresCarte.reduce((somme, o) => somme + o.quantite, 0)
+    const maxMoinsChers = Math.min(5, totalEnVente)
+    const nbMoinsChers = Math.min(maxMoinsChers, Math.max(1, quantiteMoinsChers))
+    let coutMoinsChers = 0
+    let restantCout = nbMoinsChers
+    for (const o of offresCarte) {
+        const prise = Math.min(restantCout, o.quantite)
+        coutMoinsChers += prise * o.prix_unitaire
+        restantCout -= prise
+    }
+    coutMoinsChers = Math.round(coutMoinsChers * 100) / 100
+
+    // achète les N exemplaires les moins chers de la carte, peu importe le vendeur
+    async function acheterMoinsChers() {
+        setAchatEnCours(true)
+        setMessageAchat(null)
+        try {
+            const reponse = await fetch(`${serveur}/bazaar/acheter-moins-chers`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ id_carte: carteSelectionnee.id_carte, quantite: nbMoinsChers })
+            })
+            const data = await reponse.json()
+            if (reponse.ok) {
+                setMessageAchat({ type: "success", texte: `Achat réussi : ${data.quantite} × ${carteSelectionnee.nom_carte} (${data.nb_offres} offre(s)) pour ${data.total} crédits.` })
+                await getCartes()
+            } else {
+                setMessageAchat({ type: "danger", texte: data.error || data.errors?.[0]?.msg || "Erreur lors de l'achat" })
+            }
+        } catch {
+            setMessageAchat({ type: "danger", texte: "Erreur de connexion au serveur" })
+        } finally {
+            setAchatEnCours(false)
+        }
+    }
+
+    // achète la quantité choisie d'une offre précise, au prix fixé par le vendeur
+    async function acheter(offre) {
+        const quantite = quantiteChoisie(offre)
         setAchatEnCours(true)
         setMessageAchat(null)
         try {
             const reponse = await fetch(`${serveur}/bazaar/acheter`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ id_offre: carteSelectionnee.id_offre, quantite: quantiteAchat })
+                body: JSON.stringify({ id_offre: offre.id_offre, quantite })
             })
             const data = await reponse.json()
             if (reponse.ok) {
-                setMessageAchat({ type: "success", texte: `Achat réussi : ${quantiteAchat} × ${carteSelectionnee.nom_carte} pour ${data.total} crédits.` })
+                setMessageAchat({ type: "success", texte: `Achat réussi : ${quantite} × ${offre.nom_carte} à ${offre.vendeur} pour ${data.total} crédits.` })
                 await getCartes()
             } else {
                 setMessageAchat({ type: "danger", texte: data.error || data.errors?.[0]?.msg || "Erreur lors de l'achat" })
@@ -95,7 +142,7 @@ function Bazaar() {
                 resultats = resultats.filter((a) => a.health == vie)
             }
             if (prixMax !== "") {
-                resultats = resultats.filter((a) => Number(a.prix_unitaire) <= Number(prixMax))
+                resultats = resultats.filter((a) => a.prix_min !== null && Number(a.prix_min) <= Number(prixMax))
             }
 
             // cherche tous les cartes qui ont le nom choisi, appliqué par dessus les autres filtres
@@ -226,60 +273,106 @@ function Bazaar() {
                         </div>
                     </div>
 
-                    {/* Affichage des cartes filtrées */}
+                    {/* Affichage de toutes les cartes du jeu */}
                     {cartesFiltres != null &&
                         <div className="inventory-cards-grid">
-                            {cartesFiltres.map((offre) => (
-                                <div key={offre.id_offre}>
-                                    <Card
-                                        carte={offre}
-                                        quantite={offre.quantite}
-                                        onClick={() => ouvrirAchat(offre)}
-                                    />
+                            {cartesFiltres.map((carte) => (
+                                <div key={carte.id_carte}>
+                                    <Card carte={carte} onClick={() => ouvrirCarte(carte)} />
                                     <p className="has-text-centered">
-                                        <strong>{offre.prix_unitaire} crédits</strong> chacune · {offre.quantite} en vente
+                                        {carte.quantite_en_vente > 0
+                                            ? <strong>À partir de {carte.prix_min} crédits</strong>
+                                            : <span className="has-text-grey">Aucune offre</span>}
                                     </p>
-                                    <p className="has-text-centered is-size-7">Vendeur : {offre.vendeur}</p>
+                                    {carte.quantite_en_vente > 0 &&
+                                        <p className="has-text-centered is-size-7">
+                                            {carte.quantite_en_vente} en vente · {carte.nb_vendeurs} offre(s)
+                                        </p>
+                                    }
                                 </div>
                             ))}
                         </div>
                     }
                     {cartesFiltres != null && cartesFiltres.length === 0 &&
-                        <p className="has-text-centered">Aucune carte en vente pour le moment.</p>
+                        <p className="has-text-centered">Aucune carte ne correspond aux filtres.</p>
                     }
 
-                    {/* Fenêtre d'achat */}
+                    {/* Fenêtre : offres de tous les vendeurs pour la carte cliquée */}
                     {carteSelectionnee &&
                         <div className="modal is-active">
                             <div className="modal-background" onClick={fermerAchat}></div>
-                            <div className="modal-card">
+                            <div className="modal-card" style={{ width: "min(900px, 95vw)" }}>
                                 <header className="modal-card-head">
-                                    <p className="modal-card-title">Acheter {carteSelectionnee.nom_carte}</p>
+                                    <p className="modal-card-title">{carteSelectionnee.nom_carte} — offres des vendeurs</p>
                                     <button type="button" className="delete" aria-label="close" onClick={fermerAchat}></button>
                                 </header>
                                 <section className="modal-card-body">
-                                    <p>Vendeur : <strong>{carteSelectionnee.vendeur}</strong></p>
-                                    <p><strong>{carteSelectionnee.prix_unitaire} crédits</strong> chacune ({carteSelectionnee.quantite} disponible(s))</p>
-                                    <div className="field mt-4">
-                                        <label className="label">Quantité</label>
-                                        <input
-                                            className="input"
-                                            type="number"
-                                            min={1}
-                                            max={carteSelectionnee.quantite}
-                                            value={quantiteAchat}
-                                            onChange={(e) => setQuantiteAchat(Math.min(carteSelectionnee.quantite, Math.max(1, Number(e.target.value) || 1)))}
-                                        />
-                                    </div>
-                                    <p className="help">Total : {Math.round(carteSelectionnee.prix_unitaire * quantiteAchat * 100) / 100} crédits</p>
+                                    {offresCarte.length === 0 &&
+                                        <p>Personne ne vend cette carte pour le moment.</p>
+                                    }
+                                    {offresCarte.length > 0 &&
+                                        <div className="field has-addons mb-4">
+                                            <div className="control">
+                                                <div className="select">
+                                                    <select value={nbMoinsChers} onChange={(e) => setQuantiteMoinsChers(Number(e.target.value))}>
+                                                        {Array.from({ length: maxMoinsChers }, (_, i) => i + 1).map((n) => (
+                                                            <option key={n} value={n}>{n}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="control">
+                                                <button type="button" className="button is-primary" disabled={achatEnCours} onClick={acheterMoinsChers}>
+                                                    Acheter les {nbMoinsChers} moins chère{nbMoinsChers > 1 ? "s" : ""} ({coutMoinsChers} crédits)
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    {offresCarte.length > 0 &&
+                                        <table className="table is-fullwidth is-hoverable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Vendeur</th>
+                                                    <th>Prix unitaire</th>
+                                                    <th>Disponible</th>
+                                                    <th>Quantité</th>
+                                                    <th>Total</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {offresCarte.map((offre) => (
+                                                    <tr key={offre.id_offre}>
+                                                        <td>{offre.vendeur}</td>
+                                                        <td>{offre.prix_unitaire} crédits</td>
+                                                        <td>{offre.quantite}</td>
+                                                        <td>
+                                                            <input
+                                                                className="input is-small"
+                                                                style={{ width: "70px" }}
+                                                                type="number"
+                                                                min={1}
+                                                                max={offre.quantite}
+                                                                value={quantiteChoisie(offre)}
+                                                                onChange={(e) => setQuantites({ ...quantites, [offre.id_offre]: Math.min(offre.quantite, Math.max(1, Number(e.target.value) || 1)) })}
+                                                            />
+                                                        </td>
+                                                        <td>{Math.round(offre.prix_unitaire * quantiteChoisie(offre) * 100) / 100}</td>
+                                                        <td>
+                                                            <button type="button" className="button is-success is-small" disabled={achatEnCours} onClick={() => acheter(offre)}>
+                                                                Acheter
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    }
                                     {messageAchat &&
                                         <div className={`notification is-${messageAchat.type} mt-4`}>{messageAchat.texte}</div>
                                     }
                                 </section>
                                 <footer className="modal-card-foot">
-                                    <button type="button" className="button is-success" disabled={achatEnCours || messageAchat?.type === "success"} onClick={acheter}>
-                                        Acheter
-                                    </button>
                                     <button type="button" className="button" onClick={fermerAchat}>Fermer</button>
                                 </footer>
                             </div>
