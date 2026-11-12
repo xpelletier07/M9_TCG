@@ -81,7 +81,7 @@ function Decks() {
     }
 
     // ── Chargement initial des decks + inventaire ──
-    async function fetchDecksData(preferredDeckId = null) {
+    async function fetchDecksData(preferredDeckId = null, showLoader = false) {
         if (!user || !token) {
             setDecks([])
             setSelectedDeck(null)
@@ -89,7 +89,9 @@ function Decks() {
             return
         }
 
-        setLoading(true)
+        if (showLoader) {
+            setLoading(true)
+        }
         setError(null)
 
         try {
@@ -124,17 +126,21 @@ function Decks() {
                 : deckList[0].id_deck
 
             setSelectedDeckId(nextDeckId)
-            await loadDeckDetails(nextDeckId)
+            if (showLoader || nextDeckId !== selectedDeckId) {
+                await loadDeckDetails(nextDeckId)
+            }
         } catch (err) {
             console.error('Erreur fetchDecksData:', err)
             setError(err.message)
         } finally {
-            setLoading(false)
+            if (showLoader) {
+                setLoading(false)
+            }
         }
     }
 
     useEffect(() => {
-        fetchDecksData()
+        fetchDecksData(null, true)
     }, [user, token])
 
     // ── Sélection d'un deck dans la liste ──
@@ -408,11 +414,6 @@ function Decks() {
             <div className="decks-header">
                 <div>
                     <div className="decks-kicker-row">
-                        <span className="decks-kicker-badge">
-                            <i className="fa-solid fa-shield-halved" /> Card Arena
-                        </span>
-                        <span className="decks-kicker-separator">•</span>
-                        <span className="decks-kicker-text">Gestionnaire de Decks</span>
                     </div>
                     <h1 className="decks-title">Mes Decks</h1>
                     <p className="decks-subtitle">
@@ -474,14 +475,6 @@ function Decks() {
                                     {decks.length} deck{decks.length > 1 ? 's' : ''}
                                 </span>
                             </div>
-                            <button
-                                className="decks-mini-create-btn"
-                                type="button"
-                                title="Créer un nouveau deck"
-                                onClick={openCreateDeckModal}
-                            >
-                                <i className="fa-solid fa-plus" />
-                            </button>
                         </div>
 
                         {decks.length === 0 ? (
@@ -675,13 +668,6 @@ function Decks() {
                                             Composition du Deck
                                             <span className="decks-cards-badge">{selectedDeckCards.length}</span>
                                         </h3>
-                                        <button
-                                            className="decks-btn decks-btn--secondary decks-btn--sm"
-                                            type="button"
-                                            onClick={() => setShowCardPicker(true)}
-                                        >
-                                            <i className="fa-solid fa-plus" /> Ajouter des cartes
-                                        </button>
                                     </div>
 
                                     {selectedDeckCards.length === 0 ? (
@@ -693,14 +679,6 @@ function Decks() {
                                             <p>
                                                 Ouvrez votre inventaire pour choisir les cartes qui composeront votre stratégie.
                                             </p>
-                                            <button
-                                                className="decks-btn decks-btn--glow mt-4"
-                                                type="button"
-                                                onClick={() => setShowCardPicker(true)}
-                                            >
-                                                <i className="fa-solid fa-plus-circle" />
-                                                <span>Ajouter des cartes maintenant</span>
-                                            </button>
                                         </div>
                                     ) : (
                                         <div className="decks-cards-grid inventory-cards-grid">
@@ -717,11 +695,10 @@ function Decks() {
                                                     <button
                                                         className="decks-remove-badge"
                                                         type="button"
-                                                        title={`Retirer les ${carte.quantite ?? 1} exemplaire(s) du deck`}
+                                                        title={carte.quantite > 1 ? `Retirer 1 exemplaire (reste ${carte.quantite - 1})` : "Retirer la carte du deck"}
                                                         onClick={() => handleRemoveCardFromDeck(carte.id_carte)}
                                                     >
-                                                        <i className="fa-solid fa-trash-can" />
-                                                        <span>Retirer ({carte.quantite ?? 1})</span>
+                                                        <i className="fa-solid fa-minus" />
                                                     </button>
                                                 </div>
                                             ))}
@@ -778,7 +755,7 @@ function Decks() {
                                     Sélectionnez les cartes à ajouter
                                 </h2>
                                 <p className="decks-modal-subtitle">
-                                    Cliquez sur une carte pour l&apos;intégrer à votre deck. La quantité disponible s&apos;actualise en temps réel.
+                                    Cliquez sur une carte pour l&apos;intégrer à votre deck.
                                 </p>
                             </div>
 
@@ -891,14 +868,10 @@ function Decks() {
                                                     carte={carte}
                                                     quantite={carte.disponible}
                                                 />
-                                                {isMaxed ? (
+                                                {isMaxed && (
                                                     <div className="decks-picker-unavailable">
                                                         <i className="fa-solid fa-lock" />
                                                         <span>Complet dans le deck</span>
-                                                    </div>
-                                                ) : (
-                                                    <div className="decks-picker-add-hint">
-                                                        <i className="fa-solid fa-plus" /> Ajouter (+1)
                                                     </div>
                                                 )}
                                             </div>
@@ -913,11 +886,7 @@ function Decks() {
                             <div className="decks-modal-footer-stats">
                                 <span className="decks-stat-pill">
                                     <i className="fa-solid fa-layer-group" />
-                                    <strong>{filteredInventory.length}</strong> cartes affichées
-                                </span>
-                                <span className="decks-stat-pill">
-                                    <i className="fa-solid fa-shield-halved" />
-                                    Deck actuel : <strong>{deckMetrics.totalCount}</strong> cartes
+                                    <strong>{filteredInventory.length}</strong> cartes uniques affichées
                                 </span>
                             </div>
 
@@ -1005,9 +974,6 @@ function Decks() {
                                         value={deckFormImage}
                                         onChange={(e) => setDeckFormImage(e.target.value)}
                                     />
-                                    <p className="decks-form-hint">
-                                        <i className="fa-solid fa-sparkles" /> Si vous laissez ce champ vide, l&apos;illustration sera <strong>automatiquement celle de la carte la plus rare</strong> de votre deck.
-                                    </p>
                                 </div>
 
                                 {/* Aperçu du deck */}

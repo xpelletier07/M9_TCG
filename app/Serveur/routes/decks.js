@@ -172,17 +172,39 @@ router.post("/decks/:id/cards/:idCarte", async (req, res) => {
 })
 
 router.delete("/decks/:id/cards/:idCarte", async (req, res) => {
+    const removeAll = req.query.all === "true"
+
     try {
-        const result = await pool.query(
-            `delete from deck_carte dc
-             using deck d
-             where dc.id_deck = d.id_deck
-               and dc.id_deck = $1
-               and dc.id_carte = $2
-               and d.id_utilisateur = $3
-             returning dc.id_deck, dc.id_carte`,
-            [req.params.id, req.params.idCarte, req.user.id]
-        )
+        const query = removeAll
+            ? `delete from deck_carte dc
+               using deck d
+               where dc.id_deck = d.id_deck
+                 and dc.id_deck = $1
+                 and dc.id_carte = $2
+                 and d.id_utilisateur = $3
+               returning dc.id_deck, dc.id_carte`
+            : `with target as (
+                   select dc.id_deck, dc.id_carte, dc.quantite
+                   from deck_carte dc
+                   join deck d on d.id_deck = dc.id_deck
+                   where dc.id_deck = $1 and dc.id_carte = $2 and d.id_utilisateur = $3
+               ),
+               upd as (
+                   update deck_carte dc
+                   set quantite = dc.quantite - 1
+                   from target t
+                   where dc.id_deck = t.id_deck and dc.id_carte = t.id_carte and t.quantite > 1
+                   returning dc.id_deck, dc.id_carte
+               ),
+               del as (
+                   delete from deck_carte dc
+                   using target t
+                   where dc.id_deck = t.id_deck and dc.id_carte = t.id_carte and t.quantite <= 1
+                   returning dc.id_deck, dc.id_carte
+               )
+               select * from upd union all select * from del`
+
+        const result = await pool.query(query, [req.params.id, req.params.idCarte, req.user.id])
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Carte absente du deck ou deck introuvable" })
