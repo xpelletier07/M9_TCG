@@ -315,36 +315,22 @@ function Inventaire() {
                                 <p>Chargement de la collection...</p>
                             </div>
                         ) : (
-                            <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
-                                {collectionCartes
-                                    .filter(c => (c?.nom_carte || "").toLowerCase().includes(filtreNom.toLowerCase()))
-                                    .map(carte => (
-                                        <div
-                                            key={carte.id_carte}
-                                            className="card-item"
-                                            onClick={() => handleAddCard(carte)}
-                                        >
-                                            <div className="card-image-wrapper">
-                                                <img
-                                                    src={carte.image}
-                                                    alt={carte.nom_carte}
-                                                    className="card-image"
-                                                />
-                                            </div>
-                                            <div className="card-info" style={{ padding: '0.85rem' }}>
-                                                <h3 className="card-name" style={{ fontSize: '0.9rem' }}>{carte.nom_carte}</h3>
-                                                <div className="card-stats">
-                                                    <span className="stat stat-mana" title="Mana">💧 {carte.mana}</span>
-                                                    <span className="stat stat-health" title="Vie">❤️ {carte.health}</span>
-                                                    <span className="stat stat-damage" title="Dégâts">⚔️ {carte.damage}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                            <>
+                                <div className="inventory-cards-grid">
+                                    {collectionCartes
+                                        .filter(c => (c?.nom_carte || "").toLowerCase().includes(filtreNom.toLowerCase()))
+                                        .map(carte => (
+                                            <Card
+                                                key={carte.id_carte}
+                                                carte={carte}
+                                                onClick={() => handleAddCard(carte)}
+                                            />
+                                        ))}
+                                </div>
                                 {collectionCartes.filter(c => (c?.nom_carte || "").toLowerCase().includes(filtreNom.toLowerCase())).length === 0 && (
-                                    <p className="has-text-grey">Aucune carte trouvée pour "{filtreNom}"</p>
+                                    <p className="has-text-grey mt-3">Aucune carte trouvée pour "{filtreNom}"</p>
                                 )}
-                            </div>
+                            </>
                         )}
                     </section>
                 </div>
