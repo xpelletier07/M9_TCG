@@ -10,6 +10,9 @@ const raretes = {
     4: "Légendaire",
 }
 
+// SVG placeholder encodé en data URI — utilisé quand l'image est vide
+const PLACEHOLDER_IMAGE = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23080f1c'/%3E%3Crect x='1' y='1' width='198' height='198' fill='none' stroke='%23243450' stroke-width='1'/%3E%3Ccircle cx='100' cy='82' r='28' fill='none' stroke='%23243450' stroke-width='2'/%3E%3Ccircle cx='100' cy='78' r='14' fill='%23172030'/%3E%3Ccircle cx='100' cy='74' r='5' fill='%23243450'/%3E%3Cpath d='M72 118 Q100 98 128 118' fill='none' stroke='%23243450' stroke-width='2'/%3E%3Cpath d='M60 130 Q100 108 140 130' fill='none' stroke='%23172030' stroke-width='1' stroke-dasharray='4 3'/%3E%3Ctext x='100' y='160' font-family='monospace' font-size='10' fill='%23364d6a' text-anchor='middle' letter-spacing='2'%3EIMAGE%3C/text%3E%3Ctext x='100' y='174' font-family='monospace' font-size='8' fill='%23243450' text-anchor='middle'%3Enon définie%3C/text%3E%3C/svg%3E`
+
 const rareteColors = {
     1: { accent: '#b8c0cc', rgb: '184, 192, 204' },
     2: { accent: '#70b9ff', rgb: '112, 185, 255' },
@@ -148,11 +151,20 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
                             )}
                         </div>
                         <div className="card-detail-preview__image-frame">
-                            <img
-                                src={isEditing ? form.image : carte.image}
-                                alt={`Image de la carte ${isEditing ? form.nomCarte : carte.nom_carte}`}
-                                className="inventory-card__image"
-                            />
+                            {(isEditing ? form.image : carte.image) ? (
+                                <img
+                                    src={isEditing ? form.image : carte.image}
+                                    alt={`Image de la carte ${isEditing ? form.nomCarte : carte.nom_carte}`}
+                                    className="inventory-card__image"
+                                    onError={(e) => { e.currentTarget.src = PLACEHOLDER_IMAGE }}
+                                />
+                            ) : (
+                                <img
+                                    src={PLACEHOLDER_IMAGE}
+                                    alt="Aucune image"
+                                    className="inventory-card__image card-detail-preview__image--placeholder"
+                                />
+                            )}
                         </div>
                         <div className="card-detail-preview__footer">
                             <h2 className="inventory-card__name">{isEditing ? form.nomCarte : carte.nom_carte}</h2>

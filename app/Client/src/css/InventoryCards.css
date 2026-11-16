@@ -245,6 +245,12 @@
   transition: transform 350ms ease, filter 350ms ease;
 }
 
+.inventory-card__image--placeholder {
+  object-fit: contain;
+  opacity: 0.55;
+  filter: saturate(0);
+}
+
 .inventory-card:hover .inventory-card__image {
   transform: scale(1.045);
   filter: saturate(1.12) contrast(1.03);
