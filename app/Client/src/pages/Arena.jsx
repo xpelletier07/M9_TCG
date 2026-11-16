@@ -156,6 +156,8 @@ function Arena() {
 
   const { drag, aiming } = targeting
   const isDraggingCard = drag?.kind === 'play'
+  // Tant que l'adversaire a une créature sur le terrain, on ne peut pas l'attaquer directement
+  const isOpponentShielded = (gs?.opponent.board.length ?? 0) > 0
 
   return (
     <main className="content-left-spacing arena-page">
@@ -205,9 +207,10 @@ function Arena() {
                 name={gs.opponentName}
                 side="opponent"
                 active={!gs.isMyTurn}
-                targetable={aiming}
+                targetable={aiming && !isOpponentShielded}
+                shielded={isOpponentShielded}
                 effect={effects['player-opponent']}
-                {...targeting.bindTarget({ type: 'player' })}
+                {...(isOpponentShielded ? {} : targeting.bindTarget({ type: 'player' }))}
               />
 
               <ArenaLane side="opponent" isEmpty={gs.opponent.board.length === 0}>

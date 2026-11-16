@@ -22,6 +22,7 @@ const ERRORS = {
     boardFull: "Ton terrain est plein (7 créatures max).",
     cannotAttack: "Cette créature ne peut pas attaquer.",
     invalidTarget: "Cible invalide.",
+    opponentProtected: "Tu dois d'abord éliminer les créatures adverses.",
 }
 
 function fail(error) {
@@ -152,6 +153,8 @@ export function attack(game, userId, attackerInstanceId, target) {
 
     const events = []
     if (target?.type === "player") {
+        // Le joueur adverse est protégé tant qu'il a au moins une créature sur le terrain
+        if (opponent.board.length > 0) return fail(ERRORS.opponentProtected)
         attacker.canAttack = false
         events.push({ type: "attack", playerId: userId, attackerId: attacker.instanceId, target: { type: "player" } })
         opponent.hp = Math.max(0, opponent.hp - attacker.damage)

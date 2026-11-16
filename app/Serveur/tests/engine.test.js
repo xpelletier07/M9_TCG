@@ -288,3 +288,19 @@ test("redactEventsFor strips opponent drawn card", () => {
     assert.equal(drawB.card, undefined)
     assert.ok(drawA.card)
 })
+
+test("cannot attack the player while they have a creature on board", () => {
+    const { game } = newGame()
+    const aCard = game.players[A].hand[0]
+    playCard(game, A, aCard.instanceId)
+    endTurn(game, A, 0)
+    const bCard = game.players[B].hand[0]
+    playCard(game, B, bCard.instanceId)
+    endTurn(game, B, 0)
+    assert.deepEqual(
+        attack(game, A, aCard.instanceId, { type: "player" }),
+        { ok: false, error: "Tu dois d'abord éliminer les créatures adverses." }
+    )
+    assert.equal(game.players[B].hp, RULES.PLAYER_HP)
+    assert.equal(game.players[A].board[0].canAttack, true)
+})

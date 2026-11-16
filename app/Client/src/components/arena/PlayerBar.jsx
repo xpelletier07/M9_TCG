@@ -2,8 +2,9 @@ const MAX_MANA = 10
 const PLAYER_HP = 50
 
 // Barre d'un joueur : avatar + PV, nom, compteurs et cristaux de mana.
-// Côté adversaire, la barre est une cible d'attaque (data-target="player").
-function PlayerBar({ player, name, side, active = false, targetable = false, effect = '', children, ...handlers }) {
+// Côté adversaire, la barre est une cible d'attaque (data-target="player"),
+// sauf si `shielded` : ses créatures sur le terrain le protègent.
+function PlayerBar({ player, name, side, active = false, targetable = false, shielded = false, effect = '', children, ...handlers }) {
   const hpPercent = Math.max(0, Math.min(100, (player.hp / PLAYER_HP) * 100))
   const meta = side === 'me'
     ? `${player.deckCount} cartes dans le deck`
@@ -12,7 +13,7 @@ function PlayerBar({ player, name, side, active = false, targetable = false, eff
   return (
     <div
       className={`arena-player arena-player--${side} ${active ? 'is-active' : ''} ${targetable ? 'is-targetable' : ''} ${effect}`}
-      data-target={side === 'opponent' ? 'player' : undefined}
+      data-target={side === 'opponent' && !shielded ? 'player' : undefined}
       data-player-side={side}
       {...handlers}
     >
