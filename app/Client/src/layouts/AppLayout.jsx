@@ -1,6 +1,7 @@
 import { useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import Sidebar from '../components/Sidebar.jsx'
+import { CombatProvider } from '../context/CombatContext.jsx'
 
 const pagePaths = {
   accueil: '/',
@@ -42,7 +43,7 @@ function AppLayout() {
         onLogout={handleLogout}
       />
       {/* Affiche la route enfant active définie dans Routeur.jsx */}
-      <Outlet />
+      <CombatProvider><Outlet /></CombatProvider>
     </div>
   )
 }
