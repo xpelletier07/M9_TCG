@@ -60,7 +60,7 @@ async function findOrCreateUser(githubUser, verifiedEmail) {
     const githubId = String(githubUser.id)
 
     const byGithubId = await pool.query(
-        "select id, nom_utilisateur, email, statut from utilisateurs where github_id = $1",
+        "select id, nom_utilisateur, email, statut, credits, avatar_url from utilisateurs where github_id = $1",
         [githubId]
     )
     if (byGithubId.rows[0]) return byGithubId.rows[0]
@@ -68,7 +68,7 @@ async function findOrCreateUser(githubUser, verifiedEmail) {
     // Un email vérifié par GitHub correspondant à un compte existant -> on lie les deux comptes
     if (verifiedEmail) {
         const byEmail = await pool.query(
-            "update utilisateurs set github_id = $1 where lower(email) = $2 and github_id is null returning id, nom_utilisateur, email, statut",
+            "update utilisateurs set github_id = $1 where lower(email) = $2 and github_id is null returning id, nom_utilisateur, email, statut, credits, avatar_url",
             [githubId, verifiedEmail]
         )
         if (byEmail.rows[0]) return byEmail.rows[0]
@@ -79,7 +79,7 @@ async function findOrCreateUser(githubUser, verifiedEmail) {
     const email = verifiedEmail || `${githubId}+${githubUser.login}@users.noreply.github.com`
 
     const created = await pool.query(
-        "insert into utilisateurs (nom_utilisateur, email, github_id) values ($1, $2, $3) returning id, nom_utilisateur, email, statut",
+        "insert into utilisateurs (nom_utilisateur, email, github_id) values ($1, $2, $3) returning id, nom_utilisateur, email, statut, credits, avatar_url",
         [nomUtilisateur, email, githubId]
     )
     return created.rows[0]

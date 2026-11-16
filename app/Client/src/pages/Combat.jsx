@@ -1,152 +1,70 @@
 import { useEffect, useRef, useState } from 'react'
-import { io } from 'socket.io-client'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
-import { API_BASE_URL } from '../config'
-import DeckSlot from '../components/combat/DeckSlot.jsx'
 import DeckPickerModal from '../components/combat/DeckPickerModal.jsx'
+import DeckSlot from '../components/combat/DeckSlot.jsx'
+import { API_BASE_URL } from '../config'
+import { useCombat } from '../context/CombatContext.jsx'
 import '../css/DeckPicker.css'
+import '../css/Matchmaking.css'
 
+function generateMatchCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < 6; i += 1) code += alphabet[Math.floor(Math.random() * alphabet.length)]
+  return code
+}
 
-
+function initials(name) {
+  return (name ?? '?').trim().slice(0, 2).toUpperCase()
+}
 
 function Combat() {
   const { user, token } = useAuth()
-  const socketRef = useRef(null)
-  const previewTimerRef = useRef(null)
-  const isChatOpenRef = useRef(false)
-  const joinedMatchRef = useRef(false)
-  const navigate = useNavigate()
-  const [connectionStatus, setConnectionStatus] = useState('Déconnecté')
-  const [matchStatus, setMatchStatus] = useState('Aucun combat rejoint')
-  const [joinedMatchId, setJoinedMatchId] = useState(null)
-  const [socketId, setSocketId] = useState(null)
-  const [currentProfile, setCurrentProfile] = useState(user)
-  const [players, setPlayers] = useState([])
-  const [combatStarted, setCombatStarted] = useState(false)
+  const {
+    connectionStatus,
+    notice,
+    setNotice,
+    joinedMatchId,
+    socketId,
+    players,
+    combatStarted,
+    lobbies,
+    messages,
+    roomIsPrivate,
+    selectedDeck,
+    joinMatch,
+    leaveMatch,
+    selectDeck,
+    toggleReady,
+    sendMessage: emitMessage,
+  } = useCombat()
+  const chatEndRef = useRef(null)
   const [matchCode, setMatchCode] = useState('')
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState([])
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0)
-  const [isChatOpen, setIsChatOpen] = useState(false)
-  const [messagePreview, setMessagePreview] = useState(null)
-  const [selectedDeck, setSelectedDeck] = useState(null)
+  const [isPrivate, setIsPrivate] = useState(false)
   const [isDeckPickerOpen, setIsDeckPickerOpen] = useState(false)
   const [validDecks, setValidDecks] = useState([])
   const [decksLoading, setDecksLoading] = useState(false)
   const [decksError, setDecksError] = useState(null)
-  const [lobbyError, setLobbyError] = useState(null)
-  const lobbyErrorTimerRef = useRef(null)
-
-  function resetCombatState() {
-    setJoinedMatchId(null)
-    setMatchStatus('Aucun combat rejoint')
-    setPlayers([])
-    setCombatStarted(false)
-    setMessages([])
-    setUnreadMessageCount(0)
-    setMessage('')
-    setMessagePreview(null)
-    setIsChatOpen(false)
-    setSelectedDeck(null)
-    setLobbyError(null)
-  }
-
-  function showLobbyError(errorMessage) {
-    setLobbyError(errorMessage)
-    if (lobbyErrorTimerRef.current) clearTimeout(lobbyErrorTimerRef.current)
-    lobbyErrorTimerRef.current = setTimeout(() => setLobbyError(null), 4000)
-  }
-
-  function connectToCombat(matchId) {
-    const socket = io(`${API_BASE_URL}/combat`, {
-      autoConnect: false,
-      auth: { token },
-    })
-    socketRef.current = socket
-
-    socket.on('connect', () => {
-      setConnectionStatus('Connecté')
-      socket.emit('combat:join', { matchId, phase: 'lobby' })
-    })
-    socket.on('disconnect', () => {
-      setConnectionStatus('Déconnecté')
-      setSocketId(null)
-      if (socketRef.current === socket) socketRef.current = null
-    })
-    socket.on('connect_error', () => {
-      setConnectionStatus('Serveur indisponible')
-      socket.disconnect()
-    })
-    socket.on('combat:connected', ({ socketId: connectedSocketId, profile: connectedProfile }) => {
-      setSocketId(connectedSocketId)
-      if (connectedProfile) setCurrentProfile(connectedProfile)
-    })
-    socket.on('combat:joined', ({ matchId }) => {
-      joinedMatchRef.current = true
-      setJoinedMatchId(matchId)
-      setCombatStarted(false)
-      setMatchStatus(`Combat rejoint : ${matchId}`)
-    })
-    socket.on('combat:left', () => {
-      joinedMatchRef.current = false
-      resetCombatState()
-      socket.disconnect()
-      navigate('/combat')
-    })
-    socket.on('combat:room-state', ({ players: roomPlayers, started }) => {
-      setPlayers(roomPlayers)
-      setCombatStarted(started)
-    })
-    socket.on('combat:started', () => {
-      setCombatStarted(true)
-      navigate(`/combat/${matchId}/arena`)
-    })
-    socket.on('combat:message', ({ playerId, playerName, message: receivedMessage, system }) => {
-      const newMessage = { playerId, playerName, message: receivedMessage, system }
-      setMessages((currentMessages) => [
-        newMessage,
-        ...currentMessages,
-      ].slice(0, 30))
-      if (!isChatOpenRef.current) {
-        setUnreadMessageCount((count) => count + 1)
-      }
-      setMessagePreview(newMessage)
-      if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
-      previewTimerRef.current = setTimeout(() => {
-        setMessagePreview(null)
-        previewTimerRef.current = null
-      }, 4000)
-    })
-    socket.on('combat:deck-selected', ({ deck }) => {
-      setSelectedDeck(deck)
-    })
-    socket.on('combat:action-error', ({ message }) => {
-      showLobbyError(message)
-    })
-    socket.on('combat:error', ({ message }) => {
-      setMatchStatus(`Erreur : ${message}`)
-      if (!joinedMatchRef.current) socket.disconnect()
-    })
-
-    socket.connect()
-  }
-
-  useEffect(() => {
-    isChatOpenRef.current = isChatOpen
-  }, [isChatOpen])
-
-  useEffect(() => {
-    return () => {
-      socketRef.current?.disconnect()
-      if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
-      if (lobbyErrorTimerRef.current) clearTimeout(lobbyErrorTimerRef.current)
-      socketRef.current = null
-    }
-  }, [])
 
   const currentPlayer = players.find((player) => player.playerId === socketId)
-  const canReady = Boolean(joinedMatchId) && players.length === 2 && !combatStarted
+  const opponent = players.find((player) => player.playerId !== socketId)
+  const isOnline = connectionStatus === 'Connecté'
+  const visibleLobbies = lobbies.filter((lobby) => lobby.matchId !== joinedMatchId && lobby.hostId !== user?.id)
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ block: 'end' })
+  }, [messages, joinedMatchId])
+
+  // Le deck ne peut plus changer une fois prêt ou la partie lancée
+  const canChangeDeck = !combatStarted && !currentPlayer?.ready
+  // Pour être prêt : un deck choisi et un adversaire dans la salle (annuler reste toujours possible)
+  const readyBlocker = !selectedDeck
+    ? 'Choisis un deck pour être prêt.'
+    : players.length < 2
+      ? 'En attente d’un adversaire pour être prêt.'
+      : null
+  const canToggleReady = Boolean(currentPlayer?.ready) || !readyBlocker
 
   async function openDeckPicker() {
     setIsDeckPickerOpen(true)
@@ -165,201 +83,219 @@ function Combat() {
     }
   }
 
-  function selectDeck(deck) {
-    socketRef.current?.emit('combat:select-deck', { deckId: deck.id_deck })
+  function chooseDeck(deck) {
+    selectDeck(deck.id_deck)
     setIsDeckPickerOpen(false)
   }
 
-  function toggleReady() {
-    if (!canReady || !selectedDeck) return
-    socketRef.current?.emit('combat:ready', { ready: !currentPlayer?.ready })
+  function createMatch() {
+    joinMatch(generateMatchCode(), isPrivate)
   }
 
-  function toggleCombat() {
-    if (joinedMatchId) {
-      socketRef.current?.emit('combat:leave')
+  function submitCode(event) {
+    event.preventDefault()
+    const code = matchCode.trim()
+    if (!code) {
+      setNotice('Entre un code de partie.')
       return
     }
-
-    const trimmedMatchCode = matchCode.trim()
-    if (!trimmedMatchCode) {
-      setMatchStatus('Entrez un code de partie.')
+    if (!/^[A-Za-z0-9_-]+$/.test(code)) {
+      setNotice('Le code ne peut contenir que des lettres, chiffres, - et _.')
       return
     }
-
-    setConnectionStatus('Connexion...')
-    connectToCombat(trimmedMatchCode)
+    joinMatch(code)
   }
 
   function sendMessage(event) {
     event.preventDefault()
-    const trimmedMessage = message.trim()
-    if (!trimmedMessage || !joinedMatchId) return
-
-    socketRef.current?.emit('combat:message', { message: trimmedMessage })
+    const trimmed = message.trim()
+    if (!trimmed || !joinedMatchId) return
+    emitMessage(trimmed)
     setMessage('')
   }
-
-  function toggleChat() {
-    setIsChatOpen((open) => {
-      const nextOpen = !open
-      isChatOpenRef.current = nextOpen
-      if (nextOpen) setUnreadMessageCount(0)
-      return nextOpen
-    })
-  }
+  const statusLabel = combatStarted ? 'Combat en cours' : players.length === 2 ? 'Adversaire trouvé' : 'En attente d’un adversaire'
 
   return (
-    <main className={`content-left-spacing combat-page ${joinedMatchId ? 'is-joined' : ''}`}>
-      <header className="combat-page-header">
-        <div>
-          <span className="combat-kicker">Arène en ligne</span>
-          <h1>Combat</h1>
-          <p>Rejoins une partie avec ton code et retrouve ton groupe dans un chat privé.</p>
-        </div>
-        <div className={`combat-connection combat-connection-${connectionStatus === 'Connecté' ? 'online' : 'offline'}`}>
-          <span aria-hidden="true" />
-          {connectionStatus}
-        </div>
-      </header>
-
-      <section className={`combat-layout ${joinedMatchId ? 'has-combat' : 'join-only'}`} aria-live="polite">
-        <div className="combat-join-panel">
-          <div className="combat-panel-heading">
-            <div>
-              <span className="combat-panel-index">01</span>
-              <h2>Rejoindre une partie</h2>
-            </div>
-            <span className="combat-room-lock">Room privée</span>
-          </div>
-          <p className="combat-panel-copy">Utilise le même code que tes coéquipiers pour entrer dans leur salle.</p>
-          <div className="combat-room-controls">
-            <label htmlFor="combat-room-code">Code de partie</label>
-            <div className="combat-code-row">
-              <input
-                id="combat-room-code"
-                type="text"
-                value={matchCode}
-                onChange={(event) => setMatchCode(event.target.value)}
-                placeholder="MATCH-42"
-                maxLength={80}
-                pattern="[A-Za-z0-9_\-]+"
-                disabled={Boolean(joinedMatchId)}
-              />
-              <button className={joinedMatchId ? 'combat-leave-button' : ''} type="button" onClick={toggleCombat} disabled={connectionStatus === 'Connexion...'}>
-                {joinedMatchId ? 'Quitter' : 'Rejoindre'}
-              </button>
-            </div>
-          </div>
-          <div className="combat-current-room">
-            <span className="combat-current-room-dot" aria-hidden="true" />
-            <span>{matchStatus}</span>
-          </div>
-        </div>
-
-        {joinedMatchId && <div className={`combat-chat-widget ${isChatOpen ? 'is-open' : ''}`}>
-          {!isChatOpen && messagePreview && (
-            <div className="combat-chat-preview" role="status">
-              <strong>{messagePreview.system ? 'Arène' : (messagePreview.playerName ?? messagePreview.playerId)}</strong>
-              <span>{messagePreview.message}</span>
-            </div>
-          )}
-          {isChatOpen && (
-            <div className="combat-chat-popover">
-              <div className="combat-chat-popover-header">
-                <div>
-                  <span className="combat-panel-index">02</span>
-                  <h2>Chat de l’arène</h2>
-                </div>
-                <span className="combat-message-count">{messages.length}/30</span>
+    <main className="content-left-spacing mm-page">
+      <div className="mm-container">
+        {!joinedMatchId ? (
+          <>
+            <header className="mm-top">
+              <div>
+                <h1>Matchmaking</h1>
+                <p>Rejoins une partie ouverte ou crée ta propre salle pour défier un autre dresseur.</p>
               </div>
-              <ul className="combat-messages" aria-live="polite">
-                {messages.length === 0 && <li className="combat-empty-message">Aucun message pour le moment.</li>}
-                {messages.map(({ playerId, playerName, message: receivedMessage, system }, index) => (
-                  <li key={`${playerId ?? 'system'}-${index}`} className={system ? 'combat-system-message' : ''}>
-                    {system ? receivedMessage : <><strong>{playerName ?? playerId}</strong> : {receivedMessage}</>}
-                  </li>
-                ))}
-              </ul>
-              <form className="combat-chat-form" onSubmit={sendMessage}>
-                <label className="visually-hidden" htmlFor="combat-message">Message à la salle</label>
-                <div>
+              <span className="mm-conn">
+                <span className={`mm-dot ${isOnline ? 'is-online' : ''}`} aria-hidden="true" />
+                {connectionStatus}
+              </span>
+            </header>
+
+            {notice && <p className="mm-notice" role="alert">{notice}</p>}
+
+            <div className="mm-board">
+              <section className="mm-panel mm-lobbies" aria-label="Parties ouvertes">
+                <div className="mm-panel-head">
+                  <div>
+                    <h2>Parties ouvertes</h2>
+                    <p>Des joueurs t’attendent pour un duel.</p>
+                  </div>
+                  <span className="mm-count">{visibleLobbies.length}</span>
+                </div>
+
+                {visibleLobbies.length === 0 ? (
+                  <div className="mm-empty">
+                    <div className="mm-empty-icon" aria-hidden="true">⚔</div>
+                    <strong>Aucune partie en attente</strong>
+                    <span>Crée une partie : elle apparaîtra ici pour les autres joueurs.</span>
+                  </div>
+                ) : (
+                  <ul className="mm-lobby-list">
+                    {visibleLobbies.map((lobby) => (
+                      <li key={lobby.matchId}>
+                        <span className="mm-avatar" aria-hidden="true">{initials(lobby.hostName)}</span>
+                        <div className="mm-lobby-info">
+                          <strong>{lobby.hostName}</strong>
+                          <span><i className="mm-dot is-online" aria-hidden="true" /> En attente · 1/2 · {lobby.matchId}</span>
+                        </div>
+                        <button type="button" className="mm-btn mm-btn-primary" onClick={() => joinMatch(lobby.matchId)} disabled={!isOnline}>
+                          Rejoindre
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              <aside className="mm-panel mm-code">
+                <div className="mm-create">
+                  <h2>Créer une partie</h2>
+                  <p>Ouvre une salle et attends qu’un adversaire te rejoigne.</p>
+                  <label className="mm-switch">
+                    <span className="mm-switch-text">Partie privée</span>
+                    <input type="checkbox" role="switch" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
+                    <span className="mm-switch-track" aria-hidden="true" />
+                  </label>
+                  <button type="button" className="mm-btn mm-btn-primary mm-btn-block" onClick={createMatch} disabled={!isOnline}>Créer une partie</button>
+                </div>
+                <h2>Rejoindre avec un code</h2>
+                <p>Un ami t’a invité ? Entre le code de sa partie, publique ou privée.</p>
+                <form onSubmit={submitCode}>
+                  <label className="visually-hidden" htmlFor="mm-code">Code de partie</label>
                   <input
-                    id="combat-message"
+                    id="mm-code"
+                    type="text"
+                    value={matchCode}
+                    onChange={(event) => setMatchCode(event.target.value)}
+                    placeholder="MATCH-42"
+                    maxLength={80}
+                    autoComplete="off"
+                  />
+                  <button type="submit" className="mm-btn mm-btn-primary mm-btn-block" disabled={!isOnline}>Rejoindre</button>
+                </form>
+              </aside>
+            </div>
+          </>
+        ) : (
+          <>
+            {notice && <p className="mm-notice" role="alert">{notice}</p>}
+            <section className="mm-room" aria-live="polite">
+              <div className="mm-stage">
+                <div className="mm-stage-glow" aria-hidden="true" />
+                <div className="mm-stage-top">
+                  <div>
+                    <span className="mm-stage-tag">{roomIsPrivate ? '🔒 Salle privée' : 'Salle publique'}</span>
+                    <h2>{joinedMatchId}</h2>
+                  </div>
+                  <span className={`mm-pill ${combatStarted || players.length === 2 ? 'is-ok' : ''}`}>{statusLabel}</span>
+                </div>
+                {roomIsPrivate && players.length < 2 && (
+                  <p className="mm-room-hint">Partage ce code avec ton adversaire pour qu’il te rejoigne.</p>
+                )}
+
+                <div className="mm-versus">
+                  <div className="mm-fighter">
+                    <span className={`mm-avatar mm-avatar-lg ${currentPlayer?.ready ? 'is-ready' : ''}`}>
+                      {initials(currentPlayer?.profile?.nom_utilisateur ?? user?.nom_utilisateur)}
+                    </span>
+                    <strong>{currentPlayer?.profile?.nom_utilisateur ?? user?.nom_utilisateur ?? 'Toi'}</strong>
+                    <span className={`mm-ready ${currentPlayer?.ready ? 'is-ready' : ''}`}>{currentPlayer?.ready ? '✓ Prêt' : 'Pas prêt'}</span>
+                  </div>
+                  <span className="mm-vs" aria-hidden="true">VS</span>
+                  <div className={`mm-fighter ${opponent ? '' : 'is-waiting'}`}>
+                    <span className={`mm-avatar mm-avatar-lg ${opponent?.ready ? 'is-ready' : ''}`}>
+                      {opponent ? initials(opponent.profile?.nom_utilisateur) : '?'}
+                    </span>
+                    <strong>{opponent?.profile?.nom_utilisateur ?? 'En attente…'}</strong>
+                    <span className={`mm-ready ${opponent?.ready ? 'is-ready' : ''}`}>
+                      {opponent ? (opponent.ready ? '✓ Prêt' : 'Pas prêt') : 'Place libre'}
+                    </span>
+                    {opponent && !combatStarted && (
+                      <span className={`mm-deck-flag ${opponent.hasDeck ? 'is-ok' : ''}`}>
+                        {opponent.hasDeck ? 'Deck choisi ✓' : 'Choisit son deck…'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mm-room-actions">
+                  {!combatStarted && (
+                    <div className="mm-ready-group">
+                      <DeckSlot deck={selectedDeck} onClick={openDeckPicker} disabled={!canChangeDeck} />
+                      <button
+                        type="button"
+                        className={`mm-cta ${currentPlayer?.ready ? 'is-secondary' : ''}`}
+                        onClick={toggleReady}
+                        disabled={!canToggleReady}
+                        title={canToggleReady ? undefined : readyBlocker}
+                      >
+                        {currentPlayer?.ready ? 'Annuler' : 'Je suis prêt'}
+                      </button>
+                    </div>
+                  )}
+                  <button type="button" className="mm-leave" onClick={leaveMatch}>Quitter la salle</button>
+                </div>
+                {!combatStarted && !currentPlayer?.ready && readyBlocker && (
+                  <p className="mm-room-hint mm-deck-hint">{readyBlocker}</p>
+                )}
+              </div>
+
+              <aside className="mm-chat" aria-label="Chat de la salle">
+                <div className="mm-chat-head">
+                  <h3>Chat de la salle</h3>
+                  <span>{players.length}/2 en ligne</span>
+                </div>
+                <ul className="mm-chat-messages" aria-live="polite">
+                  {messages.length === 0 && <li className="mm-chat-empty">Aucun message. Dis bonjour !</li>}
+                  {messages.map(({ playerId, playerName, message: receivedMessage, system }, index) => (
+                    <li
+                      key={`${playerId ?? 'system'}-${index}`}
+                      className={system ? 'is-system' : playerId === socketId ? 'is-mine' : 'is-theirs'}
+                    >
+                      {!system && playerId !== socketId && <strong>{playerName ?? playerId}</strong>}
+                      <span>{receivedMessage}</span>
+                    </li>
+                  ))}
+                  <li ref={chatEndRef} aria-hidden="true" className="mm-chat-end" />
+                </ul>
+                <form className="mm-chat-form" onSubmit={sendMessage}>
+                  <label className="visually-hidden" htmlFor="mm-message">Message à la salle</label>
+                  <input
+                    id="mm-message"
                     type="text"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     placeholder="Écrire un message..."
                     maxLength={500}
+                    autoComplete="off"
                   />
-                  <button type="submit" disabled={!message.trim()} aria-label="Envoyer le message">→</button>
-                </div>
-              </form>
-            </div>
-          )}
-          <button
-            className="combat-chat-toggle"
-            type="button"
-            onClick={toggleChat}
-            aria-expanded={isChatOpen}
-            aria-label={isChatOpen ? 'Fermer le chat' : 'Ouvrir le chat'}
-          >
-            <span aria-hidden="true">☵</span>
-            <span>{isChatOpen ? 'Fermer' : 'Chat'}</span>
-            {!isChatOpen && unreadMessageCount > 0 && <b>{unreadMessageCount}</b>}
-          </button>
-        </div>}
-
-        {joinedMatchId && <aside className="combat-activity-panel">
-          <div className="combat-panel-heading">
-            <div>
-              <span className="combat-panel-index">03</span>
-              <h2>Activité</h2>
-            </div>
-            <span className={`combat-live-label ${combatStarted ? 'combat-started-label' : ''}`}>
-              {combatStarted ? 'En cours' : 'Live'}
-            </span>
-          </div>
-          <div className="combat-player-summary">
-            <strong>{players.length}/2 joueurs</strong>
-            <span>{players.length === 2 ? 'Les deux places sont prises' : 'En attente d’un adversaire'}</span>
-          </div>
-          <ul className="combat-player-list">
-            {players.map((player) => (
-              <li key={player.playerId}>
-                <span className="combat-player-avatar" aria-hidden="true">{(player.profile?.nom_utilisateur ?? player.playerId).slice(-2)}</span>
-                <span className="combat-player-name">{player.playerId === socketId ? 'Vous' : (player.profile?.nom_utilisateur ?? player.playerId)}</span>
-                {player.playerId !== socketId && player.hasDeck && (
-                  <span className="combat-deck-flag">Deck choisi ✓</span>
-                )}
-                <span className={`combat-ready-state ${player.ready ? 'is-ready' : ''}`}>
-                  {player.ready ? 'READY' : 'En attente'}
-                </span>
-              </li>
-            ))}
-            {players.length === 0 && <li className="combat-empty-message">Rejoins une partie pour voir ses joueurs.</li>}
-          </ul>
-          {!combatStarted && (
-            <DeckSlot deck={selectedDeck} onClick={openDeckPicker} />
-          )}
-          {players.length === 2 && !combatStarted && (
-            <button
-              className={`combat-ready-button ${currentPlayer?.ready ? 'is-ready' : ''}`}
-              type="button"
-              onClick={toggleReady}
-              disabled={!selectedDeck}
-              title={selectedDeck ? undefined : 'Choisis un deck'}
-            >
-              {currentPlayer?.ready ? 'READY - Annuler' : 'READY'}
-            </button>
-          )}
-          {players.length === 2 && !combatStarted && !selectedDeck && (
-            <p className="combat-ready-hint">Choisis un deck pour être prêt.</p>
-          )}
-          {lobbyError && <p className="combat-lobby-toast" role="alert">{lobbyError}</p>}
-          {combatStarted && <p className="combat-started-message">La partie est lancée. Bon combat !</p>}
-        </aside>}
-      </section>
+                  <button type="submit" disabled={!message.trim()} aria-label="Envoyer le message">➤</button>
+                </form>
+              </aside>
+            </section>
+          </>
+        )}
+      </div>
 
       <DeckPickerModal
         open={isDeckPickerOpen}
@@ -367,7 +303,7 @@ function Combat() {
         loading={decksLoading}
         error={decksError}
         selectedDeckId={selectedDeck?.id_deck}
-        onSelect={selectDeck}
+        onSelect={chooseDeck}
         onClose={() => setIsDeckPickerOpen(false)}
       />
     </main>

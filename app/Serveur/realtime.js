@@ -33,6 +33,31 @@ function registerCombat(io) {
 		});
 	}
 
+	function getOpenLobbies() {
+		const rooms = new Map();
+		for (const member of io.sockets.values()) {
+			if (member.data.combatPhase !== "lobby" || !member.data.combatMatchId) continue;
+			const list = rooms.get(member.data.combatMatchId) || [];
+			list.push(member);
+			rooms.set(member.data.combatMatchId, list);
+		}
+		const lobbies = [];
+		for (const [matchId, members] of rooms) {
+			const state = roomStates.get(`combat:${matchId}`);
+			if (members.length !== 1 || state?.started || state?.isPrivate) continue;
+			lobbies.push({
+				matchId,
+				hostId: members[0].data.profile.id,
+				hostName: members[0].data.profile.nom_utilisateur,
+			});
+		}
+		return lobbies;
+	}
+
+	function broadcastLobbies() {
+		io.emit("combat:lobbies", { lobbies: getOpenLobbies() });
+	}
+
 	// Vue de la partie propre à un joueur + événements à animer (main/deck adverses cachés)
 	function gameStatePayload(state, userId, events) {
 		const opponentId = state.playerIds.find((id) => id !== userId);
@@ -181,7 +206,7 @@ function registerCombat(io) {
 		socket.data.deckId = null;
 		socket.emit("combat:connected", { socketId: socket.id, profile: socket.data.profile });
 
-		socket.on("combat:join", async ({ matchId = "lobby", phase = "lobby" } = {}) => {
+		socket.on("combat:join", async ({ matchId = "lobby", phase = "lobby", isPrivate = false } = {}) => {
 			const normalizedMatchId = typeof matchId === "string" ? matchId.trim() : "";
 			if (!normalizedMatchId || normalizedMatchId.length > 80 || !/^[a-zA-Z0-9_-]+$/.test(normalizedMatchId)) {
 				socket.emit("combat:error", { message: "Code de partie invalide." });
@@ -201,6 +226,20 @@ function registerCombat(io) {
 				socket.emit("combat:error", { message: "Tu ne fais pas partie de ce combat." });
 				return;
 			}
+			if (phase === "lobby") {
+				const alreadyInOtherRoom = socket.data.combatRoom && socket.data.combatRoom !== room;
+				const playingElsewhere = [...io.sockets.values()].some((other) => (
+					other.id !== socket.id
+					&& other.data.profile?.id === socket.data.profile.id
+					&& other.data.combatRoom
+					&& (other.data.combatPhase === "lobby"
+						|| (other.data.combatPhase === "arena" && !roomStates.get(other.data.combatRoom)?.ended))
+				));
+				if (alreadyInOtherRoom || playingElsewhere) {
+					socket.emit("combat:error", { message: "Tu as déjà une partie en cours. Quitte-la avant d'en créer ou d'en rejoindre une autre." });
+					return;
+				}
+			}
 			if (phase === "lobby" && lobbyMembers.length >= 2) {
 				socket.emit("combat:error", { message: "Cette partie est complète (2 joueurs maximum)." });
 				return;
@@ -209,13 +248,14 @@ function registerCombat(io) {
 			if (socket.data.combatRoom && socket.data.combatRoom !== room) {
 				socket.leave(socket.data.combatRoom);
 			}
-			if (!state || state.ended) roomStates.set(room, { started: false, ended: false });
+			const roomIsEmpty = currentMembers.length === 0 && phase === "lobby";
+			if (!state || state.ended || roomIsEmpty) roomStates.set(room, { started: false, ended: false, isPrivate: phase === "lobby" && isPrivate === true });
 			socket.join(room);
 			socket.data.combatRoom = room;
 			socket.data.combatMatchId = normalizedMatchId;
 			socket.data.combatPhase = phase;
 			if (phase === "arena") socket.data.combatReady = true;
-			socket.emit("combat:joined", { matchId: normalizedMatchId });
+			socket.emit("combat:joined", { matchId: normalizedMatchId, isPrivate: Boolean(roomStates.get(room)?.isPrivate) });
 			io.to(room).emit("combat:message", {
 				message: `Le joueur ${socket.data.profile.nom_utilisateur} a rejoint la salle.`,
 				system: true,
@@ -231,6 +271,11 @@ function registerCombat(io) {
 			}
 
 			await broadcastRoomState(room);
+			broadcastLobbies();
+		});
+
+		socket.on("combat:lobbies", () => {
+			socket.emit("combat:lobbies", { lobbies: getOpenLobbies() });
 		});
 
 		socket.on("combat:leave", async () => {
@@ -249,8 +294,10 @@ function registerCombat(io) {
 			socket.data.combatMatchId = null;
 			socket.data.combatPhase = null;
 			socket.data.combatReady = false;
+			socket.data.deckId = null;
 			socket.emit("combat:left");
 			await broadcastRoomState(room);
+			broadcastLobbies();
 		});
 
 		socket.on("combat:select-deck", async ({ deckId } = {}) => {
@@ -292,6 +339,13 @@ function registerCombat(io) {
 				return;
 			}
 			if (ready) {
+				const lobbyMembers = (await io.in(room).fetchSockets()).filter((m) => m.data.combatPhase === "lobby");
+				if (lobbyMembers.length < 2) {
+					socket.emit("combat:action-error", { message: "Attends un adversaire avant d'être prêt." });
+					return;
+				}
+			}
+			if (ready) {
 				// Le deck peut être devenu invalide depuis sa sélection (carte vendue)
 				const deck = await getValidDeckSummary(socket.data.profile.id, socket.data.deckId).catch(() => null);
 				if (state.started || state.starting) return;
@@ -321,6 +375,7 @@ function registerCombat(io) {
 			}
 			if (state.started) io.to(room).emit("combat:started");
 			await broadcastRoomState(room);
+			broadcastLobbies();
 		});
 
 		socket.on("combat:play-card", async ({ instanceId } = {}) => {
@@ -356,6 +411,10 @@ function registerCombat(io) {
 
 		socket.on("disconnect", () => {
 			const room = socket.data.combatRoom;
+			if (room && socket.data.combatPhase === "lobby") {
+				broadcastRoomState(room);
+				broadcastLobbies();
+			}
 			if (!room || socket.data.combatPhase !== "arena") return;
 			// On retient la partie en cours : une nouvelle partie dans la même salle ne doit pas être touchée
 			const game = roomStates.get(room)?.game;
