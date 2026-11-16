@@ -23,6 +23,8 @@ export default function DropSection(){
   const [remainingSeconds, setRemainingSeconds] = useState(null)
   const [dropImage, setDropImage] = useState(FALLBACK_DROP_IMAGE)
   const [isClaimReady, setIsClaimReady] = useState(false)
+  const [isCooldownActive, setIsCooldownActive] = useState(false)
+  const [statusError, setStatusError] = useState(false)
 
   useEffect(() => {
     let intervalId
@@ -46,48 +48,37 @@ export default function DropSection(){
         const remaining = Math.max(0, data.remainingSeconds ?? 0)
         const canUserClaim = data.canClaim !== undefined ? Boolean(data.canClaim) : (data.isClaimReady !== undefined ? Boolean(data.isClaimReady) : remaining <= 0)
         const claimReady = canUserClaim && remaining <= 0
+        const cooldownActive = Boolean(data.isCooldownActive ?? (remaining > 0))
+        const deadline = cooldownActive ? data.resetAt : data.claimClosesAt
+        const displayedRemaining = cooldownActive ? remaining : Math.max(0, data.claimRemainingSeconds ?? 0)
 
-        setRemainingSeconds(remaining)
+        setRemainingSeconds(displayedRemaining)
+        setIsCooldownActive(cooldownActive)
+        setStatusError(false)
         setDropImage(FALLBACK_DROP_IMAGE)
         setIsClaimReady(claimReady)
 
         window.clearInterval(intervalId)
 
-        if (!claimReady && remaining > 0 && data.resetAt) {
-          const resetAt = new Date(data.resetAt).getTime()
+        if (displayedRemaining > 0 && deadline) {
+          const resetAt = new Date(deadline).getTime()
           intervalId = window.setInterval(() => {
             const nextRemaining = Math.max(0, Math.ceil((resetAt - Date.now()) / 1000))
             setRemainingSeconds(nextRemaining)
 
             if (nextRemaining <= 0) {
-              setIsClaimReady(true)
+              setIsClaimReady(false)
               window.clearInterval(intervalId)
               loadDropState()
             }
           }, 1000)
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          // Fallback calculé en local sur un cycle de 5 minutes
-          const cycleSeconds = 5 * 60
-          const nowSeconds = Math.floor(Date.now() / 1000)
-          const fallbackRemaining = cycleSeconds - (nowSeconds % cycleSeconds)
-          setRemainingSeconds(fallbackRemaining)
-          setDropImage(FALLBACK_DROP_IMAGE)
-          setIsClaimReady(fallbackRemaining <= 0)
-
           window.clearInterval(intervalId)
-          intervalId = window.setInterval(() => {
-            const currentSeconds = Math.floor(Date.now() / 1000)
-            const nextRemaining = cycleSeconds - (currentSeconds % cycleSeconds)
-            setRemainingSeconds(nextRemaining)
-
-            if (nextRemaining <= 0) {
-              setIsClaimReady(true)
-              window.clearInterval(intervalId)
-              loadDropState()
-            }
-          }, 1000)
+          setRemainingSeconds(null)
+          setIsClaimReady(false)
+          setStatusError(true)
         }
       }
     }
@@ -119,34 +110,35 @@ export default function DropSection(){
     <section className="dashboard-panel dashboard-drop">
       <div className="dashboard-panel-header">
         <div>
+          <span className="dashboard-kicker">Global Server Supply Drop Event</span>
           <h2 className="dashboard-title">Drop Commun</h2>
-          <p className="dashboard-eyebrow">Global Server Supply Drop Event</p>
           <p className="dashboard-meta">Drop de cartes toutes les 5 minutes</p>
         </div>
         <div className="dashboard-timer">
           <i className="fa-solid fa-hourglass-half" aria-hidden="true"></i>
-          <span>{remainingSeconds === null ? '--:--:--' : formatTime(remainingSeconds)}</span>
+          <span>{statusError ? 'Temps indisponible' : <>{isCooldownActive ? 'Prochain claim' : 'Fermeture du claim'}<br />{remainingSeconds === null ? '--:--:--' : formatTime(remainingSeconds)}</>}</span>
         </div>
       </div>
       <div className="dashboard-hero">
-        <img alt="Supply Drop Crate" src={dropImage} />
+        <img alt="Univers de jeu du tirage commun" src={dropImage} />
         <div className="dashboard-hero-copy">
-          <div className="dashboard-hero-title">M9 cache</div>
-          <div className="dashboard-hero-subtitle">tier not found</div>
+          <span className="dashboard-hero-label">CHOISISSEZ VOTRE PROCHAINE CARTE</span>
+          <div className="dashboard-hero-title">Trois possibilités.<br />Un seul choix.</div>
+          <div className="dashboard-hero-subtitle">À chaque tirage, une nouvelle chance d’enrichir votre collection.</div>
         </div>
       </div>
 
-      {isClaimReady && (
-        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
+        <div className="dashboard-drop-footer">
+          <p className="dashboard-meta">{!token ? 'Connectez-vous pour participer au tirage.' : isClaimReady ? 'Le tirage est disponible. Faites votre choix !' : 'Votre prochain tirage se prépare.'}</p>
           <button
             type="button"
-            className="button is-warning"
+            className="dashboard-primary-button"
+            disabled={!token || !isClaimReady}
             onClick={() => navigate('/claim-carte')}
           >
-            Claim maintenant
+            Claim carte
           </button>
         </div>
-      )}
     </section>
   )
 }

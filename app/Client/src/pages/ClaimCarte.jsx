@@ -4,7 +4,7 @@ import { io } from 'socket.io-client'
 import Card from '../components/Card'
 import { useAuth } from '../auth/AuthContext'
 import { API_BASE_URL } from '../config'
-import '../css/InventoryCards.css'
+import '../css/ClaimCarte.css'
 
 const rarityMeta = {
     1: { label: 'Commun', chance: '70%' },
@@ -300,108 +300,81 @@ function ClaimCarte() {
 
     const isCooldownActive = cooldownRemainingSeconds > 0
 
+    const roundProgress = expectedClaimCount > 0
+        ? Math.min(100, Math.max(0, (claimedCount / expectedClaimCount) * 100))
+        : 0
+
     return (
-        <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-                <p style={{ textAlign: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>
-                    Obtenez votre carte gratuite !
-                </p>
-                <p style={{ margin: 0 }}>
-                    Veillez sélectionner les cartes que vous souhaitez réclamer. Vous pouvez choisir une carte parmi
-                    3 cartes proposées.
-                </p>
-                <p style={{ margin: 0 }}>
-                    Chaque joueur ne peut réclamer qu'une seule carte par round. Le round se termine lorsque tous les joueurs ont réclamé leur carte et que les 3 carte sont claimées.
-                </p>
-                <p style={{ margin: 0 }}>
-                </p>
-                <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>
-                    Joueurs connectés: {connectedUsers}
-                </p>
-                <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>
-                    Progression du round: {claimedCount}/{expectedClaimCount || 0} joueurs ont claim
-                </p>
-                {isCooldownActive && (
-                    <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>
-                        Prochain claim disponible dans {formatTime(cooldownRemainingSeconds)}
-                    </p>
-                )}
-            </div>
+        <main className="claim-page">
+            <div className="claim-container">
+                <header className="claim-hero">
+                    <div className="claim-hero-copy">
+                        <span className="claim-eyebrow">LE TIRAGE • M9 TCG</span>
+                        <h1>Votre prochaine carte<br /><span>vous attend.</span></h1>
+                        <p>Un tirage partagé. Trois possibilités. Choisissez la carte qui rejoindra votre collection.</p>
+                        <div className="claim-hero-tags">
+                            <span>100 % gratuit</span>
+                            <span>1 carte par round</span>
+                        </div>
+                    </div>
+                    <div className="claim-hero-art" aria-hidden="true">
+                        <div className="claim-art-card claim-art-card--back" />
+                        <div className="claim-art-card claim-art-card--front"><span>✦</span><small>M9 TCG</small></div>
+                    </div>
+                </header>
 
-            {!token ? (
-                <p>Veuillez vous connecter pour réclamer une carte.</p>
-            ) : null}
+                <section className="claim-round" aria-label="État du round">
+                    <div className="claim-online"><span className="claim-live-dot" aria-hidden="true" /><strong>{connectedUsers}</strong> joueur{connectedUsers > 1 ? 's' : ''} en ligne</div>
+                    <div className="claim-progress">
+                        <div className="claim-progress-label"><span>Progression du round</span><strong>{claimedCount} / {expectedClaimCount || 0}</strong></div>
+                        <div className="claim-progress-track" role="progressbar" aria-label="Progression du round" aria-valuenow={claimedCount} aria-valuemin={0} aria-valuemax={Math.max(expectedClaimCount, claimedCount, 1)}>
+                            <span style={{ width: `${roundProgress}%` }} />
+                        </div>
+                    </div>
+                    <span className="claim-round-state">{isCooldownActive ? `Prochain tirage : ${formatTime(cooldownRemainingSeconds)}` : 'Tirage en cours'}</span>
+                </section>
 
-            {loading ? (
-                <p>Loading...</p>
-            ) : error ? (
-                <p>{error}</p>
-            ) : token && isCooldownActive ? (
-                <p>Le cooldown de 5 minutes est en cours.</p>
-            ) : token && selectedCards.length === 0 ? (
-                <p>Aucune carte disponible pour le moment.</p>
-            ) : (
-                <>
-                    {hasClaimedCurrentRound && !isCooldownActive && (
-                        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: 'rgba(39, 174, 96, 0.1)', border: '1px solid #27ae60', borderRadius: '6px', color: '#27ae60', fontWeight: 600 }}>
-                            Vous avez déjà réclamé votre carte pour ce round ! En attente des autres joueurs ({claimedCount}/{expectedClaimCount || 0})...
+                <section className="claim-selection" aria-labelledby="claim-selection-title" aria-busy={loading || isClaiming}>
+                    <div className="claim-section-heading">
+                        <div><span className="claim-eyebrow">À VOUS DE JOUER</span><h2 id="claim-selection-title">Faites votre choix</h2></div>
+                        <p>Une seule carte. À vous de décider.</p>
+                    </div>
+
+                    {!token ? (
+                        <div className="claim-message"><span className="claim-message-symbol" aria-hidden="true">✦</span><h3>Votre collection commence ici</h3><p>Connectez-vous pour découvrir le tirage et réclamer votre carte gratuite.</p></div>
+                    ) : loading ? (
+                        <div className="claim-loading" role="status"><span className="claim-spinner" aria-hidden="true" />Préparation de votre tirage…</div>
+                    ) : error ? (
+                        <div className="claim-message claim-message--error" role="alert"><h3>Le tirage est indisponible</h3><p>{error}</p></div>
+                    ) : isCooldownActive ? (
+                        <div className="claim-message" role="status"><h3>Le prochain tirage arrive</h3><p>Encore {formatTime(cooldownRemainingSeconds)} avant de nouvelles cartes.</p></div>
+                    ) : selectedCards.length === 0 ? (
+                        <div className="claim-message"><h3>Le tirage se prépare</h3><p>Aucune carte disponible pour le moment. Revenez bientôt !</p></div>
+                    ) : (
+                        <div className="claim-cards-grid">
+                            {selectedCards.map((carte, index) => {
+                                const isCardAlreadyClaimed = claimedCardIds.includes(carte.id_carte)
+                                const disabled = isClaiming || !canClaimNow || isCardAlreadyClaimed
+                                return (
+                                    <article key={carte.id_carte} className={`claim-choice claim-choice--rarity-${carte.rarete}${isCardAlreadyClaimed ? ' is-claimed' : ''}`} style={{ '--claim-delay': `${index * 100}ms` }}>
+                                        <div className="claim-choice-top"><span className="claim-rarity"><span aria-hidden="true">✦</span> {rarityMeta[carte.rarete]?.label ?? 'Carte'}</span><span className="claim-chance">{rarityMeta[carte.rarete]?.chance ?? '—'}</span></div>
+                                        <div className="claim-card-preview" inert><Card carte={carte} onClick={() => { }} /></div>
+                                        <button className="claim-button" type="button" disabled={disabled} onClick={() => handleClaimCard(carte.id_carte)} aria-label={`${isCardAlreadyClaimed ? 'Déjà réclamée' : 'Réclamer'} : ${carte.nom_carte}`}>
+                                            {isCardAlreadyClaimed ? 'Déjà réclamée' : isClaiming ? 'Réclamation en cours…' : hasClaimedCurrentRound ? 'Carte déjà obtenue' : 'Réclamer cette carte'}
+                                            {!disabled && <span aria-hidden="true">✦</span>}
+                                        </button>
+                                        <p className="claim-choice-note">{isCardAlreadyClaimed ? 'Un autre joueur a choisi cette carte.' : 'À ajouter à votre collection'}</p>
+                                    </article>
+                                )
+                            })}
                         </div>
                     )}
-                    <div className="inventory-cards-grid">
-                        {selectedCards.map((carte, index) => (
-                            (() => {
-                                // Carte deja prise dans le round: bouton bloque pour eviter un double-claim.
-                                const isCardAlreadyClaimed = claimedCardIds.includes(carte.id_carte)
+                    {feedback && <p className={`claim-feedback claim-feedback--${feedback.type}`} role="alert">{feedback.message}</p>}
+                </section>
 
-                                return (
-                                    <div
-                                        key={carte.id_carte}
-                                        style={{ animation: `claim-card-enter 420ms ease ${index * 120}ms both` }}
-                                    >
-                                        <div style={{ marginBottom: '0.75rem', fontWeight: 700 }}>
-                                            {rarityMeta[carte.rarete]?.label ?? 'Carte'} - {rarityMeta[carte.rarete]?.chance ?? '0%'}
-                                        </div>
-                                        <Card carte={carte} onClick={() => { }} />
-                                        {isCardAlreadyClaimed && (
-                                            <p style={{ marginTop: '0.5rem', marginBottom: '0.25rem', fontWeight: 700, color: '#c0382b' }}>
-                                                Cette carte est deja claim
-                                            </p>
-                                        )}
-                                        <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'center' }}>
-                                            <button
-                                                type="button"
-                                                disabled={isClaiming || !canClaimNow || isCardAlreadyClaimed || hasClaimedCurrentRound}
-                                                onClick={() => handleClaimCard(carte.id_carte)}
-                                            >
-                                                {isClaiming
-                                                    ? 'Claim en cours...'
-                                                    : isCardAlreadyClaimed
-                                                        ? 'Déjà claim'
-                                                        : hasClaimedCurrentRound
-                                                            ? 'Déjà réclamé'
-                                                            : 'Claim'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )
-                            })()
-                        ))}
-                    </div>
-                </>
-            )}
-
-            {feedback && (
-                <p
-                    style={{
-                        marginTop: '1rem',
-                        fontWeight: 600,
-                        color: feedback.type === 'success' ? '#118a4e' : '#c0382b',
-                    }}
-                >
-                    {feedback.message}
-                </p>
-            )}
-        </div>
+                <footer className="claim-guide"><span aria-hidden="true">✦</span><p><strong>Le principe est simple.</strong> Chaque joueur choisit une carte du tirage commun. Une carte déjà réclamée n’est plus disponible. Une fois le round terminé, le prochain tirage se prépare.</p></footer>
+            </div>
+        </main>
     )
 }
 
