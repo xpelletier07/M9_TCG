@@ -23,7 +23,6 @@ function Decks() {
     const [showCardPicker, setShowCardPicker] = useState(false)
     const [pickerSearch, setPickerSearch] = useState('')
     const [pickerRarity, setPickerRarity] = useState('all')
-    const [pickerMana, setPickerMana] = useState('all')
 
     // ── États Modale Création / Édition de Deck ──
     const [deckModalMode, setDeckModalMode] = useState(null) // 'create' | 'edit' | null
@@ -399,14 +398,9 @@ function Decks() {
                 return false
             }
 
-            // Filtre mana
-            if (pickerMana === '0-2' && (carte.mana < 0 || carte.mana > 2)) return false
-            if (pickerMana === '3-4' && (carte.mana < 3 || carte.mana > 4)) return false
-            if (pickerMana === '5+' && carte.mana < 5) return false
-
             return true
         })
-    }, [inventoryWithAvailable, pickerSearch, pickerRarity, pickerMana])
+    }, [inventoryWithAvailable, pickerSearch, pickerRarity])
 
     return (
         <main className="content-left-spacing decks-page">
@@ -772,9 +766,16 @@ function Decks() {
 
                         {/* ── Barre de Filtres & Recherche ── */}
                         <div className="decks-modal-filterbar">
+                            <div className="decks-search-heading">
+                                <label htmlFor="deck-card-search">Trouvez votre prochaine carte</label>
+                                <span className="decks-search-results" role="status">
+                                    {filteredInventory.length} carte{filteredInventory.length !== 1 ? 's' : ''} trouvée{filteredInventory.length !== 1 ? 's' : ''}
+                                </span>
+                            </div>
                             <div className="decks-search-wrap">
                                 <i className="fa-solid fa-magnifying-glass decks-search-icon" />
                                 <input
+                                    id="deck-card-search"
                                     className="decks-picker-search"
                                     type="text"
                                     placeholder="Rechercher par nom de carte…"
@@ -786,6 +787,7 @@ function Decks() {
                                     <button
                                         type="button"
                                         className="decks-search-clear"
+                                        aria-label="Effacer la recherche"
                                         onClick={() => setPickerSearch('')}
                                     >
                                         ✕
@@ -795,8 +797,8 @@ function Decks() {
 
                             {/* Filtres Rareté */}
                             <div className="decks-filter-group">
-                                <span className="decks-filter-label">Rareté :</span>
-                                <div className="decks-filter-pills">
+                                <span className="decks-filter-label" id="deck-rarity-label">Rareté</span>
+                                <div className="decks-filter-pills" role="group" aria-labelledby="deck-rarity-label">
                                     {[
                                         { id: 'all', label: 'Toutes' },
                                         { id: '1', label: 'Commune' },
@@ -807,36 +809,30 @@ function Decks() {
                                         <button
                                             key={r.id}
                                             type="button"
+                                            data-rarity={r.id}
+                                            aria-pressed={pickerRarity === r.id}
                                             className={`decks-filter-pill ${pickerRarity === r.id ? 'decks-filter-pill--active' : ''}`}
                                             onClick={() => setPickerRarity(r.id)}
                                         >
+                                            <span className="decks-rarity-dot" aria-hidden="true" />
                                             {r.label}
                                         </button>
                                     ))}
                                 </div>
+                                {(pickerSearch || pickerRarity !== 'all') && (
+                                    <button
+                                        type="button"
+                                        className="decks-search-reset"
+                                        onClick={() => {
+                                            setPickerSearch('')
+                                            setPickerRarity('all')
+                                        }}
+                                    >
+                                        Réinitialiser
+                                    </button>
+                                )}
                             </div>
 
-                            {/* Filtres Mana */}
-                            <div className="decks-filter-group">
-                                <span className="decks-filter-label">Mana :</span>
-                                <div className="decks-filter-pills">
-                                    {[
-                                        { id: 'all', label: 'Tous' },
-                                        { id: '0-2', label: '0-2' },
-                                        { id: '3-4', label: '3-4' },
-                                        { id: '5+', label: '5+' },
-                                    ].map((m) => (
-                                        <button
-                                            key={m.id}
-                                            type="button"
-                                            className={`decks-filter-pill ${pickerMana === m.id ? 'decks-filter-pill--active' : ''}`}
-                                            onClick={() => setPickerMana(m.id)}
-                                        >
-                                            {m.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
 
                         {/* ── Grille Défilante ── */}

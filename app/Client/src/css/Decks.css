@@ -1114,18 +1114,40 @@ html.tcg-dark .decks-page {
 /* ── MODAL FILTRES & RECHERCHE HUD ── */
 .decks-modal-filterbar {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.9rem 1.75rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  padding: 1.25rem 1.75rem;
   border-bottom: 1px solid var(--dk-modal-border);
   background: rgba(var(--dk-accent-rgb), 0.03);
   flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.decks-search-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.decks-search-heading label {
+  color: var(--dk-text-heading);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.decks-search-results {
+  color: var(--dk-text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .decks-search-wrap {
   position: relative;
-  flex: 1;
-  min-width: 220px;
+  width: 100%;
+  min-width: 0;
 }
 
 .decks-search-icon {
@@ -1140,8 +1162,8 @@ html.tcg-dark .decks-page {
 
 .decks-picker-search {
   width: 100%;
-  padding: 0.6rem 2.2rem 0.6rem 2.4rem;
-  border-radius: 9px;
+  padding: 0.9rem 3rem 0.9rem 2.7rem;
+  border-radius: 12px;
   border: 1.5px solid var(--dk-input-border);
   background: var(--dk-input-bg);
   color: var(--dk-input-text);
@@ -1174,6 +1196,7 @@ html.tcg-dark .decks-page {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .decks-filter-label {
@@ -1188,17 +1211,18 @@ html.tcg-dark .decks-page {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  background: var(--dk-panel-bg);
-  padding: 3px;
-  border-radius: 8px;
-  border: 1px solid var(--dk-panel-border);
+  flex-wrap: wrap;
 }
 
 .decks-filter-pill {
-  padding: 0.3rem 0.65rem;
-  border-radius: 6px;
-  border: 0;
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--dk-panel-border);
+  background: var(--dk-panel-bg);
   color: var(--dk-text-muted);
   cursor: pointer;
   font: inherit;
@@ -1215,6 +1239,43 @@ html.tcg-dark .decks-page {
   background: var(--dk-accent);
   color: #ffffff !important;
   box-shadow: 0 2px 8px var(--dk-accent-glow);
+}
+
+.decks-rarity-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rarity-color, currentColor);
+  flex-shrink: 0;
+}
+
+.decks-filter-pill[data-rarity='1'] { --rarity-color: #94a3b8; }
+.decks-filter-pill[data-rarity='2'] { --rarity-color: #60a5fa; }
+.decks-filter-pill[data-rarity='3'] { --rarity-color: #c084fc; }
+.decks-filter-pill[data-rarity='4'] { --rarity-color: #fbbf24; }
+
+.decks-search-reset {
+  margin-left: auto;
+  padding: 0.4rem 0.2rem;
+  border: 0;
+  background: transparent;
+  color: var(--dk-text-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.decks-search-reset:hover {
+  color: var(--dk-text-heading);
+}
+
+.decks-filter-pill:focus-visible,
+.decks-search-clear:focus-visible,
+.decks-search-reset:focus-visible {
+  outline: 2px solid var(--dk-accent);
+  outline-offset: 3px;
 }
 
 /* ── MODAL BODY (DÉFILANT) ── */
@@ -1568,10 +1629,10 @@ html.tcg-dark .decks-page {
   .decks-modal-filterbar {
     flex-direction: column;
     align-items: stretch;
+    padding: 1rem;
   }
 
   .decks-filter-group {
-    flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
 }
