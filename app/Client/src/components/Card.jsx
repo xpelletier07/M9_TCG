@@ -53,7 +53,9 @@ export default function Card({ carte, onClick, quantite = 1 }) {
             </div>
             <div className="inventory-card__content">
                 <h3 className="inventory-card__name">{carte.nom_carte}</h3>
-                <p className="inventory-card__description">{carte.description}</p>
+                {carte.description && (
+                    <p className="inventory-card__description">{carte.description}</p>
+                )}
                 <div className="inventory-card__stats">
                     <span className="inventory-card__stat inventory-card__stat--mana" title="Mana">
                         <span>Mana</span><strong>{carte.mana}</strong>
