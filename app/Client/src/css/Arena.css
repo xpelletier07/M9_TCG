@@ -1,0 +1,1187 @@
+/* ==========================================================================
+   Arène de combat
+   Thème clair (défaut) : « Verre clair » — Thème sombre (html.tcg-dark) : « Table de jeu navy »
+   Toute la palette passe par les variables --arena-* définies sur .arena-page.
+   ========================================================================== */
+
+.arena-page {
+  --arena-bg:
+    radial-gradient(circle at 85% 8%, rgba(37, 99, 235, 0.16), transparent 28rem),
+    radial-gradient(circle at 8% 92%, rgba(14, 165, 233, 0.14), transparent 28rem),
+    linear-gradient(135deg, #f5f9ff 0%, #e2edfa 100%);
+  --arena-text: #0d2a6e;
+  --arena-muted: #64748b;
+  --arena-panel: rgba(255, 255, 255, 0.72);
+  --arena-panel-border: rgba(255, 255, 255, 0.95);
+  --arena-panel-shadow: 0 10px 26px rgba(13, 42, 110, 0.09);
+  --arena-lane: rgba(255, 255, 255, 0.42);
+  --arena-lane-border: rgba(255, 255, 255, 0.95);
+  --arena-lane-shadow: inset 0 2px 12px rgba(13, 42, 110, 0.05);
+  --arena-card-bg: #ffffff;
+  --arena-card-text: #0f172a;
+  --arena-card-border: #d5deeb;
+  --arena-card-shadow: 0 8px 18px rgba(13, 42, 110, 0.16);
+  --arena-accent: #2563eb;
+  --arena-accent-strong: #0d2a6e;
+  --arena-end-turn-bg: linear-gradient(135deg, #0d2a6e 0%, #2563eb 100%);
+  --arena-end-turn-text: #ffffff;
+  --arena-end-turn-glow: rgba(37, 99, 235, 0.45);
+  --arena-mana: linear-gradient(180deg, #60a5fa, #2563eb);
+  --arena-mana-glow: rgba(37, 99, 235, 0.45);
+  --arena-mana-spent: rgba(147, 197, 253, 0.45);
+  --arena-mana-locked: #d8e0ec;
+  --arena-turn-line: linear-gradient(90deg, transparent, #93c5fd, transparent);
+  --arena-avatar-bg: linear-gradient(135deg, #0d2a6e, #2563eb);
+  --arena-avatar-ring: #ffffff;
+  --arena-ready: #10b981;
+  --arena-danger: #ef4444;
+  --arena-log-mine: #2563eb;
+
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: clamp(1rem, 2.4vw, 2rem) clamp(1rem, 2.4vw, 2rem) 1rem;
+  background: var(--arena-bg);
+  color: var(--arena-text);
+  font-family: 'Inter', var(--sans);
+  overflow-x: hidden;
+}
+
+html.tcg-dark .arena-page {
+  --arena-bg:
+    radial-gradient(ellipse at 50% 45%, #1e3a8a 0%, #0b1c4a 55%, #060f2b 100%);
+  --arena-text: #e2e8f0;
+  --arena-muted: #93a7c9;
+  --arena-panel: rgba(255, 255, 255, 0.06);
+  --arena-panel-border: rgba(147, 197, 253, 0.18);
+  --arena-panel-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  --arena-lane: rgba(2, 6, 23, 0.32);
+  --arena-lane-border: rgba(147, 197, 253, 0.22);
+  --arena-lane-shadow: inset 0 0 40px rgba(37, 99, 235, 0.12);
+  --arena-card-bg: #f8fafc;
+  --arena-card-text: #0f172a;
+  --arena-card-border: #cbd5e1;
+  --arena-card-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+  --arena-end-turn-bg: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%);
+  --arena-end-turn-text: #422006;
+  --arena-end-turn-glow: rgba(251, 191, 36, 0.6);
+  --arena-mana: linear-gradient(180deg, #bfdbfe, #3b82f6);
+  --arena-mana-glow: rgba(96, 165, 250, 0.8);
+  --arena-mana-spent: rgba(59, 130, 246, 0.25);
+  --arena-mana-locked: rgba(148, 163, 184, 0.18);
+  --arena-turn-line: linear-gradient(90deg, transparent, #60a5fa, transparent);
+  --arena-avatar-bg: linear-gradient(135deg, #2563eb, #60a5fa);
+  --arena-avatar-ring: #0d2a6e;
+  --arena-ready: #22c55e;
+  --arena-log-mine: #93c5fd;
+}
+
+/* ---------- Structure ---------- */
+
+.arena {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: calc(100vh - 5rem);
+}
+
+.arena-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.arena-kicker {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--arena-accent);
+}
+
+html.tcg-dark .arena-kicker {
+  color: #93c5fd;
+}
+
+.arena-title {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  font-weight: 800;
+  color: var(--arena-text);
+}
+
+.arena-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.arena-connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--arena-panel-border);
+  border-radius: 999px;
+  background: var(--arena-panel);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.arena-connection span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--arena-ready);
+  box-shadow: 0 0 8px var(--arena-ready);
+}
+
+.arena-connection.is-offline span {
+  background: var(--arena-danger);
+  box-shadow: 0 0 8px var(--arena-danger);
+}
+
+.arena-leave {
+  padding: 0.4rem 0.95rem;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--arena-danger);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.arena-leave:hover {
+  background: var(--arena-danger);
+  color: #ffffff;
+}
+
+.arena-stage {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15rem;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.arena-table {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(9.5rem, 1fr) auto minmax(9.5rem, 1fr) auto auto;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+/* ---------- Joueurs ---------- */
+
+.arena-player {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--arena-panel-border);
+  border-radius: 16px;
+  background: var(--arena-panel);
+  box-shadow: var(--arena-panel-shadow);
+  backdrop-filter: blur(10px);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.arena-player.is-active {
+  border-color: var(--arena-accent);
+  box-shadow: var(--arena-panel-shadow), 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.arena-player.is-targetable {
+  cursor: crosshair;
+  border-color: var(--arena-danger);
+  animation: arena-target-pulse 1s ease-in-out infinite;
+}
+
+.arena-avatar {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 50%;
+  background: var(--arena-avatar-bg);
+  box-shadow: 0 0 0 3px var(--arena-avatar-ring), 0 0 18px rgba(59, 130, 246, 0.55);
+}
+
+.arena-avatar::after {
+  /* anneau de PV autour de l'avatar */
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(var(--arena-danger) var(--hp), transparent 0);
+  -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%);
+  mask: radial-gradient(circle, transparent 62%, #000 63%);
+  opacity: 0.85;
+  transition: background 0.4s ease;
+}
+
+.arena-avatar-initial {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.arena-avatar-hp {
+  position: absolute;
+  right: -10px;
+  bottom: -8px;
+  z-index: 1;
+  min-width: 1.6rem;
+  padding: 0.05rem 0.4rem;
+  border: 2px solid var(--arena-avatar-ring);
+  border-radius: 999px;
+  background: var(--arena-danger);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.arena-avatar-hp.is-low {
+  animation: arena-heartbeat 0.9s ease-in-out infinite;
+}
+
+.arena-player-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.arena-player-name {
+  font-weight: 800;
+  font-size: 0.98rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arena-player-name em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--arena-muted);
+}
+
+.arena-player-meta {
+  font-size: 0.75rem;
+  color: var(--arena-muted);
+}
+
+.arena-mana {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-left: auto;
+}
+
+.arena-mana-label {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--arena-accent);
+}
+
+html.tcg-dark .arena-mana-label {
+  color: #93c5fd;
+}
+
+.arena-mana-crystals {
+  display: flex;
+  gap: 3px;
+}
+
+.arena-mana-crystals i {
+  width: 0.8rem;
+  height: 0.95rem;
+  clip-path: polygon(50% 0, 100% 30%, 100% 70%, 50% 100%, 0 70%, 0 30%);
+  background: var(--arena-mana-locked);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.arena-mana-crystals i.is-full {
+  background: var(--arena-mana);
+  filter: drop-shadow(0 0 4px var(--arena-mana-glow));
+  animation: arena-mana-fill 0.4s ease;
+}
+
+.arena-mana-crystals i.is-spent {
+  background: var(--arena-mana-spent);
+}
+
+/* ---------- Terrains ---------- */
+
+.arena-lane {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 0.6rem;
+  border: 1px solid var(--arena-lane-border);
+  border-radius: 18px;
+  background: var(--arena-lane);
+  box-shadow: var(--arena-lane-shadow);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+html.tcg-dark .arena-lane {
+  border-style: dashed;
+}
+
+.arena-lane.is-drop-active {
+  border: 2px dashed var(--arena-accent);
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: inset 0 0 30px rgba(37, 99, 235, 0.18);
+}
+
+.arena-lane-empty {
+  font-size: 0.82rem;
+  color: var(--arena-muted);
+  pointer-events: none;
+}
+
+/* ---------- Ligne de tour ---------- */
+
+.arena-turn {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.1rem 0;
+}
+
+.arena-turn-line {
+  flex: 1;
+  height: 2px;
+  background: var(--arena-turn-line);
+}
+
+.arena-turn-count {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--arena-muted);
+}
+
+.arena-turn-timer {
+  min-width: 3.2rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+  background: var(--arena-panel);
+  border: 1px solid var(--arena-panel-border);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.arena-turn-timer.is-warning {
+  border-color: var(--arena-danger);
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--arena-danger);
+  animation: arena-timer-pulse 1s ease-in-out infinite;
+}
+
+.arena-end-turn {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--arena-end-turn-bg);
+  color: var(--arena-end-turn-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 18px var(--arena-end-turn-glow);
+  animation: arena-end-turn-glow 2.2s ease-in-out infinite;
+  transition: transform 0.15s ease;
+}
+
+.arena-end-turn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.arena-end-turn:disabled {
+  opacity: 0.55;
+  cursor: default;
+  animation: none;
+}
+
+.arena-turn-waiting {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--arena-muted);
+}
+
+/* ---------- Cartes ---------- */
+
+.arena-card {
+  --card-w: 6rem;
+  --card-h: 8.3rem;
+  --rarity: #94a3b8;
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--card-w);
+  height: var(--card-h);
+  user-select: none;
+  touch-action: none;
+  transition: transform 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+}
+
+.arena-card--r2 { --rarity: #3b82f6; }
+.arena-card--r3 { --rarity: #a855f7; }
+.arena-card--r4 { --rarity: #f59e0b; }
+
+.arena-card-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 2px solid var(--rarity);
+  border-radius: 11px;
+  background: var(--arena-card-bg);
+  color: var(--arena-card-text);
+  box-shadow: var(--arena-card-shadow);
+  transition: box-shadow 0.2s ease;
+}
+
+.arena-card--r4 .arena-card-frame {
+  box-shadow: var(--arena-card-shadow), 0 0 14px rgba(245, 158, 11, 0.65);
+}
+
+.arena-card-art {
+  height: 58%;
+  overflow: hidden;
+  border-bottom: 2px solid var(--rarity);
+}
+
+.arena-card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.arena-card-name {
+  padding: 0.25rem 0.35rem 0;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.arena-card-cost {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #60a5fa, #1d4ed8);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.5);
+}
+
+.arena-card-stat {
+  position: absolute;
+  bottom: 4px;
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.arena-card-atk {
+  left: 4px;
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+}
+
+.arena-card-hp {
+  right: 4px;
+  background: linear-gradient(180deg, #f87171, #dc2626);
+}
+
+.arena-card-hp.is-damaged {
+  color: #fecaca;
+  background: linear-gradient(180deg, #b91c1c, #7f1d1d);
+}
+
+/* Créatures prêtes à attaquer / sélectionnées / ciblables */
+.arena-card.can-attack {
+  cursor: grab;
+}
+
+.arena-card.can-attack .arena-card-frame {
+  box-shadow: 0 0 0 2px var(--arena-ready), 0 0 18px var(--arena-ready);
+  animation: arena-ready-pulse 1.6s ease-in-out infinite;
+}
+
+.arena-card.can-attack:hover {
+  transform: translateY(-4px);
+}
+
+.arena-card.is-selected {
+  transform: translateY(-8px) scale(1.06);
+}
+
+.arena-card.is-selected .arena-card-frame {
+  box-shadow: 0 0 0 3px var(--arena-accent), 0 0 24px var(--arena-accent);
+  animation: none;
+}
+
+.arena-card.is-targetable {
+  cursor: crosshair;
+}
+
+.arena-card.is-targetable .arena-card-frame {
+  animation: arena-target-pulse 1s ease-in-out infinite;
+}
+
+.arena-card.is-targetable:hover {
+  transform: scale(1.06);
+}
+
+/* Main en éventail */
+.arena-hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 9.5rem;
+  padding: 0.6rem 0 1.1rem;
+}
+
+.arena-hand-empty {
+  align-self: center;
+  font-size: 0.85rem;
+  color: var(--arena-muted);
+}
+
+.arena-card--hand {
+  --card-w: 6.6rem;
+  --card-h: 9.1rem;
+  margin: 0 -0.55rem;
+  transform: translateY(var(--fan-lift)) rotate(var(--fan-rotate));
+  transform-origin: 50% 120%;
+}
+
+.arena-card--hand:hover {
+  z-index: 40 !important;
+  transform: translateY(-1.8rem) rotate(0deg) scale(1.14);
+}
+
+.arena-card--hand.is-playable {
+  cursor: grab;
+}
+
+.arena-card--hand.is-playable .arena-card-frame {
+  box-shadow: var(--arena-card-shadow), 0 0 0 2px rgba(37, 99, 235, 0.55), 0 0 14px rgba(59, 130, 246, 0.5);
+}
+
+.arena-card--hand.is-dimmed {
+  filter: saturate(0.45) brightness(0.92);
+}
+
+.arena-card--hand.is-dimmed .arena-card-cost {
+  background: linear-gradient(180deg, #94a3b8, #475569);
+}
+
+.arena-card.is-dragging {
+  z-index: 60 !important;
+  transform: translate(var(--drag-x), var(--drag-y)) scale(1.1);
+  transition: none;
+  pointer-events: none;
+  cursor: grabbing;
+}
+
+.arena-card.is-dragging .arena-card-frame {
+  box-shadow: 0 22px 40px rgba(13, 42, 110, 0.35), 0 0 0 2px var(--arena-accent);
+}
+
+/* Aperçu agrandi au survol prolongé */
+.arena-card-preview {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  animation: arena-preview-in 0.18s ease;
+}
+
+.arena-card-preview--board {
+  top: 50%;
+  left: calc(100% + 0.8rem);
+  transform: translateY(-50%);
+}
+
+.arena-card-preview--hand {
+  bottom: calc(100% + 1rem);
+  left: 50%;
+  transform: translateX(-50%) scale(0.88);
+  transform-origin: 50% 100%;
+}
+
+.arena-card--preview {
+  --card-w: 12rem;
+  --card-h: 17rem;
+}
+
+.arena-card--preview .arena-card-art {
+  height: 48%;
+}
+
+.arena-card--preview .arena-card-name {
+  font-size: 0.95rem;
+}
+
+.arena-card--preview .arena-card-cost,
+.arena-card--preview .arena-card-stat {
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 1.05rem;
+}
+
+.arena-card-desc {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-align: center;
+  color: #475569;
+}
+
+.arena-card-rarity {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rarity);
+}
+
+/* ---------- Journal ---------- */
+
+.arena-log {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 12rem);
+  padding: 0.85rem;
+  border: 1px solid var(--arena-panel-border);
+  border-radius: 16px;
+  background: var(--arena-panel);
+  box-shadow: var(--arena-panel-shadow);
+  backdrop-filter: blur(10px);
+}
+
+.arena-log-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--arena-muted);
+}
+
+.arena-log-list {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.arena-log-entry {
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid transparent;
+  border-radius: 6px;
+  animation: arena-log-in 0.3s ease;
+}
+
+.arena-log-entry + .arena-log-entry {
+  margin-top: 0.2rem;
+}
+
+.arena-log-entry.is-mine {
+  border-left-color: var(--arena-log-mine);
+}
+
+.arena-log-entry--turn {
+  font-weight: 800;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.arena-log-entry--death,
+.arena-log-entry--burn {
+  color: var(--arena-danger);
+}
+
+.arena-log-entry--gameover {
+  font-weight: 900;
+  color: #d97706;
+}
+
+.arena-log-empty {
+  color: var(--arena-muted);
+}
+
+/* ---------- Superpositions ---------- */
+
+.arena-arrow {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.arena-arrow path {
+  fill: none;
+  stroke: var(--arena-danger);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 12 8;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+  animation: arena-arrow-flow 0.6s linear infinite;
+}
+
+.arena-arrow marker path {
+  fill: var(--arena-danger);
+  stroke: none;
+  animation: none;
+}
+
+.arena-arrow circle {
+  fill: rgba(239, 68, 68, 0.15);
+  stroke: var(--arena-danger);
+  stroke-width: 3;
+  transition: r 0.15s ease;
+}
+
+.arena-arrow.is-locked circle {
+  fill: rgba(239, 68, 68, 0.3);
+}
+
+.arena-damage {
+  position: fixed;
+  z-index: 80;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  font-weight: 900;
+  color: #ef4444;
+  -webkit-text-stroke: 1.5px #ffffff;
+  text-shadow: 0 4px 12px rgba(127, 29, 29, 0.6);
+  pointer-events: none;
+  animation: arena-damage-float 0.9s ease-out forwards;
+}
+
+.arena-banner {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  z-index: 75;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: arena-banner 1.3s ease forwards;
+}
+
+.arena-banner span {
+  display: block;
+  padding: 0.9rem 2.6rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #0d2a6e, #2563eb);
+  color: #ffffff;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 20px 50px rgba(13, 42, 110, 0.45);
+}
+
+.arena-banner.is-mine span {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #422006;
+  box-shadow: 0 20px 50px rgba(245, 158, 11, 0.45);
+}
+
+.arena-hint,
+.arena-toast {
+  position: absolute;
+  left: 50%;
+  z-index: 72;
+  transform: translateX(-50%);
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  pointer-events: none;
+  animation: arena-toast-in 0.2s ease;
+}
+
+.arena-hint {
+  top: 0.2rem;
+  background: rgba(13, 42, 110, 0.9);
+  color: #ffffff;
+}
+
+.arena-toast {
+  top: 2.6rem;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  box-shadow: 0 10px 24px rgba(185, 28, 28, 0.2);
+}
+
+.arena-loading {
+  flex: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  color: var(--arena-muted);
+}
+
+.arena-loading-orb {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid rgba(37, 99, 235, 0.2);
+  border-top-color: var(--arena-accent);
+  border-radius: 50%;
+  animation: arena-spin 0.9s linear infinite;
+}
+
+/* Chat : en bas à droite pour libérer la main */
+.arena-page .combat-chat-widget {
+  left: auto;
+  right: clamp(1rem, 2.4vw, 2rem);
+  width: 15rem;
+  z-index: 65;
+}
+
+/* ---------- Animations déclenchées par les événements ---------- */
+
+.arena-card.is-entering {
+  animation: arena-card-enter 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+.arena-card--hand.is-entering {
+  animation: arena-card-draw 0.45s ease-out;
+}
+
+.arena-card.is-attacking {
+  z-index: 30;
+  animation: arena-lunge 0.38s cubic-bezier(0.5, 0, 0.5, 1);
+}
+
+.arena-card.is-hit .arena-card-frame,
+.arena-player.is-hit {
+  animation: arena-shake 0.42s ease;
+}
+
+.arena-card.is-hit .arena-card-frame {
+  box-shadow: 0 0 0 3px #ef4444, 0 0 24px rgba(239, 68, 68, 0.8);
+}
+
+.arena-card.is-dying {
+  animation: arena-dissolve 0.48s ease-in forwards;
+}
+
+/* ---------- Résultat ---------- */
+
+.arena-result-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(6, 15, 43, 0.6);
+  backdrop-filter: blur(6px);
+  animation: arena-toast-in 0.3s ease;
+}
+
+.arena-result {
+  position: relative;
+  overflow: hidden;
+  width: min(26rem, 100%);
+  padding: 2.2rem 2rem 1.8rem;
+  border-radius: 24px;
+  background: #ffffff;
+  color: #0d2a6e;
+  text-align: center;
+  box-shadow: 0 30px 70px rgba(6, 15, 43, 0.5);
+  animation: arena-result-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+html.tcg-dark .arena-result {
+  background: #0f1b33;
+  color: #e8f1ff;
+}
+
+.arena-result-glow {
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 70%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.35), transparent 70%);
+  pointer-events: none;
+}
+
+.arena-result.is-victory .arena-result-glow {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.55), transparent 70%);
+  animation: arena-spin 12s linear infinite;
+}
+
+.arena-result-kicker {
+  position: relative;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.arena-result-title {
+  position: relative;
+  margin: 0.3rem 0 0.2rem;
+  font-size: 3rem;
+  font-weight: 900;
+  color: inherit;
+}
+
+.arena-result.is-victory .arena-result-title {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24, #d97706);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.arena-result.is-defeat .arena-result-title {
+  color: #94a3b8;
+}
+
+.arena-result-reason {
+  position: relative;
+  margin: 0 0 1.2rem;
+  color: #64748b;
+}
+
+.arena-result-players {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin: 0 0 1.4rem;
+}
+
+.arena-result-players div {
+  padding: 0.6rem;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.arena-result-players dt {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.arena-result-players dd {
+  margin: 0.15rem 0 0;
+  font-weight: 800;
+}
+
+.arena-result-actions {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.arena-result-actions button {
+  padding: 0.65rem 1.3rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.arena-result-primary {
+  border: none;
+  background: linear-gradient(135deg, #0d2a6e, #2563eb);
+  color: #ffffff;
+}
+
+.arena-result-secondary {
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  background: transparent;
+  color: inherit;
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes arena-ready-pulse {
+  50% { box-shadow: 0 0 0 2px var(--arena-ready), 0 0 28px var(--arena-ready); }
+}
+
+@keyframes arena-target-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.7), 0 0 10px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 1), 0 0 24px rgba(239, 68, 68, 0.7); }
+}
+
+@keyframes arena-end-turn-glow {
+  50% { box-shadow: 0 6px 28px var(--arena-end-turn-glow); }
+}
+
+@keyframes arena-timer-pulse {
+  50% { transform: scale(1.12); }
+}
+
+@keyframes arena-heartbeat {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.2); }
+}
+
+@keyframes arena-mana-fill {
+  from { transform: scale(0.3); opacity: 0; }
+}
+
+@keyframes arena-card-enter {
+  from { transform: translateY(2.5rem) scale(0.55); opacity: 0; filter: brightness(1.8); }
+  70% { filter: brightness(1.3); }
+}
+
+@keyframes arena-card-draw {
+  from { transform: translate(8rem, 3rem) rotate(25deg) scale(0.7); opacity: 0; }
+}
+
+@keyframes arena-lunge {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  45% { transform: translate(var(--lunge-x, 0), var(--lunge-y, -2rem)) scale(1.12); }
+}
+
+@keyframes arena-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px) rotate(-2deg); }
+  40% { transform: translateX(6px) rotate(2deg); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes arena-dissolve {
+  to { transform: scale(0.75) rotate(-6deg); opacity: 0; filter: grayscale(1) blur(3px) brightness(1.6); }
+}
+
+@keyframes arena-damage-float {
+  0% { transform: translate(-50%, -30%) scale(0.6); opacity: 0; }
+  20% { transform: translate(-50%, -60%) scale(1.25); opacity: 1; }
+  100% { transform: translate(-50%, -160%) scale(1); opacity: 0; }
+}
+
+@keyframes arena-banner {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+  18% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+  28% { transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translate(-50%, -60%) scale(1); opacity: 0; }
+}
+
+@keyframes arena-preview-in {
+  from { opacity: 0; }
+}
+
+@keyframes arena-log-in {
+  from { opacity: 0; transform: translateX(10px); }
+}
+
+@keyframes arena-toast-in {
+  from { opacity: 0; }
+}
+
+@keyframes arena-result-pop {
+  from { transform: translateY(20px) scale(0.85); opacity: 0; }
+}
+
+@keyframes arena-arrow-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+@keyframes arena-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1100px) {
+  .arena-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .arena-log {
+    max-height: 9rem;
+  }
+
+  .arena-card {
+    --card-w: 5.2rem;
+    --card-h: 7.2rem;
+  }
+
+  .arena-card--hand {
+    --card-w: 5.6rem;
+    --card-h: 7.8rem;
+  }
+
+  .arena-mana-crystals i {
+    width: 0.6rem;
+    height: 0.75rem;
+  }
+}
+
+/* ---------- Animations réduites ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-page *,
+  .arena-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .arena-card--hand,
+  .arena-card--hand:hover {
+    transform: none;
+  }
+
+  /* Bannière et dégâts restent affichés sans mouvement (ils sont retirés par le code) */
+  .arena-banner,
+  .arena-damage {
+    animation: none !important;
+  }
+}
