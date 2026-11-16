@@ -923,3 +923,103 @@ html.tcg-dark .mm-chat { background: rgba(0, 0, 0, 0.18); }
     border-left: 0;
   }
 }
+
+/* ---------- Bouton Prêt ---------- */
+.mm-cta {
+  padding: 0.8rem 1.6rem;
+  border: 0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(8, 18, 45, 0.28);
+  color: #0d2a6e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.mm-cta:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(8, 18, 45, 0.36);
+}
+
+.mm-cta.is-secondary {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+}
+
+.mm-cta:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ---------- Sélection du deck (à côté du bouton Prêt) ---------- */
+.mm-ready-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mm-stage .deck-slot {
+  --slot-bg: rgba(255, 255, 255, 0.1);
+  --slot-border: rgba(255, 255, 255, 0.4);
+  --slot-text: #ffffff;
+  --slot-muted: rgba(255, 255, 255, 0.72);
+  width: min(100%, 16rem);
+  margin: 0;
+  padding: 0.6rem;
+  gap: 0.75rem;
+}
+
+.mm-stage .deck-slot:hover:not(:disabled) {
+  border-color: #ffffff;
+  box-shadow: 0 10px 24px rgba(8, 18, 45, 0.3);
+}
+
+.mm-stage .deck-slot-art,
+.mm-stage .deck-slot-plus {
+  flex-basis: 3rem;
+  height: 4.2rem;
+}
+
+.mm-stage .deck-slot-plus {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 1.8rem;
+}
+
+.mm-stage .deck-slot-label {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.mm-stage .deck-slot-info strong {
+  max-width: 10rem;
+  overflow: hidden;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mm-deck-flag {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.mm-deck-flag.is-ok {
+  background: rgba(52, 211, 153, 0.2);
+  color: #a7f3d0;
+}
+
+.mm-stage .mm-deck-hint {
+  margin: -0.75rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+}

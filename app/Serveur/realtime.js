@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { pool } from "./db/pool.js";
 import { Server } from "socket.io";
+import { attack, concede, createGame, endTurn, playCard, redactEventsFor, viewFor } from "./game/engine.js";
+import { getValidDeckSummary, loadDeckCards } from "./game/deckService.js";
 
 export function attachRealtime(server) {
 	const io = new Server(server, { cors: { origin: process.env.CLIENT_URL || true } });
@@ -8,7 +10,11 @@ export function attachRealtime(server) {
 	return io;
 }
 
+// Délai pour rejoindre l'arène après le lancement ; au-delà, le joueur absent perd par déconnexion
+const ARENA_JOIN_MS = 20000;
+
 function registerCombat(io) {
+	// État par salle : { started, starting, ended, playerIds, names, game, pendingEvents, introSent, timer, joinTimer }
 	const roomStates = new Map();
 	const disconnectTimers = new Map();
 
@@ -21,6 +27,7 @@ function registerCombat(io) {
 				playerId: member.id,
 				profile: member.data.profile,
 				ready: Boolean(member.data.combatReady),
+				hasDeck: Boolean(member.data.deckId),
 			})),
 			started: state.started,
 		});
@@ -51,21 +58,127 @@ function registerCombat(io) {
 		io.emit("combat:lobbies", { lobbies: getOpenLobbies() });
 	}
 
-	async function endCombat(room, loserId, reason, loserName) {
-		const state = roomStates.get(room);
-		if (!state || !state.started || state.ended) return false;
+	// Vue de la partie propre à un joueur + événements à animer (main/deck adverses cachés)
+	function gameStatePayload(state, userId, events) {
+		const opponentId = state.playerIds.find((id) => id !== userId);
+		return {
+			...viewFor(state.game, userId),
+			myName: state.names[userId],
+			opponentName: state.names[opponentId] ?? "Adversaire",
+			events: redactEventsFor(events, userId),
+			serverNow: Date.now(),
+		};
+	}
+
+	// Envoie à chaque joueur de l'arène sa propre vue de la partie et les événements à animer
+	async function emitGameState(room, state, events = []) {
+		if (!state.game) return;
 		const members = await io.in(room).fetchSockets();
-		const winner = members.find((member) => member.id !== loserId);
-		if (!winner) return false;
+		for (const member of members.filter((m) => m.data.combatPhase === "arena")) {
+			const userId = member.data.profile.id;
+			if (!state.game.players[userId]) continue;
+			member.emit("combat:game-state", gameStatePayload(state, userId, events));
+		}
+	}
+
+	function clearTurnTimer(state) {
+		if (state.timer) clearTimeout(state.timer);
+		state.timer = null;
+	}
+
+	// Fin de tour automatique quand la minuterie du joueur actif expire
+	function scheduleTurnTimer(room, state) {
+		clearTurnTimer(state);
+		if (!state.game || state.game.winnerId !== null) return;
+		const delay = Math.max(0, state.game.turnEndsAt - Date.now());
+		state.timer = setTimeout(() => {
+			state.timer = null;
+			if (state.ended || !state.game) return;
+			const result = endTurn(state.game, state.game.currentPlayerId);
+			applyResult(room, state, null, result);
+		}, delay);
+	}
+
+	async function finishCombat(room, state) {
+		if (state.ended) return;
 		state.ended = true;
-		roomStates.set(room, state);
+		clearTurnTimer(state);
+		clearTimeout(state.joinTimer);
+		const { winnerId, endReason } = state.game;
+		const loserId = state.playerIds.find((id) => id !== winnerId);
+
+		try {
+			await pool.query(
+				"INSERT INTO combats (id_utilisateur1, id_utilisateur2, resultat) VALUES ($1, $2, $3)",
+				[winnerId, loserId, `${state.names[winnerId]} gagne`]
+			);
+		} catch (e) {
+			console.error("Erreur sauvegarde combat:", e);
+		}
+
+		const members = await io.in(room).fetchSockets();
+		const arenaMembers = members.filter((m) => m.data.combatPhase === "arena");
 		io.to(room).emit("combat:ended", {
-			winnerId: winner.id,
-			loserId,
-			winnerName: winner.data.profile.nom_utilisateur,
-			loserName,
-			reason,
+			winnerId: arenaMembers.find((m) => m.data.profile.id === winnerId)?.id ?? null,
+			loserId: arenaMembers.find((m) => m.data.profile.id === loserId)?.id ?? null,
+			winnerUserId: winnerId,
+			loserUserId: loserId,
+			winnerName: state.names[winnerId] ?? "Inconnu",
+			loserName: state.names[loserId] ?? "Inconnu",
+			reason: endReason,
 		});
+	}
+
+	// Applique le résultat d'une action du moteur : erreur à l'émetteur, sinon diffusion + minuterie / fin
+	async function applyResult(room, state, socket, result) {
+		if (!result.ok) {
+			socket?.emit("combat:action-error", { message: result.error });
+			return;
+		}
+		await emitGameState(room, state, result.events);
+		if (state.game.winnerId !== null) {
+			await finishCombat(room, state);
+		} else if (result.events.some((e) => e.type === "turn")) {
+			scheduleTurnTimer(room, state);
+		}
+	}
+
+	// Partie en cours dans la salle du socket, si le socket est dans l'arène
+	function activeGame(socket) {
+		const room = socket.data.combatRoom;
+		const state = roomStates.get(room);
+		if (!state?.game || state.ended || socket.data.combatPhase !== "arena") return null;
+		return { room, state };
+	}
+
+	async function startGame(room, state, members) {
+		const decks = {};
+		for (const member of members) {
+			const cards = await loadDeckCards(member.data.profile.id, member.data.deckId);
+			if (!cards) {
+				member.data.combatReady = false;
+				member.emit("combat:action-error", { message: "Ton deck n'est plus valide (cartes manquantes)." });
+				return false;
+			}
+			decks[member.data.profile.id] = cards;
+		}
+		state.playerIds = members.map((m) => m.data.profile.id);
+		state.names = Object.fromEntries(members.map((m) => [m.data.profile.id, m.data.profile.nom_utilisateur]));
+		const { game, events } = createGame({
+			playerIds: state.playerIds,
+			decks,
+			firstPlayerId: state.playerIds[Math.random() < 0.5 ? 0 : 1],
+		});
+		state.game = game;
+		state.pendingEvents = events;
+		state.introSent = new Set();
+		state.started = true;
+		scheduleTurnTimer(room, state);
+		state.joinTimer = setTimeout(() => {
+			const absentId = state.playerIds.find((id) => !state.introSent.has(id));
+			if (absentId === undefined || state.ended) return;
+			applyResult(room, state, null, concede(game, absentId, "disconnect"));
+		}, ARENA_JOIN_MS);
 		return true;
 	}
 
@@ -76,7 +189,7 @@ function registerCombat(io) {
 			const payload = jwt.verify(token, process.env.JWT_SECRET);
 			const result = await pool.query(
 				"SELECT id, nom_utilisateur, email FROM utilisateurs WHERE id = $1",
-				[payload.id],
+				[payload.id]
 			);
 			if (!result.rows[0]) return next(new Error("Utilisateur introuvable."));
 			socket.data.profile = result.rows[0];
@@ -90,6 +203,7 @@ function registerCombat(io) {
 		socket.data.combatReady = false;
 		socket.data.combatPhase = null;
 		socket.data.combatMatchId = null;
+		socket.data.deckId = null;
 		socket.emit("combat:connected", { socketId: socket.id, profile: socket.data.profile });
 
 		socket.on("combat:join", async ({ matchId = "lobby", phase = "lobby", isPrivate = false } = {}) => {
@@ -102,10 +216,14 @@ function registerCombat(io) {
 			const room = `combat:${normalizedMatchId}`;
 			const currentMembers = await io.in(room).fetchSockets();
 			const state = roomStates.get(room);
-			const lobbyMembers = currentMembers.filter((member) => member.data.combatPhase === "lobby");
+			const lobbyMembers = currentMembers.filter((m) => m.data.combatPhase === "lobby");
 
 			if (phase === "arena" && (!state?.started || state.ended)) {
 				socket.emit("combat:error", { message: "Cette arène n'est pas encore autorisée." });
+				return;
+			}
+			if (phase === "arena" && !state.playerIds.includes(socket.data.profile.id)) {
+				socket.emit("combat:error", { message: "Tu ne fais pas partie de ce combat." });
 				return;
 			}
 			if (phase === "lobby") {
@@ -142,6 +260,16 @@ function registerCombat(io) {
 				message: `Le joueur ${socket.data.profile.nom_utilisateur} a rejoint la salle.`,
 				system: true,
 			});
+
+			const currentState = roomStates.get(room);
+			if (phase === "arena" && currentState?.game) {
+				// La main de départ n'est animée qu'à la première arrivée du joueur dans l'arène
+				const userId = socket.data.profile.id;
+				const intro = currentState.introSent.has(userId) ? [] : currentState.pendingEvents;
+				currentState.introSent.add(userId);
+				socket.emit("combat:game-state", gameStatePayload(currentState, userId, intro));
+			}
+
 			await broadcastRoomState(room);
 			broadcastLobbies();
 		});
@@ -153,18 +281,48 @@ function registerCombat(io) {
 		socket.on("combat:leave", async () => {
 			const room = socket.data.combatRoom;
 			if (!room) return;
-			if (socket.data.combatPhase === "arena") {
-				await endCombat(room, socket.id, "leave", socket.data.profile.nom_utilisateur);
+			const active = activeGame(socket);
+			if (active) {
+				await applyResult(room, active.state, socket, concede(active.state.game, socket.data.profile.id, "leave"));
 			}
-			io.to(room).emit("combat:message", { message: `Le joueur ${socket.data.profile.nom_utilisateur} a quitté la salle.`, system: true });
+			io.to(room).emit("combat:message", {
+				message: `Le joueur ${socket.data.profile.nom_utilisateur} a quitté la salle.`,
+				system: true,
+			});
 			socket.leave(room);
 			socket.data.combatRoom = null;
 			socket.data.combatMatchId = null;
 			socket.data.combatPhase = null;
 			socket.data.combatReady = false;
+			socket.data.deckId = null;
 			socket.emit("combat:left");
 			await broadcastRoomState(room);
 			broadcastLobbies();
+		});
+
+		socket.on("combat:select-deck", async ({ deckId } = {}) => {
+			const room = socket.data.combatRoom;
+			const state = roomStates.get(room);
+			if (!room || socket.data.combatPhase !== "lobby" || state?.started || state?.starting) return;
+			const id = Number(deckId);
+			if (!Number.isInteger(id)) {
+				socket.emit("combat:action-error", { message: "Deck invalide." });
+				return;
+			}
+			try {
+				const deck = await getValidDeckSummary(socket.data.profile.id, id);
+				if (!deck) {
+					socket.emit("combat:action-error", { message: "Ce deck n'est plus valide." });
+					return;
+				}
+				socket.data.deckId = id;
+				socket.data.combatReady = false;
+				socket.emit("combat:deck-selected", { deck });
+				await broadcastRoomState(room);
+			} catch (e) {
+				console.error("Erreur sélection deck:", e);
+				socket.emit("combat:action-error", { message: "Erreur serveur." });
+			}
 		});
 
 		socket.on("combat:ready", async ({ ready } = {}) => {
@@ -174,26 +332,68 @@ function registerCombat(io) {
 				return;
 			}
 			const state = roomStates.get(room) || { started: false, ended: false };
-			if (state.started || state.ended) return;
-			socket.data.combatReady = ready;
-			const members = (await io.in(room).fetchSockets()).filter((member) => member.data.combatPhase === "lobby");
-			if (members.length === 2 && members.every((member) => member.data.combatReady)) {
-				state.started = true;
-				state.playerIds = members.map((member) => member.data.profile.id);
+			// Pendant le lancement (chargement des decks), l'état Ready est verrouillé
+			if (state.started || state.ended || state.starting) return;
+			if (ready && !socket.data.deckId) {
+				socket.emit("combat:action-error", { message: "Choisis un deck avant d'être prêt." });
+				return;
 			}
+			if (ready) {
+				const lobbyMembers = (await io.in(room).fetchSockets()).filter((m) => m.data.combatPhase === "lobby");
+				if (lobbyMembers.length < 2) {
+					socket.emit("combat:action-error", { message: "Attends un adversaire avant d'être prêt." });
+					return;
+				}
+			}
+			if (ready) {
+				// Le deck peut être devenu invalide depuis sa sélection (carte vendue)
+				const deck = await getValidDeckSummary(socket.data.profile.id, socket.data.deckId).catch(() => null);
+				if (state.started || state.starting) return;
+				if (!deck) {
+					socket.data.deckId = null;
+					socket.data.combatReady = false;
+					socket.emit("combat:deck-selected", { deck: null });
+					socket.emit("combat:action-error", { message: "Ton deck n'est plus valide (cartes manquantes)." });
+					await broadcastRoomState(room);
+					return;
+				}
+			}
+			socket.data.combatReady = ready;
 			roomStates.set(room, state);
+			const members = (await io.in(room).fetchSockets()).filter((m) => m.data.combatPhase === "lobby");
+			if (members.length === 2 && members.every((m) => m.data.combatReady) && !state.starting && !state.started) {
+				state.starting = true;
+				try {
+					await startGame(room, state, members);
+				} catch (e) {
+					console.error("Erreur lancement combat:", e);
+					members.forEach((m) => { m.data.combatReady = false; });
+					io.to(room).emit("combat:action-error", { message: "Impossible de lancer la partie." });
+				} finally {
+					state.starting = false;
+				}
+			}
 			if (state.started) io.to(room).emit("combat:started");
 			await broadcastRoomState(room);
 			broadcastLobbies();
 		});
 
-		socket.on("combat:action", ({ matchId = "lobby", action, data } = {}) => {
-			const room = `combat:${matchId}`;
-			if (socket.data.combatRoom !== room || typeof action !== "string") {
-				socket.emit("combat:error", { message: "Action de combat invalide." });
-				return;
-			}
-			socket.to(room).emit("combat:action", { playerId: socket.id, playerName: socket.data.profile.nom_utilisateur, action, data });
+		socket.on("combat:play-card", async ({ instanceId } = {}) => {
+			const active = activeGame(socket);
+			if (!active) return;
+			await applyResult(active.room, active.state, socket, playCard(active.state.game, socket.data.profile.id, instanceId));
+		});
+
+		socket.on("combat:attack", async ({ attackerInstanceId, target } = {}) => {
+			const active = activeGame(socket);
+			if (!active) return;
+			await applyResult(active.room, active.state, socket, attack(active.state.game, socket.data.profile.id, attackerInstanceId, target));
+		});
+
+		socket.on("combat:end-turn", async () => {
+			const active = activeGame(socket);
+			if (!active) return;
+			await applyResult(active.room, active.state, socket, endTurn(active.state.game, socket.data.profile.id));
 		});
 
 		socket.on("combat:message", ({ message } = {}) => {
@@ -202,7 +402,11 @@ function registerCombat(io) {
 				socket.emit("combat:error", { message: "Message de combat invalide." });
 				return;
 			}
-			io.to(room).emit("combat:message", { playerId: socket.id, playerName: socket.data.profile.nom_utilisateur, message: message.trim() });
+			io.to(room).emit("combat:message", {
+				playerId: socket.id,
+				playerName: socket.data.profile.nom_utilisateur,
+				message: message.trim(),
+			});
 		});
 
 		socket.on("disconnect", () => {
@@ -212,11 +416,19 @@ function registerCombat(io) {
 				broadcastLobbies();
 			}
 			if (!room || socket.data.combatPhase !== "arena") return;
+			// On retient la partie en cours : une nouvelle partie dans la même salle ne doit pas être touchée
+			const game = roomStates.get(room)?.game;
 
-			const timer = setTimeout(() => {
+			const timer = setTimeout(async () => {
 				disconnectTimers.delete(socket.data.profile.id);
-				endCombat(room, socket.id, "disconnect", socket.data.profile.nom_utilisateur);
-				io.to(room).emit("combat:message", { message: `Le joueur ${socket.data.profile.nom_utilisateur} s'est déconnecté.`, system: true });
+				const state = roomStates.get(room);
+				if (state?.game && state.game === game && !state.ended) {
+					await applyResult(room, state, null, concede(state.game, socket.data.profile.id, "disconnect"));
+				}
+				io.to(room).emit("combat:message", {
+					message: `Le joueur ${socket.data.profile.nom_utilisateur} s'est déconnecté.`,
+					system: true,
+				});
 				broadcastRoomState(room);
 			}, 5000);
 			disconnectTimers.set(socket.data.profile.id, timer);

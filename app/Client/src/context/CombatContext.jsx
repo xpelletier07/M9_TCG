@@ -21,6 +21,7 @@ export function CombatProvider({ children }) {
   const [lobbies, setLobbies] = useState([])
   const [messages, setMessages] = useState([])
   const [roomIsPrivate, setRoomIsPrivate] = useState(false)
+  const [selectedDeck, setSelectedDeck] = useState(null)
 
   useEffect(() => {
     if (!token) return undefined
@@ -35,6 +36,7 @@ export function CombatProvider({ children }) {
       setCombatStarted(false)
       setMessages([])
       setRoomIsPrivate(false)
+      setSelectedDeck(null)
     }
 
     socket.on('connect', () => {
@@ -76,6 +78,8 @@ export function CombatProvider({ children }) {
     socket.on('combat:message', ({ playerId, playerName, message, system }) => {
       setMessages((current) => [...current, { playerId, playerName, message, system }].slice(-60))
     })
+    socket.on('combat:deck-selected', ({ deck }) => setSelectedDeck(deck))
+    socket.on('combat:action-error', ({ message }) => setNotice(message))
     socket.on('combat:error', ({ message }) => setNotice(message))
 
     socket.connect()
@@ -98,11 +102,21 @@ export function CombatProvider({ children }) {
     socketRef.current?.emit('combat:leave')
   }, [])
 
+  const selectDeck = useCallback((deckId) => {
+    socketRef.current?.emit('combat:select-deck', { deckId })
+  }, [])
+
   const toggleReady = useCallback(() => {
     const me = players.find((player) => player.playerId === socketId)
-    if (players.length !== 2 || combatStarted) return
+    if (combatStarted) return
+    // Annuler reste possible ; pour être prêt il faut un deck et un adversaire
+    if (!me?.ready && !selectedDeck) {
+      setNotice('Choisis un deck avant d’être prêt.')
+      return
+    }
+    if (!me?.ready && players.length !== 2) return
     socketRef.current?.emit('combat:ready', { ready: !me?.ready })
-  }, [players, socketId, combatStarted])
+  }, [players, socketId, combatStarted, selectedDeck])
 
   const sendMessage = useCallback((text) => {
     socketRef.current?.emit('combat:message', { message: text })
@@ -119,11 +133,13 @@ export function CombatProvider({ children }) {
     lobbies,
     messages,
     roomIsPrivate,
+    selectedDeck,
     joinMatch,
     leaveMatch,
+    selectDeck,
     toggleReady,
     sendMessage,
-  }), [connectionStatus, notice, joinedMatchId, socketId, players, combatStarted, lobbies, messages, roomIsPrivate, joinMatch, leaveMatch, toggleReady, sendMessage])
+  }), [connectionStatus, notice, joinedMatchId, socketId, players, combatStarted, lobbies, messages, roomIsPrivate, selectedDeck, joinMatch, leaveMatch, selectDeck, toggleReady, sendMessage])
 
   return <CombatContext.Provider value={value}>{children}</CombatContext.Provider>
 }

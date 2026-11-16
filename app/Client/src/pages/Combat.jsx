@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext.jsx'
+import DeckPickerModal from '../components/combat/DeckPickerModal.jsx'
+import DeckSlot from '../components/combat/DeckSlot.jsx'
+import { API_BASE_URL } from '../config'
 import { useCombat } from '../context/CombatContext.jsx'
+import '../css/DeckPicker.css'
 import '../css/Matchmaking.css'
 
 function generateMatchCode() {
@@ -15,7 +19,7 @@ function initials(name) {
 }
 
 function Combat() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const {
     connectionStatus,
     notice,
@@ -27,8 +31,10 @@ function Combat() {
     lobbies,
     messages,
     roomIsPrivate,
+    selectedDeck,
     joinMatch,
     leaveMatch,
+    selectDeck,
     toggleReady,
     sendMessage: emitMessage,
   } = useCombat()
@@ -36,6 +42,10 @@ function Combat() {
   const [matchCode, setMatchCode] = useState('')
   const [message, setMessage] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
+  const [isDeckPickerOpen, setIsDeckPickerOpen] = useState(false)
+  const [validDecks, setValidDecks] = useState([])
+  const [decksLoading, setDecksLoading] = useState(false)
+  const [decksError, setDecksError] = useState(null)
 
   const currentPlayer = players.find((player) => player.playerId === socketId)
   const opponent = players.find((player) => player.playerId !== socketId)
@@ -45,6 +55,38 @@ function Combat() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ block: 'end' })
   }, [messages, joinedMatchId])
+
+  // Le deck ne peut plus changer une fois prêt ou la partie lancée
+  const canChangeDeck = !combatStarted && !currentPlayer?.ready
+  // Pour être prêt : un deck choisi et un adversaire dans la salle (annuler reste toujours possible)
+  const readyBlocker = !selectedDeck
+    ? 'Choisis un deck pour être prêt.'
+    : players.length < 2
+      ? 'En attente d’un adversaire pour être prêt.'
+      : null
+  const canToggleReady = Boolean(currentPlayer?.ready) || !readyBlocker
+
+  async function openDeckPicker() {
+    setIsDeckPickerOpen(true)
+    setDecksLoading(true)
+    setDecksError(null)
+    try {
+      const response = await fetch(`${API_BASE_URL}/combat/decks`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) throw new Error('Erreur serveur')
+      setValidDecks(await response.json())
+    } catch {
+      setDecksError('Impossible de charger tes decks.')
+    } finally {
+      setDecksLoading(false)
+    }
+  }
+
+  function chooseDeck(deck) {
+    selectDeck(deck.id_deck)
+    setIsDeckPickerOpen(false)
+  }
 
   function createMatch() {
     joinMatch(generateMatchCode(), isPrivate)
@@ -188,17 +230,34 @@ function Combat() {
                     <span className={`mm-ready ${opponent?.ready ? 'is-ready' : ''}`}>
                       {opponent ? (opponent.ready ? '✓ Prêt' : 'Pas prêt') : 'Place libre'}
                     </span>
+                    {opponent && !combatStarted && (
+                      <span className={`mm-deck-flag ${opponent.hasDeck ? 'is-ok' : ''}`}>
+                        {opponent.hasDeck ? 'Deck choisi ✓' : 'Choisit son deck…'}
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <div className="mm-room-actions">
-                  {players.length === 2 && !combatStarted && (
-                    <button type="button" className={`mm-cta ${currentPlayer?.ready ? 'is-secondary' : ''}`} onClick={toggleReady}>
-                      {currentPlayer?.ready ? 'Annuler' : 'Je suis prêt'}
-                    </button>
+                  {!combatStarted && (
+                    <div className="mm-ready-group">
+                      <DeckSlot deck={selectedDeck} onClick={openDeckPicker} disabled={!canChangeDeck} />
+                      <button
+                        type="button"
+                        className={`mm-cta ${currentPlayer?.ready ? 'is-secondary' : ''}`}
+                        onClick={toggleReady}
+                        disabled={!canToggleReady}
+                        title={canToggleReady ? undefined : readyBlocker}
+                      >
+                        {currentPlayer?.ready ? 'Annuler' : 'Je suis prêt'}
+                      </button>
+                    </div>
                   )}
                   <button type="button" className="mm-leave" onClick={leaveMatch}>Quitter la salle</button>
                 </div>
+                {!combatStarted && !currentPlayer?.ready && readyBlocker && (
+                  <p className="mm-room-hint mm-deck-hint">{readyBlocker}</p>
+                )}
               </div>
 
               <aside className="mm-chat" aria-label="Chat de la salle">
@@ -237,6 +296,16 @@ function Combat() {
           </>
         )}
       </div>
+
+      <DeckPickerModal
+        open={isDeckPickerOpen}
+        decks={validDecks}
+        loading={decksLoading}
+        error={decksError}
+        selectedDeckId={selectedDeck?.id_deck}
+        onSelect={chooseDeck}
+        onClose={() => setIsDeckPickerOpen(false)}
+      />
     </main>
   )
 }

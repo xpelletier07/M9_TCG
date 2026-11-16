@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import { pool } from "./db/pool.js"
 import apiRouter from "./Router/Router_Global.js"
-import attachRealtime from "./realtime.js"
+import { attachRealtime } from "./realtime.js"
 import jwt from "jsonwebtoken"
 import { getConnectedUsersCount, recordUserActivity, setDropCommunIo } from "./services/dropCommunService.js"
 
