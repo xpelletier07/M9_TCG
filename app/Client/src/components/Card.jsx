@@ -7,21 +7,28 @@ const rareteLabels = {
     4: 'Légendaire',
 }
 
-export default function Card({ carte, onClick, quantite = 1 }) {
+export default function Card({ carte, onClick, quantite = 1, className = '' }) {
     const libelleQuantite = `${quantite} exemplaire${quantite > 1 ? 's' : ''}`
 
-    return (
-        <div
-            className={`inventory-card inventory-card--rarity-${carte.rarete}`}
-            role="button"
-            tabIndex={0}
-            onClick={onClick}
-            onKeyDown={(event) => {
+    // Sans onClick (ex. arène), la carte est purement visuelle
+    const interactionProps = onClick
+        ? {
+            role: 'button',
+            tabIndex: 0,
+            onClick,
+            onKeyDown: (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
                     onClick()
                 }
-            }}
+            },
+        }
+        : {}
+
+    return (
+        <div
+            className={`inventory-card inventory-card--rarity-${carte.rarete} ${className}`.trim()}
+            {...interactionProps}
         >
             <div className="inventory-card__eyebrow">
                 <span className="inventory-card__rank">
