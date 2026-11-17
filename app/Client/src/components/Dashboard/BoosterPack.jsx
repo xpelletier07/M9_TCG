@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { API_BASE_URL } from '../../config'
 import { useAuth } from '../../auth/AuthContext'
 
@@ -161,7 +161,7 @@ export default function BoosterPack() {
     }
   }, [])
 
-  // Clic sur "Get Pack" pour réclamer le pack (cooldown 24h)
+  // Clic sur "Réclamer mon pack" pour réclamer le pack (cooldown 24h)
   const handleOpenPack = async () => {
     if (!token) {
       setFeedback({ type: 'error', message: 'Veuillez vous connecter pour réclamer un pack.' })
@@ -218,7 +218,7 @@ export default function BoosterPack() {
   const isButtonDisabled = loading || isOpening || !pack || !token || isCooldownActive
 
   return (
-    <section className="dashboard-panel dashboard-booster">
+    <section className="dashboard-panel dashboard-booster"><div className="dashboard-booster-heading"><span className="dashboard-kicker">LE RENDEZ-VOUS QUOTIDIEN</span><h2 className="dashboard-title">Votre booster gratuit</h2></div>
       <div className="dashboard-badge">
         <span>
           {loading
@@ -234,17 +234,17 @@ export default function BoosterPack() {
       <div className="dashboard-pack-image">
         <img
           alt={pack?.nom_pack || 'Booster Pack'}
-          className="w-full h-full object-cover"
+          className="dashboard-pack-art"
           src={getPackImageUrl(pack?.image_pack)}
         />
       </div>
 
       <h3 className="dashboard-booster-title">
-        {pack?.nom_pack || 'Set not found yet'}
+        {pack?.nom_pack || 'Aucun booster disponible'}
       </h3>
 
       <p className="dashboard-booster-description">
-        {pack?.description_pack || 'Could not find a matching set for this booster pack.'}
+        {pack?.description_pack || 'Un nouveau pack pour enrichir votre collection, chaque jour.'}
       </p>
 
       <button
@@ -282,7 +282,7 @@ export default function BoosterPack() {
       <div className="dashboard-inventory">
         {token
           ? `Inventaire : ${inventoryCount} pack${inventoryCount > 1 ? 's' : ''}`
-          : 'Inventaire : none'}
+          : 'Connectez-vous pour retrouver vos packs'}
       </div>
       <p className="dashboard-meta" style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
         1 pack réclamable toutes les 24h

@@ -27,12 +27,20 @@ router.get("/cards", async (req, res) => {
 router.get("/decks", async (req, res) => {
     try {
         const result = await pool.query(
-            `select d.id_deck, d.nom_deck, d.cree_le,
-                    coalesce(sum(dc.quantite), 0)::int as total_cartes
+            `select d.id_deck, d.nom_deck, d.image, d.cree_le,
+                    coalesce(sum(dc.quantite), 0)::int as total_cartes,
+                    (
+                        select c.image
+                        from deck_carte dc2
+                        join carte c on c.id_carte = dc2.id_carte
+                        where dc2.id_deck = d.id_deck
+                        order by c.rarete desc, c.valeur desc
+                        limit 1
+                    ) as image_carte_rare
              from deck d
              left join deck_carte dc on dc.id_deck = d.id_deck
              where d.id_utilisateur = $1
-             group by d.id_deck
+             group by d.id_deck, d.image, d.nom_deck, d.cree_le
              order by d.cree_le desc`,
             [req.user.id]
         )
@@ -46,18 +54,24 @@ router.get("/decks", async (req, res) => {
 router.get("/decks/:id", async (req, res) => {
     try {
         const result = await pool.query(
-            `select d.id_deck, d.nom_deck, d.cree_le,
+            `select d.id_deck, d.nom_deck, d.image, d.cree_le,
                     coalesce(json_agg(json_build_object(
                         'id_carte', c.id_carte,
                         'nom_carte', c.nom_carte,
                         'image', c.image,
+                        'description', c.description,
+                        'rarete', c.rarete,
+                        'valeur', c.valeur,
+                        'mana', c.mana,
+                        'health', c.health,
+                        'damage', c.damage,
                         'quantite', dc.quantite
                     ) order by c.nom_carte) filter (where c.id_carte is not null), '[]') as cartes
              from deck d
              left join deck_carte dc on dc.id_deck = d.id_deck
              left join carte c on c.id_carte = dc.id_carte
              where d.id_deck = $1 and d.id_utilisateur = $2
-             group by d.id_deck`,
+             group by d.id_deck, d.image`,
             [req.params.id, req.user.id]
         )
 
@@ -74,6 +88,7 @@ router.get("/decks/:id", async (req, res) => {
 
 router.post("/decks", async (req, res) => {
     const nomDeck = typeof req.body.nomDeck === "string" ? req.body.nomDeck.trim() : ""
+    const imageDeck = typeof req.body.image === "string" ? req.body.image.trim() : ""
 
     if (!nomDeck || nomDeck.length > DECK_NAME_MAX_LENGTH) {
         return res.status(400).json({ error: "Le nom du deck est requis et doit contenir au maximum 30 caractères" })
@@ -81,11 +96,12 @@ router.post("/decks", async (req, res) => {
 
     try {
         const result = await pool.query(
-            `insert into deck (id_utilisateur, nom_deck)
-             values ($1, $2)
-             returning id_deck, nom_deck, cree_le`,
-            [req.user.id, nomDeck]
+            `insert into deck (id_utilisateur, nom_deck, image)
+             values ($1, $2, $3)
+             returning id_deck, nom_deck, image, cree_le`,
+            [req.user.id, nomDeck, imageDeck]
         )
+
         res.status(201).json(result.rows[0])
     } catch (error) {
         console.error("Erreur dans /inventory/decks", error)
@@ -156,17 +172,39 @@ router.post("/decks/:id/cards/:idCarte", async (req, res) => {
 })
 
 router.delete("/decks/:id/cards/:idCarte", async (req, res) => {
+    const removeAll = req.query.all === "true"
+
     try {
-        const result = await pool.query(
-            `delete from deck_carte dc
-             using deck d
-             where dc.id_deck = d.id_deck
-               and dc.id_deck = $1
-               and dc.id_carte = $2
-               and d.id_utilisateur = $3
-             returning dc.id_deck, dc.id_carte`,
-            [req.params.id, req.params.idCarte, req.user.id]
-        )
+        const query = removeAll
+            ? `delete from deck_carte dc
+               using deck d
+               where dc.id_deck = d.id_deck
+                 and dc.id_deck = $1
+                 and dc.id_carte = $2
+                 and d.id_utilisateur = $3
+               returning dc.id_deck, dc.id_carte`
+            : `with target as (
+                   select dc.id_deck, dc.id_carte, dc.quantite
+                   from deck_carte dc
+                   join deck d on d.id_deck = dc.id_deck
+                   where dc.id_deck = $1 and dc.id_carte = $2 and d.id_utilisateur = $3
+               ),
+               upd as (
+                   update deck_carte dc
+                   set quantite = dc.quantite - 1
+                   from target t
+                   where dc.id_deck = t.id_deck and dc.id_carte = t.id_carte and t.quantite > 1
+                   returning dc.id_deck, dc.id_carte
+               ),
+               del as (
+                   delete from deck_carte dc
+                   using target t
+                   where dc.id_deck = t.id_deck and dc.id_carte = t.id_carte and t.quantite <= 1
+                   returning dc.id_deck, dc.id_carte
+               )
+               select * from upd union all select * from del`
+
+        const result = await pool.query(query, [req.params.id, req.params.idCarte, req.user.id])
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Carte absente du deck ou deck introuvable" })
@@ -181,24 +219,37 @@ router.delete("/decks/:id/cards/:idCarte", async (req, res) => {
 
 router.patch("/decks/:id", async (req, res) => {
     const nomDeck = typeof req.body.nomDeck === "string" ? req.body.nomDeck.trim() : ""
+    const imageDeck = typeof req.body.image === "string" ? req.body.image.trim() : (req.body.image ?? null)
 
     if (!nomDeck || nomDeck.length > DECK_NAME_MAX_LENGTH) {
         return res.status(400).json({ error: "Le nom du deck est requis et doit contenir au maximum 30 caractères" })
     }
 
     try {
+        const hasImage = imageDeck !== null && imageDeck !== undefined && imageDeck !== ""
         const result = await pool.query(
-            `update deck set nom_deck = $1
-             where id_deck = $2 and id_utilisateur = $3
-             returning id_deck, nom_deck, cree_le`,
-            [nomDeck, req.params.id, req.user.id]
+            hasImage
+                ? `update deck set nom_deck = $1, image = $4
+                   where id_deck = $2 and id_utilisateur = $3
+                   returning id_deck, nom_deck, image, cree_le`
+                : `update deck set nom_deck = $1
+                   where id_deck = $2 and id_utilisateur = $3
+                   returning id_deck, nom_deck, image, cree_le`,
+            hasImage
+                ? [nomDeck, req.params.id, req.user.id, imageDeck]
+                : [nomDeck, req.params.id, req.user.id]
         )
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Deck introuvable" })
         }
 
-        res.json(result.rows[0])
+        const deck = result.rows[0]
+        if (deck.image === null || deck.image === undefined) {
+            delete deck.image
+        }
+
+        res.json(deck)
     } catch (error) {
         console.error("Erreur dans /inventory/decks/:id", error)
         res.status(500).json({ error: "Erreur serveur" })

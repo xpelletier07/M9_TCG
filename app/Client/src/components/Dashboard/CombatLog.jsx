@@ -1,15 +1,15 @@
-import React from 'react'
 
 export default function CombatLog(){
   return (
     <section className="dashboard-panel dashboard-combat">
       <div className="dashboard-combat-header">
-        <h2 className="dashboard-combat-title">Historique de combats</h2>
-        <button className="dashboard-view-all" type="button" disabled>View All</button>
+        <div><span className="dashboard-kicker">VOS BATAILLES</span><h2 className="dashboard-combat-title">Historique de combats</h2></div>
+        <span className="dashboard-status">Bientôt</span>
       </div>
 
-      <div>
-        <span className="feature-status-label">En développement</span>
+      <div className="dashboard-placeholder">
+        <span className="dashboard-placeholder-icon" aria-hidden="true"><i className="fa-solid fa-shield-halved" /></span>
+        <h3>Chaque combat a son histoire</h3>
         <p className="dashboard-empty">L'historique des combats est en développement et sera disponible dans une prochaine version.</p>
       </div>
     </section>

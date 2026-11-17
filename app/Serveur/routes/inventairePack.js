@@ -78,6 +78,9 @@ router.get("/drop-state", async (req, res) => {
         res.json({
             cycleSeconds: CYCLE_SECONDS,
             remainingSeconds: dropState.remainingSeconds,
+            isCooldownActive: dropState.isCooldownActive,
+            claimClosesAt: dropState.claimClosesAt ?? null,
+            claimRemainingSeconds: dropState.claimRemainingSeconds ?? 0,
             resetAt: dropState.resetAt || new Date().toISOString(),
             isClaimReady: dropState.isClaimReady,
             canClaim: dropState.canClaim,

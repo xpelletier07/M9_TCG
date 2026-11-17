@@ -1,12 +1,14 @@
 import { pool } from '../db/pool.js'
 
 export const CLAIM_COOLDOWN_SECONDS = 5 * 60 // 5 minutes
+export const CLAIM_INACTIVITY_SECONDS = 2 * 60
 export const TOTAL_CARDS_PER_ROUND = 3
 const ACTIVE_USER_WINDOW_MS = 25 * 1000 // 25 secondes d'inactivité max
 
 // État partagé en mémoire pour synchroniser le round global de claim entre tous les joueurs.
 export const globalClaimState = {
 	cooldownEndsAtMs: 0,
+	inactivityEndsAtMs: 0,
 	roundClaimedCardIds: new Set(),
 	roundClaimedUserIds: new Set(),
 	roundCards: [],
@@ -14,6 +16,28 @@ export const globalClaimState = {
 }
 
 let ioInstance = null
+let inactivityTimer = null
+
+function clearInactivityTimer() {
+	clearTimeout(inactivityTimer)
+	inactivityTimer = null
+	globalClaimState.inactivityEndsAtMs = 0
+}
+
+function startCooldown(startedAtMs = Date.now()) {
+	clearInactivityTimer()
+	globalClaimState.cooldownEndsAtMs = startedAtMs + CLAIM_COOLDOWN_SECONDS * 1000
+	broadcastDropUpdate()
+}
+
+function restartInactivityTimer() {
+	clearInactivityTimer()
+	globalClaimState.inactivityEndsAtMs = Date.now() + CLAIM_INACTIVITY_SECONDS * 1000
+	inactivityTimer = setTimeout(() => {
+		refreshGlobalDropState()
+	}, CLAIM_INACTIVITY_SECONDS * 1000)
+	inactivityTimer.unref?.()
+}
 
 export function setDropCommunIo(io) {
 	ioInstance = io
@@ -111,6 +135,11 @@ export function pickRandomCards(cards, count, allowDupes = false) {
 }
 
 export function refreshGlobalDropState() {
+	if (globalClaimState.cooldownEndsAtMs <= 0 && globalClaimState.inactivityEndsAtMs > 0
+		&& Date.now() >= globalClaimState.inactivityEndsAtMs) {
+		startCooldown(globalClaimState.inactivityEndsAtMs)
+	}
+
 	if (globalClaimState.cooldownEndsAtMs <= 0) {
 		return
 	}
@@ -118,6 +147,7 @@ export function refreshGlobalDropState() {
 	if (Date.now() >= globalClaimState.cooldownEndsAtMs) {
 		// Le cooldown de 5 minutes est terminé : on réinitialise pour le prochain round
 		globalClaimState.cooldownEndsAtMs = 0
+		clearInactivityTimer()
 		globalClaimState.roundClaimedCardIds.clear()
 		globalClaimState.roundClaimedUserIds.clear()
 		globalClaimState.roundCards = []
@@ -145,7 +175,12 @@ export async function getOrCreateRoundCards(count = TOTAL_CARDS_PER_ROUND) {
 		}
 
 		const selectedCards = pickRandomCards(cards, count, false)
+		// Une autre requête peut avoir créé le round pendant la lecture SQL.
+		refreshGlobalDropState()
+		if (globalClaimState.cooldownEndsAtMs > 0) return []
+		if (globalClaimState.roundCards.length > 0) return globalClaimState.roundCards
 		globalClaimState.roundCards = selectedCards
+		restartInactivityTimer()
 		return globalClaimState.roundCards
 	} catch (error) {
 		console.error('Erreur lors du chargement des cartes du round :', error)
@@ -201,7 +236,7 @@ export async function getDropCommunState(userId = null) {
 
 	// 2) Si tous les joueurs attendus ont réclamé leur carte, on déclenche le cooldown de 5 minutes
 	if (claimedCount >= expectedClaimCount && claimedCount > 0) {
-		globalClaimState.cooldownEndsAtMs = Date.now() + CLAIM_COOLDOWN_SECONDS * 1000
+		startCooldown()
 		const remainingSeconds = CLAIM_COOLDOWN_SECONDS
 
 		return {
@@ -222,6 +257,9 @@ export async function getDropCommunState(userId = null) {
 
 	// 3) Il reste des joueurs qui peuvent réclamer : le drop est ACTIF
 	return {
+		claimClosesAt: globalClaimState.inactivityEndsAtMs > 0
+			? new Date(globalClaimState.inactivityEndsAtMs).toISOString() : null,
+		claimRemainingSeconds: Math.max(0, Math.ceil((globalClaimState.inactivityEndsAtMs - Date.now()) / 1000)),
 		isCooldownActive: false,
 		canClaim: !hasClaimedCurrentRound,
 		hasClaimedCurrentRound,
@@ -251,8 +289,7 @@ export function registerClaimedCard(idCarte, userId = null) {
 	if (claimedCount >= expectedClaimCount) {
 		// Tous les joueurs connectés ont réclamé leur carte !
 		// Le drop commun est terminé, on démarre le cooldown de 5 minutes.
-		globalClaimState.cooldownEndsAtMs = Date.now() + CLAIM_COOLDOWN_SECONDS * 1000
-		broadcastDropUpdate()
+		startCooldown()
 
 		return {
 			isCooldownActive: true,
@@ -268,6 +305,7 @@ export function registerClaimedCard(idCarte, userId = null) {
 		}
 	}
 
+	restartInactivityTimer()
 	broadcastDropUpdate()
 
 	// Il reste encore des joueurs qui n'ont pas claim
@@ -286,6 +324,7 @@ export function registerClaimedCard(idCarte, userId = null) {
 }
 
 export function resetGlobalDropStateForTesting() {
+	clearInactivityTimer()
 	globalClaimState.cooldownEndsAtMs = 0
 	globalClaimState.roundClaimedCardIds.clear()
 	globalClaimState.roundClaimedUserIds.clear()

@@ -63,6 +63,7 @@ create table if not exists deck (
     id_deck serial primary key,
     id_utilisateur int not null references utilisateurs(id) on delete cascade,
     nom_deck varchar(100) not null,
+    image TEXT not null,
     cree_le timestamp not null default now()
 );
 

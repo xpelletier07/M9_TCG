@@ -12,6 +12,7 @@ import settingsRouter from "../routes/settings.js"
 import randomCardRouter from "../routes/randomcard.js"
 import combatDecksRouter from "../routes/combatDecks.js"
 
+
 const apiRouter = express.Router()
 
 apiRouter.use("/auth/github", githubAuthRouter)
