@@ -174,3 +174,14 @@
     - *William :* Combat - Petit update de l'interface de quantiter de carte d'un rond pour un rectangle.
 - **Blocages :** Aucun
 - **Décisions :** Finaliser les tâches attribués au début et faire les fixes apportés par le prof et Xavier.
+
+## Semaine 11-2 | Jeudi 19 novembre 2026
+- **Absence :** Aucune
+- **Avancées :** 
+    - *Xavier :* Combat - Gameplay du combat
+    - *Alek :* Bazaar - Set up du Socket.io
+    - *Marco :* Bazaar - Implémentation de l'achat des 5 moins cher et modification du modals (double work).
+    - *Lotfi :* Combat - Amélioration du deck, son ajout, fonctionnalité autour du deck et amélioration du dashboard.
+    - *William :* Combat - Implémentation des liste de matchmaking et son visuel, la création des parties privées et modification du modal (double work).
+- **Blocages :** Aucun
+- **Décisions :** Finaliser les tâches attribués au début, faire d'autres tâches en regardant dans la liste des tâches ce qui n'a pas encore été fait (NE PAS OUBLIER DE CE LES ATTRIBUER!!!) et faire de pull request beaucoup plus petit (Autour de 500 lignes de code + 500 lignes de CSS).
