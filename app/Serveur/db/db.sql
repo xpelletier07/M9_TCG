@@ -157,7 +157,8 @@ CREATE TABLE IF NOT EXISTS ventes (
     id_carte int references carte(id_carte),
     prix int not null,
     -- ne default pas à now puisqu'on garde seulement la date à laquelle la transaction à été completé
-    date_transaction date
+    date_transaction date,
+    date_mise_en_vente date default
 );
 
 DO $$
