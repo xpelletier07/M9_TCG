@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     github_id VARCHAR(50) UNIQUE,
     cree_le TIMESTAMP NOT NULL DEFAULT NOW(),
     statut VARCHAR(50) default 'actif',
-    credits FLOAT NOT NULL DEFAULT 1000 CHECK (credits >= 0),
+    credits INT NOT NULL DEFAULT 1000 CHECK (credits >= 0),
     avatar_url TEXT,
     dernier_drop_pack_at TIMESTAMPTZ,
     dernier_claim_carte_at TIMESTAMPTZ
@@ -142,25 +142,26 @@ CREATE TABLE IF NOT EXISTS combat_joueurs (
     PRIMARY KEY (id_combat, id_utilisateur)
 );
 
---Offres de vente du Bazaar (créées par la fonctionnalité de vente; l'achat les consomme)
-CREATE TABLE IF NOT EXISTS bazaar_offre (
-    id_offre SERIAL PRIMARY KEY,
-    id_vendeur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
-    id_carte INT NOT NULL REFERENCES carte(id_carte) ON DELETE CASCADE,
-    quantite INT NOT NULL CHECK (quantite > 0),
-    prix_unitaire FLOAT NOT NULL CHECK (prix_unitaire > 0),
-    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
+DO $$
+BEGIN
+    RAISE NOTICE 'Table combat_joueurs successfully created';
+END
+$$;
+
+-- Table pour les ventes et l'historique
+CREATE TABLE IF NOT EXISTS ventes (
+    id_transaction serial primary key,
+    id_vendeur int not null references utilisateur(id) on delete cascade,
+    -- Peut être null puisque l'on crée une offre de vente qui va prendre du temps à être remplie
+    id_acheteur int references utilisateur(id) on delete cascade,
+    id_carte int references carte(id_carte),
+    prix int not null,
+    -- ne default pas à now puisqu'on garde seulement la date à laquelle la transaction à été completé
+    date_transaction date
 );
 
-CREATE INDEX IF NOT EXISTS idx_bazaar_offre_carte_prix ON bazaar_offre (id_carte, prix_unitaire, cree_le);
-
---Historique des transactions du Bazaar (une ligne par offre remplie, totalement ou partiellement)
-CREATE TABLE IF NOT EXISTS bazaar_transaction (
-    id_transaction SERIAL PRIMARY KEY,
-    id_acheteur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
-    id_vendeur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
-    id_carte INT NOT NULL REFERENCES carte(id_carte) ON DELETE CASCADE,
-    quantite INT NOT NULL CHECK (quantite > 0),
-    prix_unitaire FLOAT NOT NULL,
-    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
-);
+DO $$
+BEGIN
+    RAISE NOTICE 'Table ventes successfully created';
+END
+$$;
