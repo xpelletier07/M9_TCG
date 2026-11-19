@@ -19,16 +19,32 @@ Une partie se termine lorsque la vie d'un des joueurs atteint 0, lorsqu'un joueu
 Toutes les valeurs vont être déterminées de façon arbitraire. En règle générale on veut suivre la formule :
 $$\frac{2 * mana }{atk + hp}$$
 Cette formule devrait atteindre une valeur différente selon la rareté de la carte. Les cartes légendaires doivent avoir une valeur un peu moins élevée puisqu'elles auront des effets et ceux-ci doivent être pris en compte pour le balancement. 
-| Variable | Valeur attribuée |
-| ----- | ----- |
-| Vie du joueur | 50 |
-| Nbre cartes dans un deck | 50 |
-| Valeur de la formule pour cartes communes | 1 |
-| Valeur de la formule pour cartes rares | 0.5 |
-| Valeur de la formule pour cartes épiques | 0.33 |
-| Valeur de la formule pour cartes légendaires | 0.5 |
-| Crédits de départ pour un nouveau compte | 500 |
-| Prix de base d'une carte commune | 25 |
-| Prix de base d'une carte rare | 50 |
-| Prix de base d'une carte épique | 75 |
-| Prix de base d'une carte légendaire | 100 |
+| Variable                                     | Valeur attribuée |
+| -------------------------------------------- | ---------------- |
+| Vie du joueur                                | 50               |
+| Nbre cartes dans un deck                     | 50               |
+| Valeur de la formule pour cartes communes    | 1                |
+| Valeur de la formule pour cartes rares       | 0.5              |
+| Valeur de la formule pour cartes épiques     | 0.33             |
+| Valeur de la formule pour cartes légendaires | 0.5              |
+| Crédits de départ pour un nouveau compte     | 500              |
+| Prix de base d'une carte commune             | 25               |
+| Prix de base d'une carte rare                | 50               |
+| Prix de base d'une carte épique              | 75               |
+| Prix de base d'une carte légendaire          | 100              |
+
+
+### Capacité Spéciale
+Voici toutes les capacités spéciales communes que nos cartes puissent avoir
+| Nom de l'abilité      | Effet                                                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Haste                 | Permet de attaquer le premier tour oû il a été placé                                                                                       |
+| Toxique               | Lorsqu'il inflige des dégats sur la vie d'une créature adverse, la créature meurt à la fin du combat                                       |
+| Bouclier              | Permet de ce bloquer les X prochaines instances de dégats                                                                                  |
+| Provocation           | Consiste à l'ordre obligatoire de ciblage des cibles. Plus la provocation est haute, le plus vite est dois être cibler par les créatures   |
+| Inspiration           | Donne +X/+X à une créature alliée                                                                                                          |
+| Ralliement            | Donne +X/+X aux créatures alliées                                                                                                          |
+| Intimidation          | Donne -X/-X à une créature adverse                                                                                                         |
+| Intimidation de masse | Donne -X/-X aux créatures adverses                                                                                                         |
+| Vol                   | Permet d'attaquer directement le joueur en ignorant les créatures terreste. N'ignore pas les autres créatures possédant Vol ou Provocation |
+| Drain de vie          | À la fin de la phase de dégats, regagne des points de vie jusqu'aux dégats infligées                                                       |
