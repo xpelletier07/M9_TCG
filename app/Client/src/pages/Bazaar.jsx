@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Card from "../components/Card";
-
+import { io } from "socket.io-client";
 import { API_BASE_URL } from "../config"
 
 function Bazaar() {
@@ -29,6 +29,20 @@ function Bazaar() {
             setAllCartes(data)
         }
     }, [serveur, token])
+
+    // connexion socket.io pour le Bazaar
+    useEffect(() => {
+        const socket = io(API_BASE_URL)
+        // fonction lorsqu'une update arrive du backend, update toutes les infos des cartes
+        function handleBazaarUpdate() { getCartes() }
+        // lorsqu'on recoit une update du côté backend, lance l'update
+        socket.on("bazaar:updated", handleBazaarUpdate)
+        // gère lorsqu'un utilisateur quitte la page, ferme la connection et le déconnecte
+        return () => {
+            socket.off("bazaar:updated", handleBazaarUpdate)
+            socket.disconnect()
+        }
+    }, [getCartes])
 
     // useEffect pour récuperer les cartes du bazaar au chargement de la page
     useEffect(() => {
