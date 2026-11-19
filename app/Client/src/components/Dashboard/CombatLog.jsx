@@ -4,7 +4,7 @@ export default function CombatLog(){
     <section className="dashboard-panel dashboard-combat">
       <div className="dashboard-combat-header">
         <div><span className="dashboard-kicker">VOS BATAILLES</span><h2 className="dashboard-combat-title">Historique de combats</h2></div>
-        <span className="dashboard-status">Bientôt</span>
+        <h2 className="dashboard-combat-subtitle">Chaque combat a son histoire</h2>
       </div>
 
       <div className="dashboard-placeholder">
