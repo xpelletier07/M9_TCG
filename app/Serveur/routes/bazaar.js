@@ -2,6 +2,7 @@ import { pool } from "./../db/pool.js"
 import express from "express"
 import { body, validationResult } from "express-validator"
 import { checkAuth } from "../middlewares/checkAuth.js"
+import { broadcastBazaarUpdate } from "../services/bazaarRealTimeService.js"
 
 const router = express.Router()
 
@@ -29,6 +30,7 @@ router.get("/cartes", checkAuth, async (req, res) => {
 // GET : toutes les offres de vente des autres joueurs, avec la carte, le vendeur, la quantité et le prix unitaire
 router.get("/offres", checkAuth, async (req, res) => {
     try {
+        // TODO: update requete sql pour mettre dans vente
         const result = await pool.query(
             `select c.*, o.id_offre, o.id_vendeur, u.nom_utilisateur as vendeur, o.quantite, o.prix_unitaire
              from bazaar_offre o
@@ -66,6 +68,7 @@ router.post(
         try {
             await client.query("begin")
 
+            // TODO: update requete sql pour mettre dans vente
             // Verrouille l'offre pour éviter que deux acheteurs l'achètent en même temps
             const offreResult = await client.query(
                 "select id_offre, id_vendeur, id_carte, quantite, prix_unitaire from bazaar_offre where id_offre = $1 for update",
@@ -108,13 +111,13 @@ router.post(
             // Le vendeur reçoit ses crédits
             await client.query("update utilisateurs set credits = credits + $1 where id = $2", [total, offre.id_vendeur])
 
+            // TODO: update requete sql pour mettre dans vente
             // Historique
             await client.query(
                 `insert into bazaar_transaction (id_acheteur, id_vendeur, id_carte, quantite, prix_unitaire)
                  values ($1, $2, $3, $4, $5)`,
                 [idAcheteur, offre.id_vendeur, offre.id_carte, quantite, offre.prix_unitaire]
             )
-
             // Ajoute les cartes à l'inventaire de l'acheteur
             await client.query(
                 `insert into inventaire_carte (id_utilisateur, id_carte, quantite)
@@ -123,8 +126,9 @@ router.post(
                  do update set quantite = inventaire_carte.quantite + excluded.quantite`,
                 [idAcheteur, offre.id_carte, quantite]
             )
-
             await client.query("commit")
+            // transmission de l'update de l'état des offres sur la carte au socket.io
+            broadcastBazaarUpdate(offre.id_carte)
             res.status(200).json({ id_offre: offre.id_offre, id_carte: offre.id_carte, quantite, total, credits: debit.rows[0].credits })
         } catch (error) {
             try { await client.query("rollback") } catch { /* connexion déjà fermée */ }

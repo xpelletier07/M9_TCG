@@ -7,11 +7,14 @@ import apiRouter from "./Router/Router_Global.js"
 import attachRealtime from "./realtime.js"
 import jwt from "jsonwebtoken"
 import { getConnectedUsersCount, recordUserActivity, setDropCommunIo } from "./services/dropCommunService.js"
+import { setBazaarIo } from "./services/bazaarRealTimeService.js";
 
 const app = express();
 const server = createServer(app);
 const io = attachRealtime(server);
 setDropCommunIo(io);
+// initialise le socket.io pour le Bazaar
+setBazaarIo(io)
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
