@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Card from "../components/Card";
 import { io } from "socket.io-client";
 import "../css/Bazaar.css";
-
+import { io } from "socket.io-client";
 import { API_BASE_URL } from "../config"
 
 function Bazaar() {
