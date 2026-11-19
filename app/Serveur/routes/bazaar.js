@@ -2,6 +2,7 @@ import { pool } from "./../db/pool.js"
 import express from "express"
 import { body, validationResult } from "express-validator"
 import { checkAuth } from "../middlewares/checkAuth.js"
+import { broadcastBazaarUpdate } from "../services/bazaarRealTimeService.js"
 
 const router = express.Router()
 
@@ -125,6 +126,8 @@ router.post(
             )
 
             await client.query("commit")
+            // transmission de l'update de l'état des offres sur la carte au socket.io
+            broadcastBazaarUpdate(offre.id_carte)
             res.status(200).json({ id_offre: offre.id_offre, id_carte: offre.id_carte, quantite, total, credits: debit.rows[0].credits })
         } catch (error) {
             try { await client.query("rollback") } catch { /* connexion déjà fermée */ }
