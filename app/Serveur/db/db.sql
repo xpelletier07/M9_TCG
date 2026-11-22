@@ -142,25 +142,16 @@ CREATE TABLE IF NOT EXISTS combat_joueurs (
     PRIMARY KEY (id_combat, id_utilisateur)
 );
 
---Offres de vente du Bazaar (créées par la fonctionnalité de vente; l'achat les consomme)
-CREATE TABLE IF NOT EXISTS bazaar_offre (
-    id_offre SERIAL PRIMARY KEY,
-    id_vendeur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
-    id_carte INT NOT NULL REFERENCES carte(id_carte) ON DELETE CASCADE,
-    quantite INT NOT NULL CHECK (quantite > 0),
-    prix_unitaire FLOAT NOT NULL CHECK (prix_unitaire > 0),
-    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_bazaar_offre_carte_prix ON bazaar_offre (id_carte, prix_unitaire, cree_le);
-
---Historique des transactions du Bazaar (une ligne par offre remplie, totalement ou partiellement)
-CREATE TABLE IF NOT EXISTS bazaar_transaction (
+--Ventes du Bazaar : chaque ligne est un exemplaire de carte mis en vente, et sert aussi d'historique.
+--Tant que id_acheteur est NULL, l'offre est ouverte; à l'achat on remplit id_acheteur et date_transaction.
+CREATE TABLE IF NOT EXISTS ventes (
     id_transaction SERIAL PRIMARY KEY,
-    id_acheteur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
     id_vendeur INT NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    id_acheteur INT REFERENCES utilisateurs(id) ON DELETE CASCADE,
     id_carte INT NOT NULL REFERENCES carte(id_carte) ON DELETE CASCADE,
-    quantite INT NOT NULL CHECK (quantite > 0),
-    prix_unitaire FLOAT NOT NULL,
-    cree_le TIMESTAMP NOT NULL DEFAULT NOW()
+    prix INT NOT NULL CHECK (prix > 0),
+    date_transaction DATE,
+    date_mise_en_vente TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_ventes_offres_ouvertes ON ventes (id_carte, prix, date_mise_en_vente) WHERE id_acheteur IS NULL;
