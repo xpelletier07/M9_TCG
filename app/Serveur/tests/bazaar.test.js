@@ -67,6 +67,32 @@ test("GET /bazaar/offres retourne 500 sur erreur de base de données", async () 
     })
 })
 
+test("GET /bazaar/historique exige une authentification", async () => {
+    const { response } = await request("/bazaar/historique")
+    assert.equal(response.status, 401)
+})
+
+test("GET /bazaar/historique retourne les ventes et achats complétés du joueur", async () => {
+    let params
+    setQueryResult((sql, p) => {
+        params = p
+        return { rows: [{ id_transaction: 1, nom_carte: "A", type: "vente", prix: 5, quantite: 1 }, { id_transaction: 2, nom_carte: "B", type: "achat", prix: 3, quantite: 1 }], rowCount: 2 }
+    })
+    const { response, body } = await request("/bazaar/historique", { headers: authenticatedHeaders() })
+    assert.equal(response.status, 200)
+    assert.equal(body.length, 2)
+    assert.equal(body[0].type, "vente")
+    assert.deepEqual(params, [7])
+})
+
+test("GET /bazaar/historique retourne 500 sur erreur de base de données", async () => {
+    await withSilentErrors(async () => {
+        setQueryError()
+        const { response } = await request("/bazaar/historique", { headers: authenticatedHeaders() })
+        assert.equal(response.status, 500)
+    })
+})
+
 test("POST /bazaar/acheter exige une authentification", async () => {
     const { response } = await acheter({ id_offre: 10 }, {})
     assert.equal(response.status, 401)

@@ -44,6 +44,25 @@
   --card-accent-rgb: 255, 209, 118;
 }
 
+/* Historique des transactions : ventes en vert, achats en rouge */
+.bazaar-historique-vente td {
+  background-color: rgba(72, 199, 142, 0.18);
+  color: #1f7a54;
+}
+
+.bazaar-historique-achat td {
+  background-color: rgba(241, 70, 104, 0.15);
+  color: #b3203f;
+}
+
+.bazaar-historique-vente td:first-child {
+  border-left: 4px solid #48c78e;
+}
+
+.bazaar-historique-achat td:first-child {
+  border-left: 4px solid #f14668;
+}
+
 /* Carte affichée en haut des offres */
 .bazaar-modal__carte {
   width: 240px;

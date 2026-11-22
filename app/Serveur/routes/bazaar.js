@@ -47,6 +47,32 @@ router.get("/offres", checkAuth, async (req, res) => {
     }
 })
 
+// GET : historique des transactions complétées du joueur connecté (cartes vendues et achetées).
+// `type` vaut "vente" si le joueur était le vendeur, "achat" s'il était l'acheteur.
+router.get("/historique", checkAuth, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `select v.id_transaction, v.id_carte, c.nom_carte, c.rarete, v.prix,
+                    1 as quantite,
+                    to_char(v.date_mise_en_vente, 'YYYY-MM-DD') as date_mise_en_vente,
+                    to_char(v.date_transaction, 'YYYY-MM-DD') as date_transaction,
+                    case when v.id_vendeur = $1 then 'vente' else 'achat' end as type,
+                    uv.nom_utilisateur as vendeur, ua.nom_utilisateur as acheteur
+             from ventes v
+             join carte c on c.id_carte = v.id_carte
+             join utilisateurs uv on uv.id = v.id_vendeur
+             join utilisateurs ua on ua.id = v.id_acheteur
+             where v.id_acheteur is not null and (v.id_vendeur = $1 or v.id_acheteur = $1)
+             order by v.date_transaction desc, v.id_transaction desc`,
+            [req.user.id]
+        )
+        res.status(200).json(result.rows)
+    } catch (error) {
+        console.error("Erreur dans GET /bazaar/historique", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    }
+})
+
 // POST : achète une offre précise (un exemplaire), au prix fixé par le vendeur.
 // Tout se fait dans une transaction : si une étape échoue, rien n'est appliqué.
 router.post(
