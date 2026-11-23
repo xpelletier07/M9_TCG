@@ -1130,3 +1130,95 @@ html.tcg-dark .arena-result {
     animation: none !important;
   }
 }
+
+/* ---------- Capacités ---------- */
+
+/* La version compacte montre des icônes ; l'aperçu au survol montre les capacités complètes */
+.arena-card:not(.arena-card--preview) > .arena-card-frame .inventory-card__keywords {
+  display: none;
+}
+
+.arena-card-keywords {
+  position: absolute;
+  z-index: 4;
+  top: -0.45rem;
+  left: 50%;
+  display: flex;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.arena-card-keywords li {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1.5px solid #ffd176;
+  border-radius: 50%;
+  background: #0b1220;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+/* Provocation : cadre de pierre bien visible autour de la créature */
+.arena-card.has-taunt .arena-card-frame {
+  outline: 3px solid #94a3b8;
+  outline-offset: 3px;
+}
+
+/* Bouclier : halo doré, retiré quand toutes ses charges sont utilisées */
+.arena-card.has-shield .arena-card-frame::after {
+  position: absolute;
+  z-index: 3;
+  inset: -5px;
+  border-radius: calc(13px * var(--card-scale) + 5px);
+  box-shadow: 0 0 0 2px #fcd34d, 0 0 18px rgba(252, 211, 77, 0.85);
+  content: '';
+  pointer-events: none;
+  animation: arena-shield-glow 2s ease-in-out infinite;
+}
+
+.arena-card.is-triggering {
+  z-index: 25;
+  animation: arena-trigger 0.38s ease-out;
+}
+
+.arena-card.is-shield-break .arena-card-frame {
+  animation: arena-shield-break 0.42s ease-out;
+}
+
+.arena-card.is-healed .arena-card-frame,
+.arena-player.is-healed {
+  box-shadow: 0 0 0 3px #22c55e, 0 0 22px rgba(34, 197, 94, 0.75);
+}
+
+.arena-card.is-buffed {
+  animation: arena-buff 0.42s ease-out;
+}
+
+.arena-damage--heal {
+  color: #22c55e;
+  text-shadow: 0 4px 12px rgba(20, 83, 45, 0.6);
+}
+
+@keyframes arena-shield-glow {
+  50% { box-shadow: 0 0 0 2px #fde68a, 0 0 26px rgba(252, 211, 77, 1); }
+}
+
+@keyframes arena-shield-break {
+  0% { box-shadow: 0 0 0 4px #fcd34d, 0 0 30px rgba(252, 211, 77, 1); }
+  100% { box-shadow: 0 0 0 0 rgba(252, 211, 77, 0); }
+}
+
+@keyframes arena-trigger {
+  40% { transform: scale(1.12); filter: brightness(1.45) drop-shadow(0 0 12px #ffd176); }
+}
+
+@keyframes arena-buff {
+  40% { transform: scale(1.1); filter: drop-shadow(0 0 10px #22c55e); }
+}
