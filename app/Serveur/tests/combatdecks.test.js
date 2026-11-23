@@ -87,8 +87,10 @@ test("loadDeckCards expands quantities into 50 unique instanceIds", async () => 
     assert.equal(cards.filter((c) => c.id_carte === 2).length, 20)
     assert.ok(cards[0].instanceId.startsWith("7-1-"))
     assert.deepEqual(Object.keys(cards[0]).sort(), [
-        "damage", "description", "health", "id_carte", "image", "instanceId", "mana", "nom_carte", "rarete",
+        "capacites", "damage", "description", "health", "id_carte", "image", "instanceId", "mana", "nom_carte", "rarete",
     ])
+    // Une carte sans capacités en base reçoit un objet vide
+    assert.deepEqual(cards[0].capacites, {})
 })
 
 test("GET /combat/decks requires auth", async () => {
