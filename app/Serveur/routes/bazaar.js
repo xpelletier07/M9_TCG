@@ -10,11 +10,11 @@ router.get("/cartes", checkAuth, async (req, res) => {
     try {
         const result = await pool.query(
             `select c.*,
-                    coalesce(sum(o.quantite), 0)::int as quantite_en_vente,
-                    count(o.id_offre)::int as nb_vendeurs,
-                    min(o.prix_unitaire) as prix_min
+                    count(v.id_transaction)::int as quantite_en_vente,
+                    count(distinct v.id_vendeur)::int as nb_vendeurs,
+                    min(v.prix) as prix_min
              from carte c
-             left join bazaar_offre o on o.id_carte = c.id_carte and o.id_vendeur <> $1
+             left join ventes v on v.id_carte = c.id_carte and v.id_acheteur is null and v.id_vendeur <> $1
              group by c.id_carte
              order by c.id_carte asc`,
             [req.user.id]
@@ -26,16 +26,18 @@ router.get("/cartes", checkAuth, async (req, res) => {
     }
 })
 
-// GET : toutes les offres de vente des autres joueurs, avec la carte, le vendeur, la quantité et le prix unitaire
+// GET : toutes les offres de vente ouvertes des autres joueurs, avec la carte, le vendeur et le prix.
+// Chaque ligne de `ventes` est un seul exemplaire (quantite = 1).
 router.get("/offres", checkAuth, async (req, res) => {
     try {
         const result = await pool.query(
-            `select c.*, o.id_offre, o.id_vendeur, u.nom_utilisateur as vendeur, o.quantite, o.prix_unitaire
-             from bazaar_offre o
-             join carte c on c.id_carte = o.id_carte
-             join utilisateurs u on u.id = o.id_vendeur
-             where o.id_vendeur <> $1
-             order by c.id_carte desc, o.prix_unitaire asc, o.cree_le asc`,
+            `select c.*, v.id_transaction as id_offre, v.id_vendeur, u.nom_utilisateur as vendeur,
+                    1 as quantite, v.prix as prix_unitaire, v.date_mise_en_vente as cree_le
+             from ventes v
+             join carte c on c.id_carte = v.id_carte
+             join utilisateurs u on u.id = v.id_vendeur
+             where v.id_acheteur is null and v.id_vendeur <> $1
+             order by c.id_carte desc, v.prix asc, v.date_mise_en_vente asc, v.id_transaction asc`,
             [req.user.id]
         )
         res.status(200).json(result.rows)
@@ -45,7 +47,33 @@ router.get("/offres", checkAuth, async (req, res) => {
     }
 })
 
-// POST : achète `quantite` exemplaires (1 par défaut) d'une offre précise, au prix fixé par le vendeur.
+// GET : historique des transactions complétées du joueur connecté (cartes vendues et achetées).
+// `type` vaut "vente" si le joueur était le vendeur, "achat" s'il était l'acheteur.
+router.get("/historique", checkAuth, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `select v.id_transaction, v.id_carte, c.nom_carte, c.rarete, v.prix,
+                    1 as quantite,
+                    to_char(v.date_mise_en_vente, 'YYYY-MM-DD') as date_mise_en_vente,
+                    to_char(v.date_transaction, 'YYYY-MM-DD') as date_transaction,
+                    case when v.id_vendeur = $1 then 'vente' else 'achat' end as type,
+                    uv.nom_utilisateur as vendeur, ua.nom_utilisateur as acheteur
+             from ventes v
+             join carte c on c.id_carte = v.id_carte
+             join utilisateurs uv on uv.id = v.id_vendeur
+             join utilisateurs ua on ua.id = v.id_acheteur
+             where v.id_acheteur is not null and (v.id_vendeur = $1 or v.id_acheteur = $1)
+             order by v.date_transaction desc, v.id_transaction desc`,
+            [req.user.id]
+        )
+        res.status(200).json(result.rows)
+    } catch (error) {
+        console.error("Erreur dans GET /bazaar/historique", error)
+        res.status(500).json({ error: "Erreur serveur" })
+    }
+})
+
+// POST : achète une offre précise (un exemplaire), au prix fixé par le vendeur.
 // Tout se fait dans une transaction : si une étape échoue, rien n'est appliqué.
 router.post(
     "/acheter",
@@ -66,9 +94,10 @@ router.post(
         try {
             await client.query("begin")
 
-            // Verrouille l'offre pour éviter que deux acheteurs l'achètent en même temps
+            // Verrouille l'offre ouverte pour éviter que deux acheteurs l'achètent en même temps
             const offreResult = await client.query(
-                "select id_offre, id_vendeur, id_carte, quantite, prix_unitaire from bazaar_offre where id_offre = $1 for update",
+                `select id_transaction as id_offre, id_vendeur, id_carte, 1 as quantite, prix as prix_unitaire
+                 from ventes where id_transaction = $1 and id_acheteur is null for update`,
                 [idOffre]
             )
             const offre = offreResult.rows[0]
@@ -98,21 +127,13 @@ router.post(
                 return res.status(400).json({ error: "Crédits insuffisants" })
             }
 
-            // Retire les cartes achetées de l'offre (supprime l'offre si elle est épuisée)
-            if (quantite === offre.quantite) {
-                await client.query("delete from bazaar_offre where id_offre = $1", [offre.id_offre])
-            } else {
-                await client.query("update bazaar_offre set quantite = quantite - $1 where id_offre = $2", [quantite, offre.id_offre])
-            }
-
             // Le vendeur reçoit ses crédits
             await client.query("update utilisateurs set credits = credits + $1 where id = $2", [total, offre.id_vendeur])
 
-            // Historique
+            // Complète la vente : la ligne de `ventes` sert aussi d'historique
             await client.query(
-                `insert into bazaar_transaction (id_acheteur, id_vendeur, id_carte, quantite, prix_unitaire)
-                 values ($1, $2, $3, $4, $5)`,
-                [idAcheteur, offre.id_vendeur, offre.id_carte, quantite, offre.prix_unitaire]
+                "update ventes set id_acheteur = $1, date_transaction = current_date where id_transaction = $2",
+                [idAcheteur, offre.id_offre]
             )
 
             // Ajoute les cartes à l'inventaire de l'acheteur
@@ -137,7 +158,7 @@ router.post(
 )
 
 // POST : achète les `quantite` (1 à 5) exemplaires les moins chers d'une carte, en prenant les offres
-// de la moins chère à la plus chère. Tout se fait dans une transaction : tout est acheté ou rien.
+// ouvertes de la moins chère à la plus chère. Tout se fait dans une transaction : tout est acheté ou rien.
 router.post(
     "/acheter-moins-chers",
     checkAuth,
@@ -157,32 +178,24 @@ router.post(
         try {
             await client.query("begin")
 
-            // Verrouille les offres des autres joueurs pour cette carte, de la moins chère à la plus chère
+            // Verrouille les `quantite` offres ouvertes les moins chères des autres joueurs pour cette carte
             const offresResult = await client.query(
-                `select id_offre, id_vendeur, id_carte, quantite, prix_unitaire
-                 from bazaar_offre
-                 where id_carte = $1 and id_vendeur <> $2
-                 order by prix_unitaire asc, cree_le asc, id_offre asc
+                `select id_transaction as id_offre, id_vendeur, id_carte, prix as prix_unitaire
+                 from ventes
+                 where id_carte = $1 and id_vendeur <> $2 and id_acheteur is null
+                 order by prix asc, date_mise_en_vente asc, id_transaction asc
+                 limit $3
                  for update`,
-                [idCarte, idAcheteur]
+                [idCarte, idAcheteur, quantite]
             )
+            const achats = offresResult.rows
 
-            // Répartit la quantité demandée sur les offres les moins chères
-            const achats = []
-            let restant = quantite
-            for (const offre of offresResult.rows) {
-                if (restant === 0) break
-                const prise = Math.min(restant, offre.quantite)
-                achats.push({ offre, prise })
-                restant -= prise
-            }
-
-            if (restant > 0) {
+            if (achats.length < quantite) {
                 await client.query("rollback")
                 return res.status(409).json({ error: "Pas assez d'exemplaires en vente pour cette carte" })
             }
 
-            const total = achats.reduce((somme, a) => somme + a.prise * a.offre.prix_unitaire, 0)
+            const total = achats.reduce((somme, offre) => somme + offre.prix_unitaire, 0)
 
             // Débite l'acheteur seulement s'il a assez de crédits
             const debit = await client.query(
@@ -194,18 +207,12 @@ router.post(
                 return res.status(400).json({ error: "Crédits insuffisants" })
             }
 
-            for (const { offre, prise } of achats) {
-                if (prise === offre.quantite) {
-                    await client.query("delete from bazaar_offre where id_offre = $1", [offre.id_offre])
-                } else {
-                    await client.query("update bazaar_offre set quantite = quantite - $1 where id_offre = $2", [prise, offre.id_offre])
-                }
-                await client.query("update utilisateurs set credits = credits + $1 where id = $2", [prise * offre.prix_unitaire, offre.id_vendeur])
+            for (const offre of achats) {
                 await client.query(
-                    `insert into bazaar_transaction (id_acheteur, id_vendeur, id_carte, quantite, prix_unitaire)
-                     values ($1, $2, $3, $4, $5)`,
-                    [idAcheteur, offre.id_vendeur, idCarte, prise, offre.prix_unitaire]
+                    "update ventes set id_acheteur = $1, date_transaction = current_date where id_transaction = $2",
+                    [idAcheteur, offre.id_offre]
                 )
+                await client.query("update utilisateurs set credits = credits + $1 where id = $2", [offre.prix_unitaire, offre.id_vendeur])
             }
 
             await client.query(
