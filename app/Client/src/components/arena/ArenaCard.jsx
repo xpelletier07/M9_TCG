@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { aCapacite, libelleCapacite, lireCapacites } from '../../capacites.js'
 import Card from '../Card.jsx'
 
 const PREVIEW_GAP = 12
@@ -74,6 +75,7 @@ function ArenaCard({
   }
 
   const hp = card.currentHp ?? card.health
+  const capacites = lireCapacites(card)
   const classes = [
     'arena-card',
     `arena-card--${variant}`,
@@ -83,6 +85,8 @@ function ArenaCard({
     targetable && 'is-targetable',
     dimmed && 'is-dimmed',
     dragging && 'is-dragging',
+    aCapacite(card, 'provocation') && 'has-taunt',
+    card.bouclier > 0 && 'has-shield',
     effect,
     className,
   ].filter(Boolean).join(' ')
@@ -99,6 +103,15 @@ function ArenaCard({
       {...handlers}
     >
       <div className="arena-card-frame">
+        {variant !== 'preview' && capacites.length > 0 && (
+          <ul className="arena-card-keywords" aria-label="Capacités">
+            {capacites.map((capacite) => (
+              <li key={capacite.id} title={`${libelleCapacite(capacite)} : ${capacite.texte}`}>
+                {capacite.icone}
+              </li>
+            ))}
+          </ul>
+        )}
         <Card carte={{ ...card, health: hp }} className={hp < card.health ? 'is-damaged' : ''} />
       </div>
       {/* Portail : l'aperçu n'hérite pas des filtres ni des transformations de la carte survolée */}

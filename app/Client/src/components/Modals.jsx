@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 
 import { API_BASE_URL } from "../config"
+import { RARETE_CAPACITES, aDesCapacites, extraireCapacites, lireCapacites } from "../capacites.js"
+import { CapacitesEditor, CapacitesListe } from "./CapacitesEditor.jsx"
 
 const raretes = {
     1: "Commun",
@@ -27,6 +29,7 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
             mana: carte.mana,
             health: carte.health,
             damage: carte.damage,
+            capacites: extraireCapacites(carte),
         });
 
         setIsEditing(isNew);
@@ -41,6 +44,10 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
             ...formActuel,
             [name]: value,
         }));
+    }
+
+    function modifierCapacites(capacites) {
+        setForm((formActuel) => ({ ...formActuel, capacites }));
     }
 
     // fonction pour faire caller la route PATCH en backend lorsqu'on souhaite modifier les infos de la carte
@@ -90,8 +97,9 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
             if (!reponse.ok) {
                 const resultat = await reponse.json();
                 throw new Error(
-                    resultat.message ??
-                    resultat.error ??
+                    resultat.erreurs?.map((e) => e.msg).join(" ") ||
+                    resultat.message ||
+                    resultat.error ||
                     "Impossible de modifier ou ajouter la carte"
                 );
             }
@@ -149,12 +157,17 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
             mana: carte.mana,
             health: carte.health,
             damage: carte.damage,
+            capacites: extraireCapacites(carte),
         });
         setErreur("");
         setIsEditing(false);
     }
 
     if (!carte || !form) return null
+
+    // Les capacités sont réservées aux légendaires : on garde l'éditeur visible tant qu'il en reste à retirer
+    const estLegendaire = Number(form.rarete) === RARETE_CAPACITES
+    const capacitesAvecMauvaiseRarete = !estLegendaire && aDesCapacites(form)
 
     return (
         <div className="modal is-active" role="dialog" aria-modal="true" aria-labelledby="card-modal-title">
@@ -254,6 +267,13 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
                                     value={form.valeur} onChange={modifierChamp} />) : carte.valeur}
                         </div>
                     </div>
+                    {isEditing && (estLegendaire || capacitesAvecMauvaiseRarete) && (
+                        <CapacitesEditor capacites={form.capacites} onChange={modifierCapacites} />
+                    )}
+                    {isEditing && capacitesAvecMauvaiseRarete && (
+                        <p className="help is-danger">Retire les capacités avant de baisser la rareté.</p>
+                    )}
+                    {!isEditing && <CapacitesListe capacites={lireCapacites(carte)} />}
                 </section>
                 {erreur && (
                     <div className="notification is-danger">
@@ -275,7 +295,7 @@ export function CardModal({ carte, isNew, isAdmin, token, onClose, onUpdated, on
                     {isAdmin && isEditing && (
                         <>
                             <button type="button" className={`button is-primary ${isSubmitting ? "is-loading" : ""}`} style={{ 'margin-left': '0.5em' }}
-                                onClick={enregistrerModification} disabled={isSubmitting}>
+                                onClick={enregistrerModification} disabled={isSubmitting || capacitesAvecMauvaiseRarete}>
                                 Enregistrer
                             </button>
                             <button type="button" className="button" style={{ 'margin-left': '0.5em' }} onClick={annulerModification} disabled={isSubmitting}>Annuler</button>

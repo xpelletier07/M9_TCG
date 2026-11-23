@@ -1,3 +1,4 @@
+import { libelleCapacite, lireCapacites } from '../capacites.js'
 import '../css/InventoryCards.css'
 
 const rareteLabels = {
@@ -10,6 +11,7 @@ const rareteLabels = {
 export default function Card({ carte, onClick, quantite = 1, className = '' }) {
     const quantiteNum = Number(quantite) || 1
     const libelleQuantite = `${quantiteNum} exemplaire${quantiteNum > 1 ? 's' : ''}`
+    const capacites = lireCapacites(carte)
 
     // Sans onClick (ex. arène), la carte est purement visuelle
     const interactionProps = onClick
@@ -60,6 +62,16 @@ export default function Card({ carte, onClick, quantite = 1, className = '' }) {
             </div>
             <div className="inventory-card__content">
                 <h3 className="inventory-card__name">{carte.nom_carte}</h3>
+                {capacites.length > 0 && (
+                    <ul className="inventory-card__keywords">
+                        {capacites.map((capacite) => (
+                            <li key={capacite.id} className="inventory-card__keyword" title={capacite.texte}>
+                                <span aria-hidden="true">{capacite.icone}</span>
+                                {libelleCapacite(capacite)}
+                            </li>
+                        ))}
+                    </ul>
+                )}
                 <p className="inventory-card__description">{carte.description}</p>
                 <div className="inventory-card__stats">
                     <span className="inventory-card__stat inventory-card__stat--mana" title="Mana">
