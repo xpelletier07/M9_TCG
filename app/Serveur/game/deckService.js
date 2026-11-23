@@ -1,4 +1,5 @@
 import { pool } from "../db/pool.js"
+import { normaliserCapacites } from "./capacites.js"
 import { RULES } from "./engine.js"
 
 // Quantité d'une carte que le joueur peut mettre dans un deck.
@@ -11,7 +12,7 @@ async function fetchDeckRows(userId, deckId = null) {
     const params = deckId === null ? [userId] : [userId, deckId]
     const { rows } = await pool.query(
         `select d.id_deck, d.nom_deck,
-                c.id_carte, c.nom_carte, c.image, c.description, c.rarete, c.mana, c.health, c.damage,
+                c.id_carte, c.nom_carte, c.image, c.description, c.rarete, c.mana, c.health, c.damage, c.capacites,
                 dc.quantite as quantite_deck,
                 ${AVAILABLE_QTY_SQL} as quantite_dispo
          from deck d
@@ -82,6 +83,7 @@ export async function loadDeckCards(userId, deckId) {
                 mana: r.mana,
                 health: r.health,
                 damage: r.damage,
+                capacites: normaliserCapacites(r.capacites),
             })
         }
     }

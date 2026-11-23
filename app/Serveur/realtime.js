@@ -378,10 +378,10 @@ function registerCombat(io) {
 			broadcastLobbies();
 		});
 
-		socket.on("combat:play-card", async ({ instanceId } = {}) => {
+		socket.on("combat:play-card", async ({ instanceId, cibles } = {}) => {
 			const active = activeGame(socket);
 			if (!active) return;
-			await applyResult(active.room, active.state, socket, playCard(active.state.game, socket.data.profile.id, instanceId));
+			await applyResult(active.room, active.state, socket, playCard(active.state.game, socket.data.profile.id, instanceId, cibles));
 		});
 
 		socket.on("combat:attack", async ({ attackerInstanceId, target } = {}) => {
