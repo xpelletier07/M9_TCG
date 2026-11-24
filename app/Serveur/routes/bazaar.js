@@ -2,6 +2,7 @@ import { pool } from "./../db/pool.js"
 import express from "express"
 import { body, validationResult } from "express-validator"
 import { checkAuth } from "../middlewares/checkAuth.js"
+import { broadcastBazaarUpdate } from "../services/bazaarRealTimeService.js"
 
 const router = express.Router()
 
@@ -30,6 +31,7 @@ router.get("/cartes", checkAuth, async (req, res) => {
 // Chaque ligne de `ventes` est un seul exemplaire (quantite = 1).
 router.get("/offres", checkAuth, async (req, res) => {
     try {
+        // TODO: update requete sql pour mettre dans vente
         const result = await pool.query(
             `select c.*, v.id_transaction as id_offre, v.id_vendeur, u.nom_utilisateur as vendeur,
                     1 as quantite, v.prix as prix_unitaire, v.date_mise_en_vente as cree_le
@@ -94,6 +96,8 @@ router.post(
         try {
             await client.query("begin")
 
+            // TODO: update requete sql pour mettre dans vente
+            // Verrouille l'offre pour éviter que deux acheteurs l'achètent en même temps
             // Verrouille l'offre ouverte pour éviter que deux acheteurs l'achètent en même temps
             const offreResult = await client.query(
                 `select id_transaction as id_offre, id_vendeur, id_carte, 1 as quantite, prix as prix_unitaire
@@ -130,12 +134,13 @@ router.post(
             // Le vendeur reçoit ses crédits
             await client.query("update utilisateurs set credits = credits + $1 where id = $2", [total, offre.id_vendeur])
 
+            // TODO: update requete sql pour mettre dans vente
+            // Historique
             // Complète la vente : la ligne de `ventes` sert aussi d'historique
             await client.query(
                 "update ventes set id_acheteur = $1, date_transaction = current_date where id_transaction = $2",
                 [idAcheteur, offre.id_offre]
             )
-
             // Ajoute les cartes à l'inventaire de l'acheteur
             await client.query(
                 `insert into inventaire_carte (id_utilisateur, id_carte, quantite)
@@ -144,8 +149,9 @@ router.post(
                  do update set quantite = inventaire_carte.quantite + excluded.quantite`,
                 [idAcheteur, offre.id_carte, quantite]
             )
-
             await client.query("commit")
+            // transmission de l'update de l'état des offres sur la carte au socket.io
+            broadcastBazaarUpdate(offre.id_carte)
             res.status(200).json({ id_offre: offre.id_offre, id_carte: offre.id_carte, quantite, total, credits: debit.rows[0].credits })
         } catch (error) {
             try { await client.query("rollback") } catch { /* connexion déjà fermée */ }
