@@ -31,7 +31,6 @@ router.get("/cartes", checkAuth, async (req, res) => {
 // Chaque ligne de `ventes` est un seul exemplaire (quantite = 1).
 router.get("/offres", checkAuth, async (req, res) => {
     try {
-        // TODO: update requete sql pour mettre dans vente
         const result = await pool.query(
             `select c.*, v.id_transaction as id_offre, v.id_vendeur, u.nom_utilisateur as vendeur,
                     1 as quantite, v.prix as prix_unitaire, v.date_mise_en_vente as cree_le
@@ -96,7 +95,6 @@ router.post(
         try {
             await client.query("begin")
 
-            // TODO: update requete sql pour mettre dans vente
             // Verrouille l'offre pour éviter que deux acheteurs l'achètent en même temps
             // Verrouille l'offre ouverte pour éviter que deux acheteurs l'achètent en même temps
             const offreResult = await client.query(
@@ -134,7 +132,6 @@ router.post(
             // Le vendeur reçoit ses crédits
             await client.query("update utilisateurs set credits = credits + $1 where id = $2", [total, offre.id_vendeur])
 
-            // TODO: update requete sql pour mettre dans vente
             // Historique
             // Complète la vente : la ligne de `ventes` sert aussi d'historique
             await client.query(
