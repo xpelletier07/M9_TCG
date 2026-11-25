@@ -26,7 +26,7 @@ function acheter(corps, headers = authenticatedHeaders()) {
     })
 }
 
-const offreType = { id_offre: 10, id_vendeur: 2, id_carte: 1, quantite: 3, prix_unitaire: 8 }
+const offreType = { id_offre: 10, id_vendeur: 2, id_carte: 1, quantite: 1, prix_unitaire: 8 }
 
 // Simule la base : `offre` est le résultat du select sur l'offre, `debit` celui du update des crédits de l'acheteur
 function simulerBd({ offre = offreType, debit = [{ credits: 100 }] } = {}) {
@@ -34,7 +34,7 @@ function simulerBd({ offre = offreType, debit = [{ credits: 100 }] } = {}) {
     setQueryResult((sql, params) => {
         const texte = sql.replace(/\s+/g, " ").trim()
         appels.push({ sql: texte, params })
-        if (/from bazaar_offre where id_offre/.test(texte)) return { rows: offre ? [offre] : [], rowCount: offre ? 1 : 0 }
+        if (/from ventes where id_transaction/.test(texte)) return { rows: offre ? [offre] : [], rowCount: offre ? 1 : 0 }
         if (/set credits = credits - /.test(texte)) return { rows: debit, rowCount: debit.length }
         return { rows: [], rowCount: 0 }
     })
@@ -67,6 +67,32 @@ test("GET /bazaar/offres retourne 500 sur erreur de base de données", async () 
     })
 })
 
+test("GET /bazaar/historique exige une authentification", async () => {
+    const { response } = await request("/bazaar/historique")
+    assert.equal(response.status, 401)
+})
+
+test("GET /bazaar/historique retourne les ventes et achats complétés du joueur", async () => {
+    let params
+    setQueryResult((sql, p) => {
+        params = p
+        return { rows: [{ id_transaction: 1, nom_carte: "A", type: "vente", prix: 5, quantite: 1 }, { id_transaction: 2, nom_carte: "B", type: "achat", prix: 3, quantite: 1 }], rowCount: 2 }
+    })
+    const { response, body } = await request("/bazaar/historique", { headers: authenticatedHeaders() })
+    assert.equal(response.status, 200)
+    assert.equal(body.length, 2)
+    assert.equal(body[0].type, "vente")
+    assert.deepEqual(params, [7])
+})
+
+test("GET /bazaar/historique retourne 500 sur erreur de base de données", async () => {
+    await withSilentErrors(async () => {
+        setQueryError()
+        const { response } = await request("/bazaar/historique", { headers: authenticatedHeaders() })
+        assert.equal(response.status, 500)
+    })
+})
+
 test("POST /bazaar/acheter exige une authentification", async () => {
     const { response } = await acheter({ id_offre: 10 }, {})
     assert.equal(response.status, 401)
@@ -91,9 +117,9 @@ test("POST /bazaar/acheter refuse d'acheter sa propre offre", async () => {
     assert.equal(response.status, 400)
 })
 
-test("POST /bazaar/acheter retourne 409 si la quantité dépasse celle de l'offre", async () => {
+test("POST /bazaar/acheter retourne 409 si la quantité dépasse celle de l'offre (un exemplaire)", async () => {
     simulerBd()
-    const { response } = await acheter({ id_offre: 10, quantite: 4 })
+    const { response } = await acheter({ id_offre: 10, quantite: 2 })
     assert.equal(response.status, 409)
 })
 
@@ -106,29 +132,20 @@ test("POST /bazaar/acheter retourne 400 si les crédits sont insuffisants", asyn
     assert.ok(!appels.some((a) => a.sql.startsWith("insert into inventaire_carte")))
 })
 
-test("POST /bazaar/acheter achat partiel : diminue l'offre et transfère crédits et cartes", async () => {
-    const appels = simulerBd({ debit: [{ credits: 984 }] })
-    const { response, body } = await acheter({ id_offre: 10, quantite: 2 })
-
-    assert.equal(response.status, 200)
-    assert.equal(body.total, 16)
-    assert.equal(body.credits, 984)
-    assert.equal(appels[0].sql, "begin")
-    assert.equal(appels.at(-1).sql, "commit")
-    assert.deepEqual(appels.find((a) => /set credits = credits - /.test(a.sql)).params, [16, 7])
-    assert.deepEqual(appels.find((a) => /set quantite = quantite - /.test(a.sql)).params, [2, 10])
-    assert.ok(!appels.some((a) => a.sql.startsWith("delete from bazaar_offre")))
-    assert.deepEqual(appels.find((a) => /set credits = credits \+ /.test(a.sql)).params, [16, 2])
-    assert.deepEqual(appels.find((a) => a.sql.startsWith("insert into inventaire_carte")).params, [7, 1, 2])
-})
-
-test("POST /bazaar/acheter achat complet : supprime l'offre (quantité 1 par défaut si omise)", async () => {
-    const appels = simulerBd({ offre: { ...offreType, quantite: 1 } })
+test("POST /bazaar/acheter transfère crédits et carte, et marque la vente comme complétée", async () => {
+    const appels = simulerBd({ debit: [{ credits: 992 }] })
     const { response, body } = await acheter({ id_offre: 10 })
 
     assert.equal(response.status, 200)
     assert.equal(body.quantite, 1)
-    assert.deepEqual(appels.find((a) => a.sql.startsWith("delete from bazaar_offre")).params, [10])
+    assert.equal(body.total, 8)
+    assert.equal(body.credits, 992)
+    assert.equal(appels[0].sql, "begin")
+    assert.equal(appels.at(-1).sql, "commit")
+    assert.deepEqual(appels.find((a) => /set credits = credits - /.test(a.sql)).params, [8, 7])
+    assert.deepEqual(appels.find((a) => /set credits = credits \+ /.test(a.sql)).params, [8, 2])
+    assert.deepEqual(appels.find((a) => a.sql.startsWith("update ventes set id_acheteur")).params, [7, 10])
+    assert.deepEqual(appels.find((a) => a.sql.startsWith("insert into inventaire_carte")).params, [7, 1, 1])
 })
 
 test("POST /bazaar/acheter retourne 500 sur erreur de base de données", async () => {
@@ -172,7 +189,7 @@ test("POST /bazaar/acheter-moins-chers refuse une quantité hors de 1 à 5", asy
 
 test("POST /bazaar/acheter-moins-chers retourne 409 s'il n'y a pas assez d'exemplaires", async () => {
     setQueryResult((sql) => {
-        if (/from bazaar_offre/.test(sql)) return { rows: [{ id_offre: 1, id_vendeur: 2, id_carte: 1, quantite: 1, prix_unitaire: 3 }], rowCount: 1 }
+        if (/from ventes/.test(sql)) return { rows: [{ id_offre: 1, id_vendeur: 2, id_carte: 1, prix_unitaire: 3 }], rowCount: 1 }
         return { rows: [], rowCount: 0 }
     })
     const { response } = await acheterMoinsChers({ id_carte: 1, quantite: 2 })
@@ -184,19 +201,19 @@ test("POST /bazaar/acheter-moins-chers prend les offres les moins chères et dé
     setQueryResult((sql, params) => {
         const texte = sql.replace(/\s+/g, " ").trim()
         appels.push({ sql: texte, params })
-        if (/from bazaar_offre/.test(texte)) {
+        if (/from ventes/.test(texte)) {
             return { rows: [
-                { id_offre: 1, id_vendeur: 2, id_carte: 1, quantite: 1, prix_unitaire: 3 },
-                { id_offre: 2, id_vendeur: 3, id_carte: 1, quantite: 5, prix_unitaire: 4 },
+                { id_offre: 1, id_vendeur: 2, id_carte: 1, prix_unitaire: 3 },
+                { id_offre: 2, id_vendeur: 3, id_carte: 1, prix_unitaire: 4 },
             ], rowCount: 2 }
         }
         if (/set credits = credits - /.test(texte)) return { rows: [{ credits: 50 }], rowCount: 1 }
         return { rows: [], rowCount: 0 }
     })
-    const { response, body } = await acheterMoinsChers({ id_carte: 1, quantite: 3 })
+    const { response, body } = await acheterMoinsChers({ id_carte: 1, quantite: 2 })
     assert.equal(response.status, 200)
-    assert.equal(body.total, 11) // 1 × 3 + 2 × 4
+    assert.equal(body.total, 7) // 3 + 4
     assert.equal(body.nb_offres, 2)
-    assert.ok(appels.some((a) => /delete from bazaar_offre/.test(a.sql) && a.params[0] === 1))
-    assert.ok(appels.some((a) => /update bazaar_offre set quantite = quantite - /.test(a.sql) && a.params[0] === 2 && a.params[1] === 2))
+    const ventes = appels.filter((a) => a.sql.startsWith("update ventes set id_acheteur"))
+    assert.deepEqual(ventes.map((a) => a.params), [[7, 1], [7, 2]])
 })

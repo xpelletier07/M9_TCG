@@ -26,7 +26,29 @@ function Bazaar() {
     const [quantiteMoinsChers, setQuantiteMoinsChers] = useState(1)
     const [messageAchat, setMessageAchat] = useState(null)
     const [achatEnCours, setAchatEnCours] = useState(false)
+    const [historiqueOuvert, setHistoriqueOuvert] = useState(false)
+    const [historique, setHistorique] = useState([])
+    const [erreurHistorique, setErreurHistorique] = useState(null)
     const token = localStorage.getItem("token")
+
+    // ouvre la fenêtre de l'historique et recharge les transactions du joueur
+    async function ouvrirHistorique() {
+        setHistoriqueOuvert(true)
+        setErreurHistorique(null)
+        try {
+            const reponse = await fetch(`${serveur}/bazaar/historique`, { headers: { Authorization: `Bearer ${token}` } })
+            if (reponse.ok) {
+                setHistorique(await reponse.json())
+            } else {
+                setErreurHistorique("Impossible de charger l'historique")
+            }
+        } catch {
+            setErreurHistorique("Erreur de connexion au serveur")
+        }
+    }
+
+    const nbCartesVendues = historique.filter((t) => t.type === "vente").reduce((somme, t) => somme + t.quantite, 0)
+    const nbCartesAchetees = historique.filter((t) => t.type === "achat").reduce((somme, t) => somme + t.quantite, 0)
 
     // récupère toutes les cartes du jeu (avec le prix le plus bas) et toutes les offres de vente
     const getCartes = useCallback(async () => {
@@ -353,6 +375,9 @@ function Bazaar() {
                             <button type="button" className="button is-success" style={{ marginRight: "1em" }} onClick={ouvrirInventaire}>
                                 Ajouter une carte à vendre
                             </button>
+                            <button type="button" className="button is-info" onClick={ouvrirHistorique}>
+                                Historique des transactions
+                            </button>
                         </div>
                     </div>
 
@@ -392,6 +417,62 @@ function Bazaar() {
                                 </section>
                                 <footer className="modal-card-foot">
                                     <button type="button" className="button" onClick={fermerInventaire}>Fermer</button>
+                                </footer>
+                            </div>
+                        </div>
+                    }
+
+                    {/* Fenêtre : historique des transactions (ventes en vert, achats en rouge) */}
+                    {historiqueOuvert &&
+                        <div className="modal is-active bazaar-modal">
+                            <div className="modal-background" onClick={() => setHistoriqueOuvert(false)}></div>
+                            <div className="modal-card" style={{ width: "min(900px, 95%)" }}>
+                                <header className="modal-card-head">
+                                    <p className="modal-card-title">Historique des transactions</p>
+                                    <button type="button" className="delete" aria-label="close" onClick={() => setHistoriqueOuvert(false)}></button>
+                                </header>
+                                <section className="modal-card-body">
+                                    {erreurHistorique &&
+                                        <div className="notification is-danger">{erreurHistorique}</div>
+                                    }
+                                    <div className="tags are-medium mb-4">
+                                        <span className="tag is-success is-light">Cartes vendues : {nbCartesVendues}</span>
+                                        <span className="tag is-danger is-light">Cartes achetées : {nbCartesAchetees}</span>
+                                    </div>
+                                    {!erreurHistorique && historique.length === 0 &&
+                                        <p>Aucune transaction pour le moment.</p>
+                                    }
+                                    {historique.length > 0 &&
+                                        <table className="table is-fullwidth">
+                                            <thead>
+                                                <tr>
+                                                    <th>Action</th>
+                                                    <th>Carte</th>
+                                                    <th>Quantité</th>
+                                                    <th>Montant</th>
+                                                    <th>Avec</th>
+                                                    <th>Mise en vente</th>
+                                                    <th>Date d'achat</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {historique.map((t) => (
+                                                    <tr key={t.id_transaction} className={t.type === "vente" ? "bazaar-historique-vente" : "bazaar-historique-achat"}>
+                                                        <td>{t.type === "vente" ? "Vendue" : "Achetée"}</td>
+                                                        <td>{t.nom_carte}</td>
+                                                        <td>{t.quantite}</td>
+                                                        <td>{t.type === "vente" ? "+" : "−"}{t.prix * t.quantite} crédits</td>
+                                                        <td>{t.type === "vente" ? t.acheteur : t.vendeur}</td>
+                                                        <td>{t.date_mise_en_vente}</td>
+                                                        <td>{t.date_transaction}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    }
+                                </section>
+                                <footer className="modal-card-foot">
+                                    <button type="button" className="button" onClick={() => setHistoriqueOuvert(false)}>Fermer</button>
                                 </footer>
                             </div>
                         </div>
