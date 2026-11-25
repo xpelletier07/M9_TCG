@@ -151,14 +151,14 @@ $$;
 -- Table pour les ventes et l'historique
 CREATE TABLE IF NOT EXISTS ventes (
     id_transaction serial primary key,
-    id_vendeur int not null references utilisateur(id) on delete cascade,
+    id_vendeur int not null references utilisateurs(id) on delete cascade,
     -- Peut être null puisque l'on crée une offre de vente qui va prendre du temps à être remplie
-    id_acheteur int references utilisateur(id) on delete cascade,
+    id_acheteur int references utilisateurs(id) on delete cascade,
     id_carte int references carte(id_carte),
     prix int not null,
     -- ne default pas à now puisqu'on garde seulement la date à laquelle la transaction à été completé
-    date_transaction date,
-    date_mise_en_vente date default
+    date_transaction TIMESTAMPTZ,
+    date_mise_en_vente TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 DO $$
