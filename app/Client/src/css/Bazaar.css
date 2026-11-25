@@ -50,3 +50,15 @@
   max-width: 100%;
   margin: 0 auto 1.25rem;
 }
+
+.bazaar-inventory-modal {
+  width: min(1100px, 95%);
+}
+
+.bazaar-inventory-modal .modal-card-body {
+  min-height: 240px;
+}
+
+.bazaar-inventory-modal__loader {
+  margin: 0 auto;
+}

@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../auth/AuthContext";
 import Card from "../components/Card";
-import "../css/Bazaar.css";
-import { io } from "socket.io-client";
 import "../css/Bazaar.css";
 import { io } from "socket.io-client";
 import { API_BASE_URL } from "../config"
 
 function Bazaar() {
+    const { user } = useAuth()
     const serveur = API_BASE_URL
     const [allCartes, setAllCartes] = useState(null)
     const [cartesFiltres, setCartesFiltres] = useState(null)
+    const [inventaire, setInventaire] = useState([])
+    const [inventaireOuvert, setInventaireOuvert] = useState(false)
+    const [inventaireEnChargement, setInventaireEnChargement] = useState(false)
+    const [erreurInventaire, setErreurInventaire] = useState(null)
     const [nomCarte, setNomCarte] = useState("")
     const [mana, setMana] = useState("")
     const [dmg, setDmg] = useState("")
@@ -35,11 +39,68 @@ function Bazaar() {
         if (repOffres.ok) setOffres(await repOffres.json())
     }, [serveur, token])
 
+    async function ouvrirInventaire() {
+        if (!user) return
+
+        setInventaireOuvert(true)
+        setInventaireEnChargement(true)
+        setErreurInventaire(null)
+
+        try {
+            const reponseInventaire = await fetch(`${serveur}/inventaire/${user.id}`)
+            if (!reponseInventaire.ok) {
+                throw new Error("Erreur lors de la récupération de l'inventaire")
+            }
+
+            const data = await reponseInventaire.json()
+            const cartes = await Promise.all(
+                (data.cartes || []).map(async (entree) => {
+                    const reponseCarte = await fetch(`${serveur}/api/card/${entree.id_carte}`)
+                    if (!reponseCarte.ok) return null
+                    const carte = await reponseCarte.json()
+                    return { ...carte, quantite: entree.quantite }
+                })
+            )
+
+            setInventaire(cartes.filter((carte) => carte !== null))
+        } catch (erreur) {
+            setErreurInventaire(erreur.message)
+        } finally {
+            setInventaireEnChargement(false)
+        }
+    }
+
+    function fermerInventaire() {
+        setInventaireOuvert(false)
+    }
+
+
+    const getOffresCarte = useCallback(async (idCarte) => {
+        const reponse = await fetch(
+            `${serveur}/venteBazaar/${idCarte}`,
+            { headers: { Authorization: `Bearer ${token}` } })
+        if (!reponse.ok) return
+        const nouvellesOffres = await reponse.json()
+        setOffres((offresActuelles) => [
+            ...offresActuelles.filter(
+                (offre) => Number(offre.id_carte) !== Number(idCarte)
+            ),
+            ...nouvellesOffres
+        ])
+
+        setAllCartes((cartesActuelles) =>
+            cartesActuelles?.map((carte) =>
+                Number(carte.id_carte) === Number(idCarte)
+                    ? { ...carte, prix_min: nouvellesOffres[0]?.prix ?? null } : carte
+            )
+        )
+    }, [serveur, token])
+
     // connexion socket.io pour le Bazaar
     useEffect(() => {
         const socket = io(API_BASE_URL)
-        // fonction lorsqu'une update arrive du backend, update toutes les infos des cartes
-        function handleBazaarUpdate() { getCartes() }
+        // fonction lorsqu'une update arrive du backend, update toutes les infos d'une carte à la fois
+        function handleBazaarUpdate({ id_carte }) { getOffresCarte(id_carte) }
         // lorsqu'on recoit une update du côté backend, lance l'update
         socket.on("bazaar:updated", handleBazaarUpdate)
         // gère lorsqu'un utilisateur quitte la page, ferme la connection et le déconnecte
@@ -47,7 +108,7 @@ function Bazaar() {
             socket.off("bazaar:updated", handleBazaarUpdate)
             socket.disconnect()
         }
-    }, [getCartes])
+    }, [getOffresCarte])
 
     // useEffect pour récuperer les cartes du bazaar au chargement de la page
     useEffect(() => {
@@ -289,11 +350,52 @@ function Bazaar() {
                     {/* Bouton pour ajouter une carte a vendre */}
                     <div className="field">
                         <div className="control">
-                            <button type="button" className="button is-success" style={{ marginRight: "1em" }}>
+                            <button type="button" className="button is-success" style={{ marginRight: "1em" }} onClick={ouvrirInventaire}>
                                 Ajouter une carte à vendre
                             </button>
                         </div>
                     </div>
+
+                    {inventaireOuvert &&
+                        <div className="modal is-active bazaar-modal">
+                            <div className="modal-background" onClick={fermerInventaire}></div>
+                            <div className="modal-card bazaar-inventory-modal">
+                                <header className="modal-card-head">
+                                    <p className="modal-card-title">Choisir une carte à vendre</p>
+                                    <button type="button" className="delete" aria-label="Fermer" onClick={fermerInventaire}></button>
+                                </header>
+                                <section className="modal-card-body">
+                                    {inventaireEnChargement &&
+                                        <div className="has-text-centered py-6">
+                                            <span className="loader bazaar-inventory-modal__loader"></span>
+                                            <p className="mt-4">Chargement de l'inventaire...</p>
+                                        </div>
+                                    }
+                                    {!inventaireEnChargement && erreurInventaire &&
+                                        <div className="notification is-danger">{erreurInventaire}</div>
+                                    }
+                                    {!inventaireEnChargement && !erreurInventaire && inventaire.length === 0 &&
+                                        <p className="has-text-centered">Aucune carte dans votre inventaire.</p>
+                                    }
+                                    {!inventaireEnChargement && !erreurInventaire && inventaire.length > 0 &&
+                                        <div className="inventory-cards-grid">
+                                            {inventaire.map((carte) => (
+                                                <Card
+                                                    key={carte.id_carte}
+                                                    carte={carte}
+                                                    quantite={carte.quantite}
+                                                    onClick={() => { }}
+                                                />
+                                            ))}
+                                        </div>
+                                    }
+                                </section>
+                                <footer className="modal-card-foot">
+                                    <button type="button" className="button" onClick={fermerInventaire}>Fermer</button>
+                                </footer>
+                            </div>
+                        </div>
+                    }
 
                     {/* Affichage de toutes les cartes du jeu */}
                     {cartesFiltres != null &&
@@ -330,7 +432,7 @@ function Bazaar() {
                                 </header>
                                 <section className="modal-card-body">
                                     <div className="bazaar-modal__carte">
-                                        <Card carte={carteSelectionnee} onClick={() => {}} />
+                                        <Card carte={carteSelectionnee} onClick={() => { }} />
                                     </div>
                                     {offresCarte.length === 0 &&
                                         <p>Personne ne vend cette carte pour le moment.</p>
