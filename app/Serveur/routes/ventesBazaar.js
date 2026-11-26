@@ -25,6 +25,7 @@ router.get('/me', checkAuth, async (req, res) => {
 })
 
 // GET obtenir les 5 prix les plus bas pour une carte donnée en params
+// TODO ajouter un autre filtre pour prioriser les offres de ventes les plus vielles pour un meme prix
 router.get('/:id', checkAuth, async (req, res) => {
     try {
         const id = Number(req.params.id)
@@ -83,4 +84,11 @@ router.post('/:id', checkAuth, async (req, res) => {
 })
 
 
+// TODO route pour retirer l'offre de vente
+
+
+/* TODO FRONT END
+    page diff pour les ventes avec barre de recherche
+    bulk sell (loop)
+*/
 export default router
