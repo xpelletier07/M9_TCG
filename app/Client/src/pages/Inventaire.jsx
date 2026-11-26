@@ -54,7 +54,9 @@ function Inventaire() {
             setLoading(true)
             setErreur(null)
             // 1. Récupérer les entrées d'inventaire de l'utilisateur
-            const reponseInventaire = await fetch(`${API_BASE_URL}/inventaire/${user.id}`)
+            const reponseInventaire = await fetch(`${API_BASE_URL}/inventaire/${user.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
             if (!reponseInventaire.ok) {
                 throw new Error("Erreur lors de la récupération de l'inventaire")
             }
@@ -110,7 +112,8 @@ function Inventaire() {
         if (!user) return
         try {
             const res = await fetch(`${API_BASE_URL}/carteInventaire/${user.id}/${carte.id_carte}`, {
-                method: 'POST'
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` }
             })
             if (!res.ok) {
                 console.error("Erreur lors de l'ajout")
