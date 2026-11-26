@@ -221,7 +221,9 @@ test("GET /api/card/:id retourne une carte", async () => {
 test("GET /inventaire/:id_user retourne l'inventaire", async () => {
     setQueryResult({ rows: [{ id_utilisateur: 7, id_carte: 5 }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/inventaire/7")
+    const { response, body } = await request("/inventaire/7", {
+        headers: authenticatedHeaders(),
+    })
 
     assert.equal(response.status, 200)
     assert.deepEqual(body, { cartes: [{ id_utilisateur: 7, id_carte: 5 }] })
@@ -230,7 +232,10 @@ test("GET /inventaire/:id_user retourne l'inventaire", async () => {
 test("POST /carteInventaire/:id_user/:id_carte ajoute une carte", async () => {
     setQueryResult({ rows: [{ id_utilisateur: 7, id_carte: 5 }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/carteInventaire/7/5", { method: "POST" })
+    const { response, body } = await request("/carteInventaire/7/5", {
+        method: "POST",
+        headers: authenticatedHeaders(),
+    })
 
     assert.equal(response.status, 201)
     assert.equal(body.newCard.id_carte, 5)
@@ -239,7 +244,10 @@ test("POST /carteInventaire/:id_user/:id_carte ajoute une carte", async () => {
 test("DELETE /carteInventaire/:id_user/:id_carte supprime une carte", async () => {
     setQueryResult({ rows: [{ id_utilisateur: 7, id_carte: 5 }], rowCount: 1, ok: true })
 
-    const { response, body } = await request("/carteInventaire/7/5", { method: "DELETE" })
+    const { response, body } = await request("/carteInventaire/7/5", {
+        method: "DELETE",
+        headers: authenticatedHeaders(),
+    })
 
     assert.equal(response.status, 200)
     assert.equal(body.deletedCard.id_carte, 5)
@@ -1139,10 +1147,36 @@ test("GET /api/card/:id retourne 500 sur erreur de base de données", async () =
 // /inventaire et /carteInventaire (inventaire de cartes par utilisateur)
 // =============================================================
 
+for (const [method, chemin] of [
+    ["GET", "/inventaire/7"],
+    ["POST", "/carteInventaire/7/5"],
+    ["DELETE", "/carteInventaire/7/5"],
+]) {
+    test(`${method} ${chemin} exige une authentification`, async () => {
+        const { response, body } = await request(chemin, { method })
+
+        assert.equal(response.status, 401)
+        assert.equal(body.error, "Authentification requise")
+    })
+
+    test(`${method} ${chemin} refuse l'accès à l'inventaire d'un autre utilisateur`, async () => {
+        const autreChemin = chemin.replace("/7", "/99")
+        const { response, body } = await request(autreChemin, {
+            method,
+            headers: authenticatedHeaders(),
+        })
+
+        assert.equal(response.status, 403)
+        assert.equal(body.error, "Accès refusé")
+    })
+}
+
 test("GET /inventaire/:id_user retourne une liste vide si l'inventaire est vide", async () => {
     setQueryResult({ rows: [], rowCount: 0 })
 
-    const { response, body } = await request("/inventaire/7")
+    const { response, body } = await request("/inventaire/7", {
+        headers: authenticatedHeaders(),
+    })
 
     assert.equal(response.status, 200)
     assert.deepEqual(body, { message: "Aucune carte dans l'inventaire", cartes: [] })
@@ -1152,7 +1186,9 @@ test("GET /inventaire/:id_user retourne 500 sur erreur de base de données", asy
     await withSilentErrors(async () => {
         setQueryError()
 
-        const { response, body } = await request("/inventaire/7")
+        const { response, body } = await request("/inventaire/7", {
+            headers: authenticatedHeaders(),
+        })
 
         assert.equal(response.status, 500)
         assert.equal(body.message, "Erreur serveur")
@@ -1168,7 +1204,10 @@ test("POST /carteInventaire/:id_user/:id_carte incrémente la quantité si la ca
         return { rows: [{ id_utilisateur: 7, id_carte: 5, quantite: 2 }], rowCount: 1 }
     })
 
-    const { response, body } = await request("/carteInventaire/7/5", { method: "POST" })
+    const { response, body } = await request("/carteInventaire/7/5", {
+        method: "POST",
+        headers: authenticatedHeaders(),
+    })
 
     assert.equal(response.status, 201)
     assert.equal(body.message, "Carte ajoutée à l'inventaire")
@@ -1181,7 +1220,10 @@ test("POST /carteInventaire/:id_user/:id_carte retourne 500 sur erreur de base d
     await withSilentErrors(async () => {
         setQueryError()
 
-        const { response, body } = await request("/carteInventaire/7/5", { method: "POST" })
+        const { response, body } = await request("/carteInventaire/7/5", {
+            method: "POST",
+            headers: authenticatedHeaders(),
+        })
 
         assert.equal(response.status, 500)
         assert.equal(body.message, "Erreur serveur")
@@ -1191,7 +1233,10 @@ test("POST /carteInventaire/:id_user/:id_carte retourne 500 sur erreur de base d
 test("DELETE /carteInventaire/:id_user/:id_carte retourne 404 si la carte n'est pas dans l'inventaire", async () => {
     setQueryResult({ rows: [], rowCount: 0 })
 
-    const { response, body } = await request("/carteInventaire/7/999", { method: "DELETE" })
+    const { response, body } = await request("/carteInventaire/7/999", {
+        method: "DELETE",
+        headers: authenticatedHeaders(),
+    })
 
     assert.equal(response.status, 404)
     assert.equal(body.message, "Carte non trouvée dans l'inventaire")
@@ -1201,7 +1246,10 @@ test("DELETE /carteInventaire/:id_user/:id_carte retourne 500 sur erreur de base
     await withSilentErrors(async () => {
         setQueryError()
 
-        const { response, body } = await request("/carteInventaire/7/5", { method: "DELETE" })
+        const { response, body } = await request("/carteInventaire/7/5", {
+            method: "DELETE",
+            headers: authenticatedHeaders(),
+        })
 
         assert.equal(response.status, 500)
         assert.equal(body.message, "Erreur serveur")

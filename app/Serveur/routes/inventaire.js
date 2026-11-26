@@ -1,11 +1,19 @@
 import { pool } from "./../db/pool.js"
 import express from "express"
+import { checkAuth } from "../middlewares/checkAuth.js"
 
 const router = express.Router()
 
+// Vérifie que l'utilisateur connecté accède à son propre inventaire (ou est admin)
+function checkOwnerOrAdmin(req, res, next) {
+    if (Number(req.params.id_user) !== Number(req.user.id) && req.user.statut !== "admin") {
+        return res.status(403).json({ error: "Accès refusé" })
+    }
+    next()
+}
 
 // Route pour get l'inventaire de cartes d'un utilisateur
-router.get("/inventaire/:id_user", async (req, res) => {
+router.get("/inventaire/:id_user", checkAuth, checkOwnerOrAdmin, async (req, res) => {
     try {
         const id_user = req.params.id_user;
         const result = await pool.query("SELECT * FROM inventaire_carte WHERE id_utilisateur = $1", [id_user]);
@@ -21,7 +29,7 @@ router.get("/inventaire/:id_user", async (req, res) => {
 
 // Route pour ajouter une carte à l'inventaire d'un utilisateur
 // Si la carte existe déjà, on incrémente la quantité au lieu d'échouer
-router.post("/carteInventaire/:id_user/:id_carte", async (req, res) => {
+router.post("/carteInventaire/:id_user/:id_carte", checkAuth, checkOwnerOrAdmin, async (req, res) => {
     try {
         const id_user = req.params.id_user;
         const id_carte = req.params.id_carte;
@@ -41,7 +49,7 @@ router.post("/carteInventaire/:id_user/:id_carte", async (req, res) => {
 })
 
 // Route pour supprimer une carte de l'inventaire d'un utilisateur
-router.delete("/carteInventaire/:id_user/:id_carte", async (req, res) => {
+router.delete("/carteInventaire/:id_user/:id_carte", checkAuth, checkOwnerOrAdmin, async (req, res) => {
     try {
         const id_user = req.params.id_user;
         const id_carte = req.params.id_carte;
