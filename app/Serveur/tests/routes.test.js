@@ -1832,3 +1832,117 @@ test("DELETE /pack/:id retourne 500 sur erreur de base de données", async () =>
         assert.equal(body.error, "Erreur serveur")
     })
 })
+
+// =============================================================
+// /collection — cas liés au nouveau modal de création/édition
+// (CardModal redesigné : image facultative côté UI, obligatoire
+//  côté serveur ; description optionnelle ; mise à jour partielle)
+// =============================================================
+
+test("POST /collection/card refuse une image vide", async () => {
+    const { response, body } = await request("/collection/card", {
+        method: "POST",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ ...carteValide, image: "" }),
+    })
+
+    assert.equal(response.status, 400)
+    assert.ok(Array.isArray(body.erreurs))
+    assert.ok(body.erreurs.some((e) => e.path === "image"))
+})
+
+test("POST /collection/card refuse un nomCarte vide", async () => {
+    const { response, body } = await request("/collection/card", {
+        method: "POST",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ ...carteValide, nomCarte: "" }),
+    })
+
+    assert.equal(response.status, 400)
+    assert.ok(Array.isArray(body.erreurs))
+    assert.ok(body.erreurs.some((e) => e.path === "nomCarte"))
+})
+
+test("POST /collection/card refuse un nomCarte absent", async () => {
+    const { nomCarte, ...sansTitre } = carteValide
+
+    const { response, body } = await request("/collection/card", {
+        method: "POST",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify(sansTitre),
+    })
+
+    assert.equal(response.status, 400)
+    assert.ok(Array.isArray(body.erreurs))
+    assert.ok(body.erreurs.some((e) => e.path === "nomCarte"))
+})
+
+test("PATCH /collection/:id met à jour l'image seule", async () => {
+    let queryText
+    let queryParams
+    setQueryResult((sql, params) => {
+        queryText = sql
+        queryParams = params
+        return { rows: [{ id_carte: 3, image: "nouvelle-image.png" }], rowCount: 1 }
+    })
+
+    const { response, body } = await request("/collection/3", {
+        method: "PATCH",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ image: "nouvelle-image.png" }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.image, "nouvelle-image.png")
+    assert.match(queryText, /"image" = \$1/)
+    assert.match(queryText, /WHERE id_carte = \$2/)
+    assert.deepEqual(queryParams, ["nouvelle-image.png", "3"])
+})
+
+test("PATCH /collection/:id met à jour la description seule", async () => {
+    let queryText
+    setQueryResult((sql) => {
+        queryText = sql
+        return { rows: [{ id_carte: 3, description: "Nouvelle description" }], rowCount: 1 }
+    })
+
+    const { response, body } = await request("/collection/3", {
+        method: "PATCH",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ description: "Nouvelle description" }),
+    })
+
+    assert.equal(response.status, 200)
+    assert.equal(body.description, "Nouvelle description")
+    assert.match(queryText, /"description" = \$1/)
+})
+
+// =============================================================
+// /carteInventaire — ajout de cartes depuis le modal inventaire
+// =============================================================
+
+test("POST /carteInventaire/:id_user/:id_carte retourne le bon message de succès", async () => {
+    setQueryResult({ rows: [{ id_utilisateur: 7, id_carte: 5, quantite: 1 }], rowCount: 1 })
+
+    const { response, body } = await request("/carteInventaire/7/5", { method: "POST" })
+
+    assert.equal(response.status, 201)
+    assert.equal(body.message, "Carte ajoutée à l'inventaire")
+    assert.ok(body.newCard)
+})
+
+test("POST /carteInventaire/:id_user/:id_carte initialise la quantité à 1 pour une nouvelle carte", async () => {
+    let queryText
+    setQueryResult((sql) => {
+        queryText = sql
+        return { rows: [{ id_utilisateur: 7, id_carte: 5, quantite: 1 }], rowCount: 1 }
+    })
+
+    const { response, body } = await request("/carteInventaire/7/5", { method: "POST" })
+
+    assert.equal(response.status, 201)
+    assert.equal(body.newCard.quantite, 1)
+    // la requête doit insérer avec quantite = 1 et utiliser ON CONFLICT pour l'incrément
+    assert.match(queryText, /values \(\$1, \$2, 1\)/i)
+    assert.match(queryText, /on conflict \(id_utilisateur, id_carte\)/i)
+})
