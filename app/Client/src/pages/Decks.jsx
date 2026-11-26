@@ -344,7 +344,7 @@ function Decks() {
         const rarityCounts = { 1: 0, 2: 0, 3: 0, 4: 0 }
 
         for (const carte of selectedDeckCards) {
-            const qty = carte.quantite ?? 1
+            const qty = Number(carte.quantite ?? 1)
             totalCount += qty
             totalMana += (carte.mana ?? 0) * qty
             totalAttack += (carte.damage ?? 0) * qty
@@ -365,6 +365,13 @@ function Decks() {
             rarityCounts,
         }
     }, [selectedDeckCards])
+
+    const deckSizeWarning = deckMetrics.totalCount > 50 ? (
+        <div className="decks-size-warning" role="status">
+            <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+            <span>Vous dépassez 50 cartes dans votre deck ({deckMetrics.totalCount} cartes)</span>
+        </div>
+    ) : null
 
     // Image de couverture résolue pour le deck actif
     const heroCoverUrl = getDeckCoverImage(selectedDeck)
@@ -619,6 +626,7 @@ function Decks() {
                                 </div>
 
                                 {/* ── Barre de Statistiques & Analytics du Deck ── */}
+                                {deckSizeWarning}
                                 <div className="decks-hud-bar">
                                     <div className="decks-hud-stat">
                                         <span className="decks-hud-label">Total Cartes</span>
@@ -766,6 +774,7 @@ function Decks() {
 
                         {/* ── Barre de Filtres & Recherche ── */}
                         <div className="decks-modal-filterbar">
+                            {deckSizeWarning}
                             <div className="decks-search-heading">
                                 <label htmlFor="deck-card-search">Trouvez votre prochaine carte</label>
                                 <span className="decks-search-results" role="status">

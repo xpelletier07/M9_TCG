@@ -169,6 +169,10 @@ code {
   font-weight: 900;
 }
 
+.combat-result-confirm h2 {
+  color: #16343c;
+}
+
 .combat-result p {
   color: #58717a;
   font-size: 0.95rem;
@@ -833,6 +837,11 @@ html.tcg-dark .combat-result p {
 
 html.tcg-dark .combat-result p strong {
   color: #f0f3f3;
+}
+
+/* Le titre de la confirmation d'abandon doit rester lisible sur le fond sombre. */
+html.tcg-dark .combat-result-confirm h2 {
+  color: #ffffff;
 }
 
 html.tcg-dark .combat-page-header h1 {

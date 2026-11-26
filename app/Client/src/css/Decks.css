@@ -752,6 +752,24 @@ html.tcg-dark .decks-page {
 }
 
 /* ── BARRE DE STATISTIQUES & ANALYTICS (HUD) ── */
+.decks-size-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #d97706;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+html.tcg-dark .decks-size-warning {
+  background: #422b10;
+  color: #fde68a;
+}
+
 .decks-hud-bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
