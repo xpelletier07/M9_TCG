@@ -1832,3 +1832,76 @@ test("DELETE /pack/:id retourne 500 sur erreur de base de données", async () =>
         assert.equal(body.error, "Erreur serveur")
     })
 })
+const carteLegendaire = {
+    nomCarte: "Dragon test",
+    image: "https://example.com/dragon.png",
+    description: "Un dragon",
+    rarete: "4",
+    valeur: "100",
+    mana: "7",
+    health: "8",
+    damage: "6",
+}
+
+test("POST /collection/card refuse des capacités sur une carte non légendaire", async () => {
+    setQueryResult({ rows: [{ id_carte: 1 }], rowCount: 1 })
+    const { response, body } = await request("/collection/card", {
+        method: "POST",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ ...carteLegendaire, rarete: "2", capacites: { vol: true } }),
+    })
+    assert.equal(response.status, 400)
+    assert.ok(body.erreurs.some((e) => e.path === "capacites"))
+})
+
+test("POST /collection/card refuse une capacité hors catalogue ou un niveau invalide", async () => {
+    setQueryResult({ rows: [{ id_carte: 1 }], rowCount: 1 })
+    const { response, body } = await request("/collection/card", {
+        method: "POST",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({
+            ...carteLegendaire,
+            capacites: { furie_des_vents: true, inspiration: 9 },
+        }),
+    })
+    assert.equal(response.status, 400)
+    assert.ok(body.erreurs.some((e) => e.path === "capacites"), JSON.stringify(body))
+})
+
+test("POST /collection/card enregistre les capacités d'une légendaire", async () => {
+    let params
+    setQueryResult(async (_sql, values) => {
+        params = values
+        return { rows: [{ id_carte: 1 }], rowCount: 1 }
+    })
+    const capacites = { vol: true, inspiration: 3 }
+    const { response } = await request("/collection/card", {
+        method: "POST",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ ...carteLegendaire, capacites }),
+    })
+    assert.equal(response.status, 201)
+    assert.deepEqual(JSON.parse(params.at(-1)), capacites)
+})
+
+test("PATCH /collection/:id refuse de baisser la rareté d'une carte à capacités", async () => {
+    setQueryResult({ rows: [{ rarete: 4, capacites: { vol: true } }], rowCount: 1 })
+    const { response, body } = await request("/collection/5", {
+        method: "PATCH",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ rarete: 2 }),
+    })
+    assert.equal(response.status, 400)
+    assert.ok(body.erreurs.some((e) => e.msg.includes("Retire les capacités")))
+})
+
+test("PATCH /collection/:id refuse des capacités seules sur une carte commune", async () => {
+    setQueryResult({ rows: [{ rarete: 1, capacites: {} }], rowCount: 1 })
+    const { response, body } = await request("/collection/5", {
+        method: "PATCH",
+        headers: jsonHeaders(adminHeaders()),
+        body: JSON.stringify({ capacites: { haste: true } }),
+    })
+    assert.equal(response.status, 400)
+    assert.ok(body.erreurs.some((e) => e.path === "capacites"), JSON.stringify(body))
+})

@@ -1,8 +1,8 @@
-// Chiffre de dégâts flottant, positionné en coordonnées de la fenêtre
-function DamageNumber({ amount, x, y }) {
+// Chiffre de dégâts (ou de soin) flottant, positionné en coordonnées de la fenêtre
+function DamageNumber({ amount, x, y, heal = false }) {
   return (
-    <span className="arena-damage" style={{ left: x, top: y }} aria-hidden="true">
-      −{amount}
+    <span className={`arena-damage ${heal ? 'arena-damage--heal' : ''}`} style={{ left: x, top: y }} aria-hidden="true">
+      {heal ? '+' : '−'}{amount}
     </span>
   )
 }

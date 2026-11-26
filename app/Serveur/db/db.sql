@@ -33,7 +33,8 @@ create table if not exists carte (
     valeur float not null,
     mana int not null,
     health int not null,
-    damage int not null
+    damage int not null,
+    capacites jsonb not null default '{}'::jsonb
 );
 
 DO $$

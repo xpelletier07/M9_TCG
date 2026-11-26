@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { CAPACITES_INFO, libelleCapacite } from '../../capacites.js'
 
 // Durées (ms) des animations ; ramenées à presque 0 si l'utilisateur réduit les animations
-const DURATIONS = { lunge: 380, hit: 420, death: 480, enter: 450, banner: 1300, damage: 900 }
+const DURATIONS = { lunge: 380, hit: 420, death: 480, enter: 450, banner: 1300, damage: 900, trigger: 380 }
+// Événements de capacités qui ont une animation sur la créature ou le joueur
+const ABILITY_EVENTS = ['shield', 'heal', 'buff']
 const LOG_MAX = 30
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -75,8 +78,47 @@ export default function useArenaEvents() {
     const addLog = (kind, text, mine) => log.push({ id: nextId(), kind, text, mine })
     const events = gs.events ?? []
 
-    // Phase 1 : attaques, dégâts et morts, jouées sur l'état actuellement affiché
+    // Affiche un chiffre flottant (dégâts ou soin) sur une créature ou un joueur
+    const floatNumber = (key, amount, heal = false) => {
+      const element = elementFor(key)
+      if (!element) return
+      const { x, y } = centerOf(element)
+      const id = nextId()
+      setDamageNumbers((list) => [...list, { id, amount, x, y, heal }])
+      setTimeout(() => mountedRef.current && setDamageNumbers((list) => list.filter((d) => d.id !== id)), reduced ? 600 : DURATIONS.damage)
+    }
+
+    // Phase 1 : attaques, capacités, dégâts et morts, jouées sur l'état actuellement affiché
     for (const event of events) {
+      if (event.type === 'play') {
+        // Journalisé ici pour précéder les capacités résolues quand la carte est jouée
+        addLog('play', `${nameOf(event.playerId)} pose ${event.card.nom_carte}`, event.playerId === me)
+      }
+
+      if (event.type === 'ability') {
+        const info = CAPACITES_INFO[event.capacite]
+        addLog('trigger', `${event.nom_carte} : ${info ? libelleCapacite({ ...info, niveau: event.niveau }) : 'capacité'}`, event.playerId === me)
+        setEffect(event.instanceId, 'is-triggering')
+        await wait(DURATIONS.trigger)
+        setEffect(event.instanceId, null)
+      }
+
+      if (event.type === 'shield') {
+        const remaining = event.remaining > 0 ? ` (${event.remaining} restant${event.remaining > 1 ? 's' : ''})` : ''
+        addLog('shield', `Le bouclier de ${cards.get(event.instanceId)?.nom_carte ?? 'une créature'} bloque les dégâts${remaining}`, event.playerId === me)
+        setEffect(event.instanceId, 'is-shield-break')
+      }
+
+      if (event.type === 'heal') {
+        const key = event.targetType === 'player' ? `player-${sideOf(event.playerId)}` : event.instanceId
+        floatNumber(key, event.amount, true)
+        setEffect(key, 'is-healed')
+      }
+
+      if (event.type === 'buff') {
+        setEffect(event.instanceId, 'is-buffed')
+      }
+
       if (event.type === 'attack') {
         const attacker = cards.get(event.attackerId)
         const attackerIsMe = event.playerId === me
@@ -104,13 +146,7 @@ export default function useArenaEvents() {
 
       if (event.type === 'damage') {
         const key = event.targetType === 'player' ? `player-${sideOf(event.playerId)}` : event.instanceId
-        const element = elementFor(key)
-        if (element) {
-          const { x, y } = centerOf(element)
-          const id = nextId()
-          setDamageNumbers((list) => [...list, { id, amount: event.amount, x, y }])
-          setTimeout(() => mountedRef.current && setDamageNumbers((list) => list.filter((d) => d.id !== id)), reduced ? 600 : DURATIONS.damage)
-        }
+        floatNumber(key, event.amount)
         setEffect(key, 'is-hit')
       }
 
@@ -119,7 +155,7 @@ export default function useArenaEvents() {
         addLog('death', `${event.nom_carte} est détruite`, event.playerId === me)
       }
     }
-    if (events.some((e) => e.type === 'damage')) await wait(DURATIONS.hit)
+    if (events.some((e) => e.type === 'damage' || ABILITY_EVENTS.includes(e.type))) await wait(DURATIONS.hit)
     if (events.some((e) => e.type === 'death')) await wait(DURATIONS.death)
 
     // Phase 2 : nouvel état, puis animations d'entrée (cartes posées / piochées)
@@ -137,10 +173,7 @@ export default function useArenaEvents() {
         addLog('turn', `Tour ${event.turn} — ${nameOf(event.playerId)}`, mine)
         setBanner({ id: nextId(), mine, text: mine ? 'À toi de jouer !' : `Tour de ${nameOf(event.playerId)}` })
       }
-      if (event.type === 'play') {
-        addLog('play', `${nameOf(event.playerId)} pose ${event.card.nom_carte}`, event.playerId === me)
-        entering.push(event.card.instanceId)
-      }
+      if (event.type === 'play') entering.push(event.card.instanceId)
       if (event.type === 'draw') {
         if (event.card) entering.push(event.card.instanceId)
         if (!isOpeningDeal) addLog('draw', `${nameOf(event.playerId)} pioche une carte`, event.playerId === me)

@@ -15,10 +15,12 @@ import TurnBanner from '../components/arena/TurnBanner.jsx'
 import TurnBar from '../components/arena/TurnBar.jsx'
 import useArenaEvents from '../components/arena/useArenaEvents.js'
 import useArenaTargeting from '../components/arena/useArenaTargeting.js'
+import { CAPACITES_CIBLEES, CAPACITES_INFO, aCapacite, etapesCiblage } from '../capacites.js'
 import { API_BASE_URL } from '../config'
 import '../css/Arena.css'
 
 const RESULT_REDIRECT_MS = 8000
+const MAX_BOARD = 7
 
 function Arena() {
   const { user, token } = useAuth()
@@ -39,6 +41,8 @@ function Arena() {
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false)
   const [combatResult, setCombatResult] = useState(null)
   const [toast, setToast] = useState(null)
+  // Carte jouée qui attend ses cibles : { instanceId, etapes: ['inspiration', ...], cibles: {} }
+  const [pendingPlay, setPendingPlay] = useState(null)
   const { displayedState: gs, effects, damageNumbers, banner, logEntries, clockOffset, enqueue, isAnimating } = useArenaEvents()
 
   const showToast = useCallback((text) => {
@@ -120,10 +124,62 @@ function Arena() {
   const isMyTurn = Boolean(gs?.isMyTurn) && !combatResult && gs?.winnerId == null
 
   const targeting = useArenaTargeting({
-    enabled: isMyTurn,
-    onPlay: (instanceId) => socketRef.current?.emit('combat:play-card', { instanceId }),
+    enabled: isMyTurn && !pendingPlay,
+    onPlay: requestPlay,
     onAttack: (attackerInstanceId, target) => socketRef.current?.emit('combat:attack', { attackerInstanceId, target }),
   })
+
+  // Plus mon tour : on abandonne la carte en attente de cibles
+  useEffect(() => {
+    if (isMyTurn) return undefined
+    const id = setTimeout(() => setPendingPlay(null), 0)
+    return () => clearTimeout(id)
+  }, [isMyTurn])
+
+  useEffect(() => {
+    if (!pendingPlay) return undefined
+    function onKey(event) {
+      if (event.key === 'Escape') setPendingPlay(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [pendingPlay])
+
+  // Inspiration / Intimidation : le joueur choisit la créature avant que la carte soit envoyée au serveur
+  function requestPlay(instanceId) {
+    const card = gs?.me.hand.find((c) => c.instanceId === instanceId)
+    // Terrain plein : on envoie quand même, le serveur répond avec le message d'erreur
+    const etapes = card && gs.me.board.length < MAX_BOARD ? etapesCiblage(card, gs.me.board, gs.opponent.board) : []
+    if (etapes.length === 0) {
+      socketRef.current?.emit('combat:play-card', { instanceId })
+      return
+    }
+    // Différé : le clic qui suit un glisser-déposer sur le terrain ne doit pas annuler le ciblage (onBackgroundClick)
+    setTimeout(() => setPendingPlay({ instanceId, etapes, cibles: {} }), 0)
+  }
+
+  function chooseAbilityTarget(targetInstanceId) {
+    const [etape, ...suivantes] = pendingPlay.etapes
+    const cibles = { ...pendingPlay.cibles, [etape]: targetInstanceId }
+    if (suivantes.length > 0) {
+      setPendingPlay({ ...pendingPlay, etapes: suivantes, cibles })
+      return
+    }
+    socketRef.current?.emit('combat:play-card', { instanceId: pendingPlay.instanceId, cibles })
+    setPendingPlay(null)
+  }
+
+  // Côté que vise l'étape de ciblage en cours ('allie' ou 'adverse'), sinon null
+  const abilityStep = pendingPlay?.etapes[0] ?? null
+  const abilitySide = abilityStep ? CAPACITES_CIBLEES[abilityStep] : null
+  function bindAbilityTarget(card) {
+    return {
+      onClick: (event) => {
+        event.stopPropagation()
+        chooseAbilityTarget(card.instanceId)
+      },
+    }
+  }
 
   function sendMessage(event) {
     event.preventDefault()
@@ -147,17 +203,26 @@ function Arena() {
     socketRef.current?.emit('combat:end-turn')
   }
 
-  // Clic dans le vide : on annule la sélection d'un attaquant
+  // Clic dans le vide : on annule la sélection d'un attaquant ou la carte en attente de cibles
   function onBackgroundClick(event) {
-    if (!targeting.selectedAttackerId) return
+    if (!targeting.selectedAttackerId && !pendingPlay) return
     if (event.target.closest('[data-instance-id], [data-target="player"], button')) return
     targeting.cancel()
+    setPendingPlay(null)
   }
 
   const { drag, aiming } = targeting
   const isDraggingCard = drag?.kind === 'play'
-  // Tant que l'adversaire a une créature sur le terrain, on ne peut pas l'attaquer directement
-  const isOpponentShielded = (gs?.opponent.board.length ?? 0) > 0
+  // Ciblage : Provocation doit être attaquée en premier (même par Vol) ; sinon le joueur est protégé
+  // par ses créatures. Vol ignore les créatures terrestres, pas celles avec Vol. Le serveur reste l'autorité.
+  const attackerId = targeting.selectedAttackerId ?? (drag?.kind === 'attack' ? drag.instanceId : null)
+  const attackerCard = gs?.me.board.find((card) => card.instanceId === attackerId)
+  const opponentBoard = gs?.opponent.board ?? []
+  const opponentHasTaunt = opponentBoard.some((card) => aCapacite(card, 'provocation'))
+  const canTargetCard = (card) => !opponentHasTaunt || aCapacite(card, 'provocation')
+  const isOpponentShielded = opponentHasTaunt || (aCapacite(attackerCard, 'vol')
+    ? opponentBoard.some((card) => aCapacite(card, 'vol'))
+    : opponentBoard.length > 0)
 
   return (
     <main className="content-left-spacing arena-page">
@@ -175,7 +240,7 @@ function Arena() {
         />
       )}
 
-      <div className={`arena ${aiming ? 'is-aiming' : ''} ${isDraggingCard ? 'is-dragging-card' : ''}`} onClick={onBackgroundClick}>
+      <div className={`arena ${aiming || pendingPlay ? 'is-aiming' : ''} ${isDraggingCard ? 'is-dragging-card' : ''}`} onClick={onBackgroundClick}>
         <header className="arena-header">
           <div>
             <span className="arena-kicker">Arène de combat</span>
@@ -218,9 +283,11 @@ function Arena() {
                   <ArenaCard
                     key={card.instanceId}
                     card={card}
-                    targetable={aiming}
+                    targetable={(aiming && canTargetCard(card)) || abilitySide === 'adverse'}
                     effect={effects[card.instanceId]}
-                    {...targeting.bindTarget({ type: 'card', instanceId: card.instanceId })}
+                    {...(abilitySide === 'adverse'
+                      ? bindAbilityTarget(card)
+                      : canTargetCard(card) ? targeting.bindTarget({ type: 'card', instanceId: card.instanceId }) : {})}
                   />
                 ))}
               </ArenaLane>
@@ -242,8 +309,9 @@ function Arena() {
                     card={card}
                     canAttack={isMyTurn && card.canAttack}
                     selected={targeting.selectedAttackerId === card.instanceId || (drag?.kind === 'attack' && drag.instanceId === card.instanceId)}
+                    targetable={abilitySide === 'allie'}
                     effect={effects[card.instanceId]}
-                    {...targeting.bindBoardCard(card)}
+                    {...(abilitySide === 'allie' ? bindAbilityTarget(card) : targeting.bindBoardCard(card))}
                   />
                 ))}
               </ArenaLane>
@@ -270,6 +338,7 @@ function Arena() {
                       card={card}
                       variant="hand"
                       playable={playable}
+                      selected={pendingPlay?.instanceId === card.instanceId}
                       dimmed={!playable}
                       dragging={dragging}
                       effect={effects[card.instanceId]}
@@ -287,9 +356,14 @@ function Arena() {
         )}
 
         <TargetingArrow drag={drag} />
-        {damageNumbers.map((d) => <DamageNumber key={d.id} amount={d.amount} x={d.x} y={d.y} />)}
+        {damageNumbers.map((d) => <DamageNumber key={d.id} amount={d.amount} x={d.x} y={d.y} heal={d.heal} />)}
         {aiming && !drag && (
           <div className="arena-hint" role="status">Choisis une cible · Échap pour annuler</div>
+        )}
+        {abilityStep && (
+          <div className="arena-hint" role="status">
+            {CAPACITES_INFO[abilityStep].nom} : choisis une créature {abilitySide === 'allie' ? 'alliée' : 'adverse'} · Échap pour annuler
+          </div>
         )}
         {toast && <div className="arena-toast" role="alert">{toast}</div>}
       </div>

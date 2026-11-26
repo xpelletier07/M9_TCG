@@ -2,8 +2,14 @@ import { pool } from "./../db/pool.js"
 import express from "express"
 import { body, validationResult } from 'express-validator'
 import { checkAdmin, checkAuth } from './../middlewares/checkAuth.js'
+import { aDesCapacites, normaliserCapacites, validerCapacites } from './../game/capacites.js'
 
 const router = express.Router()
+
+// Erreurs de capacités au même format que celles d'express-validator
+function erreursCapacites(messages) {
+    return messages.map((msg) => ({ type: "field", msg, path: "capacites", location: "body" }))
+}
 
 // Règles express-validator, si la description est vide remplace par "Aucune description"
 const reglesCartes = [
@@ -79,12 +85,17 @@ router.post("/card", checkAdmin, reglesCartes, async (req, res) => {
         if (!resultat.isEmpty()) {
             return res.status(400).json({ erreurs: resultat.array() })
         }
+        const capacites = normaliserCapacites(req.body.capacites)
+        const erreurs = validerCapacites(capacites, rarete)
+        if (erreurs.length > 0) {
+            return res.status(400).json({ erreurs: erreursCapacites(erreurs) })
+        }
         // les $1, $2, etc, sont une méthode incluse avec postgresql, qui aident a garder les accents, charactères spéciaux, et aussi à contrer les injections sql. 
         // postgresql remplace $1 par la premiere valeur dans la liste donnée en 2e argument a .query, ici nomCarte. 
-        const reponse = await pool.query(`insert into carte (nom_carte, image, description, rarete, valeur, mana, health, damage) 
-            values ($1, $2, $3, $4, $5, $6, $7, $8)
+        const reponse = await pool.query(`insert into carte (nom_carte, image, description, rarete, valeur, mana, health, damage, capacites) 
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             returning *`,
-            [nomCarte, image, description, rarete, valeur, mana, health, damage])
+            [nomCarte, image, description, rarete, valeur, mana, health, damage, JSON.stringify(capacites)])
         return res.status(201).json(reponse.rows[0])
     } catch (error) {
         console.error("Erreur dans POST /collection/add", error)
@@ -106,6 +117,23 @@ router.patch("/:id", checkAdmin, async (req, res) => {
         if (mana !== undefined) champs.mana = mana
         if (health !== undefined) champs.health = health
         if (damage !== undefined) champs.damage = damage
+        // La rareté et les capacités se valident ensemble, avec les valeurs en base pour ce qui n'est pas envoyé
+        if (req.body.capacites !== undefined || rarete !== undefined) {
+            const actuelle = await pool.query("select rarete, capacites from carte where id_carte = $1", [id])
+            if (actuelle.rows.length === 0) {
+                return res.status(404).json({ message: "Carte non trouvée" })
+            }
+            const rareteFinale = Number(rarete ?? actuelle.rows[0].rarete)
+            const capacitesFinales = normaliserCapacites(req.body.capacites ?? actuelle.rows[0].capacites)
+            if (rarete !== undefined && rareteFinale !== 4 && aDesCapacites(capacitesFinales)) {
+                return res.status(400).json({ erreurs: erreursCapacites(["Retire les capacités avant de baisser la rareté."]) })
+            }
+            const erreurs = validerCapacites(capacitesFinales, rareteFinale)
+            if (erreurs.length > 0) {
+                return res.status(400).json({ erreurs: erreursCapacites(erreurs) })
+            }
+            if (req.body.capacites !== undefined) champs.capacites = JSON.stringify(capacitesFinales)
+        }
         const cles = Object.keys(champs)
         if (cles.length === 0) {
             return res.status(400).json({ message: "Aucun champ à mettre à jour" })

@@ -420,3 +420,29 @@
     transition: none;
   }
 }
+/* Capacités spéciales (légendaires) */
+.inventory-card__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0 0 0.55rem;
+  padding: 0;
+  list-style: none;
+}
+
+.inventory-card__keyword {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid rgba(var(--card-accent-rgb), 0.7);
+  border-radius: 999px;
+  background: rgba(var(--card-accent-rgb), 0.16);
+  color: var(--card-accent);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  white-space: nowrap;
+}
