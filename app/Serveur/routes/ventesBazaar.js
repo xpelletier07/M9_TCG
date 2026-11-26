@@ -82,20 +82,5 @@ router.post('/:id', checkAuth, async (req, res) => {
     }
 })
 
-// route pour obtenir les 5 prix les moins chers pour une carte donnée
-router.get("/:id/prix", checkAuth, async (req, res) => {
-    try {
-        const idCarte = Number(req.params.id)
-
-        const result = await pool.query(`
-                SELECT * FROM ventes WHERE id_carte = $1 AND id_acheteur IS NULL
-                ORDER BY prix ASC, date_mise_en_vente ASC LIMIT 5`, [idCarte])
-
-        return res.status(200).json(result.rows[0])
-    } catch (error) {
-        console.error("Erreur dans GET /venteBazaar/:id/prix", error)
-        return res.status(500).json({ error: "Erreur serveur" })
-    }
-})
 
 export default router
